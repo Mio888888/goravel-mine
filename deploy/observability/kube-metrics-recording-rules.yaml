@@ -1,0 +1,80 @@
+groups:
+  - name: goravel-mine.kubernetes
+    interval: 30s
+    rules:
+      - record: goravel_mine:pod_cpu_usage_cores:sum
+        expr: |
+          sum by (namespace, pod) (
+            rate(container_cpu_usage_seconds_total{
+              namespace="goravel-mine",
+              container!="",
+              pod=~"goravel-mine.*"
+            }[5m])
+          )
+
+      - record: goravel_mine:pod_memory_working_set_bytes:sum
+        expr: |
+          sum by (namespace, pod) (
+            container_memory_working_set_bytes{
+              namespace="goravel-mine",
+              container!="",
+              pod=~"goravel-mine.*"
+            }
+          )
+
+      - record: goravel_mine:pod_restart_total:increase_15m
+        expr: |
+          sum by (namespace, pod) (
+            increase(kube_pod_container_status_restarts_total{
+              namespace="goravel-mine",
+              pod=~"goravel-mine.*"
+            }[15m])
+          )
+
+      - alert: GoravelMinePodRestarting
+        expr: goravel_mine:pod_restart_total:increase_15m > 0
+        for: 5m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: platform
+        annotations:
+          summary: Goravel Mine pod restarted
+          description: Pod restarted in the last 15m. Check OOM, liveness probe, recent rollout, and container logs.
+
+      - alert: GoravelMineHighPodMemory
+        expr: goravel_mine:pod_memory_working_set_bytes:sum > 450 * 1024 * 1024
+        for: 10m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: saturation
+        annotations:
+          summary: Goravel Mine pod memory high
+          description: Pod working set is above 450Mi for 10m. Check heap metrics, GC, and upload/export traffic.
+
+      - alert: GoravelMinePodNotReady
+        expr: kube_pod_status_ready{namespace="goravel-mine", condition="true", pod=~"goravel-mine.*"} == 0
+        for: 5m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: availability
+        annotations:
+          summary: Goravel Mine pod not ready
+          description: A pod is not ready for 5m. Check readiness dependency, rollout status, DB/cache, and events.
+
+      - alert: GoravelMineQueueWorkerUnavailable
+        expr: |
+          kube_deployment_status_replicas_unavailable{
+            namespace="goravel-mine",
+            deployment=~"goravel-mine.*queue-worker"
+          } > 0
+        for: 5m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: queue
+        annotations:
+          summary: Goravel Mine queue worker unavailable
+          description: Queue worker deployment has unavailable replicas for 5m. Check Redis, worker logs, recent rollout, and failed_jobs backlog.

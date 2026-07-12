@@ -1,0 +1,53 @@
+name: Nightly resilience
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        type: choice
+        options: [quick, soak]
+        default: quick
+  schedule:
+    - cron: "30 17 * * 1-6"
+    - cron: "30 17 * * 0"
+
+jobs:
+  resilience:
+    runs-on: [self-hosted, resilience]
+    environment: resilience
+    timeout-minutes: 600
+    env:
+      RESILIENCE_ENVIRONMENT: ephemeral
+      RESILIENCE_TARGET_URL: ${{ vars.RESILIENCE_TARGET_URL }}
+      RESILIENCE_ACTION_MULTI_TENANT: ${{ secrets.RESILIENCE_ACTION_MULTI_TENANT }}
+      RESILIENCE_CLEANUP_MULTI_TENANT: ${{ secrets.RESILIENCE_CLEANUP_MULTI_TENANT }}
+      RESILIENCE_ACTION_CASBIN: ${{ secrets.RESILIENCE_ACTION_CASBIN }}
+      RESILIENCE_CLEANUP_CASBIN: ${{ secrets.RESILIENCE_CLEANUP_CASBIN }}
+      RESILIENCE_ACTION_REDIS: ${{ secrets.RESILIENCE_ACTION_REDIS }}
+      RESILIENCE_CLEANUP_REDIS: ${{ secrets.RESILIENCE_CLEANUP_REDIS }}
+      RESILIENCE_ACTION_QUEUE: ${{ secrets.RESILIENCE_ACTION_QUEUE }}
+      RESILIENCE_CLEANUP_QUEUE: ${{ secrets.RESILIENCE_CLEANUP_QUEUE }}
+      RESILIENCE_ACTION_DB_POOL: ${{ secrets.RESILIENCE_ACTION_DB_POOL }}
+      RESILIENCE_CLEANUP_DB_POOL: ${{ secrets.RESILIENCE_CLEANUP_DB_POOL }}
+      RESILIENCE_ACTION_MIGRATION: ${{ secrets.RESILIENCE_ACTION_MIGRATION }}
+      RESILIENCE_CLEANUP_MIGRATION: ${{ secrets.RESILIENCE_CLEANUP_MIGRATION }}
+      RESILIENCE_ACTION_SOAK: ${{ secrets.RESILIENCE_ACTION_SOAK }}
+      RESILIENCE_CLEANUP_SOAK: ${{ secrets.RESILIENCE_CLEANUP_SOAK }}
+      RESILIENCE_ACTION_RESTORE: ${{ secrets.RESILIENCE_ACTION_RESTORE }}
+      RESILIENCE_CLEANUP_RESTORE: ${{ secrets.RESILIENCE_CLEANUP_RESTORE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.24.0" }
+      - name: Run measured scenarios
+        run: |
+          profile="${{ inputs.profile || (github.event.schedule == '30 17 * * 0' && 'soak') || 'quick' }}"
+          scripts/run-resilience-suite.sh --profile="$profile"
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resilience-${{ github.run_id }}
+          path: artifacts/resilience/
+          if-no-files-found: error
+          retention-days: 30

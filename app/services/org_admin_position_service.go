@@ -1,0 +1,86 @@
+package services
+
+import (
+	"encoding/json"
+	"time"
+
+	contractsorm "github.com/goravel/framework/contracts/database/orm"
+	"goravel/app/http/request"
+	"goravel/app/models"
+)
+
+func (s *OrgAdminService) ListPositions(filters map[string]string, page, pageSize int) (request.PageResult[PositionRow], error) {
+	query := s.orm().Query().Table("position").
+		Select("position.id", "position.name", "position.dept_id", "department.name AS dept_name", "policy.policy_type", "policy.value").
+		Join("LEFT JOIN department ON department.id = position.dept_id").
+		Join("LEFT JOIN data_permission_policy policy ON policy.position_id = position.id AND policy.deleted_at IS NULL").
+		WhereNull("position.deleted_at")
+	query = applyStringFilter(query, "position.name", filters["name"])
+	if filters["dept_id"] != "" {
+		query = query.Where("position.dept_id", filters["dept_id"])
+	}
+	total, err := query.Count()
+	if err != nil {
+		return request.PageResult[PositionRow]{}, err
+	}
+	rows := make([]PositionRow, 0)
+	err = query.OrderBy("position.id").Offset((page - 1) * pageSize).Limit(pageSize).Scan(&rows)
+	for i := range rows {
+		if rows[i].PolicyType != "" {
+			rows[i].Policy = &PositionPolicy{
+				PolicyType: rows[i].PolicyType,
+				Value:      rows[i].Value,
+			}
+		}
+	}
+	return request.PageResult[PositionRow]{List: rows, Total: total}, err
+}
+
+func (s *OrgAdminService) CreatePosition(input PositionPayload) error {
+	return s.orm().Query().Create(&models.Position{
+		Name: input.Name, DeptID: input.DeptID, Timestamps: nowTimestamps(),
+	})
+}
+
+func (s *OrgAdminService) UpdatePosition(id uint64, input PositionPayload) error {
+	_, err := s.orm().Query().Table("position").Where("id", id).Update(map[string]any{
+		"name": input.Name, "dept_id": input.DeptID, "updated_at": time.Now(),
+	})
+	return err
+}
+
+func (s *OrgAdminService) DeletePositions(ids []uint64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := s.orm().Query().Table("position").WhereIn("id", uint64Any(ids)).Update("deleted_at", time.Now())
+	return err
+}
+
+func (s *OrgAdminService) SetPositionPolicy(positionID uint64, input PositionPayload) error {
+	if input.PolicyType == PolicyCustomFunc {
+		return BusinessError{Message: "自定义数据权限函数未注册"}
+	}
+	encoded, err := json.Marshal(mapOrEmptySlice(input.Value))
+	if err != nil {
+		return err
+	}
+	return s.orm().Transaction(func(tx contractsorm.Query) error {
+		_, err := tx.Table("data_permission_policy").Where("position_id", positionID).Delete()
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`
+			INSERT INTO data_permission_policy (position_id, policy_type, is_default, value, created_at, updated_at)
+			VALUES (?, ?, true, ?::jsonb, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+		`, positionID, string(input.PolicyType), string(encoded))
+		return err
+	})
+}
+
+func mapOrEmptySlice(value models.JSONSlice) models.JSONSlice {
+	if value == nil {
+		return models.JSONSlice{}
+	}
+	return value
+}

@@ -1,0 +1,81 @@
+groups:
+  - name: goravel-mine.external
+    interval: 30s
+    rules:
+      - alert: GoravelMinePostgresExporterDown
+        expr: |
+          (up{job=~"postgres-exporter.*"} == 0)
+            or
+          absent(up{job=~"postgres-exporter.*"})
+        for: 5m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: database
+        annotations:
+          summary: PostgreSQL exporter down
+          description: PostgreSQL exporter cannot be scraped. Check exporter pod, DATA_SOURCE_NAME, and DB network path.
+
+      - alert: GoravelMinePostgresConnectionsHigh
+        expr: |
+          sum(pg_stat_activity_count)
+            /
+          clamp_min(sum(pg_settings_max_connections), 1) > 0.8
+        for: 10m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: database
+        annotations:
+          summary: PostgreSQL connections above 80%
+          description: DB connection pressure is high. Check app DB pool waits, long queries, idle transactions, and tenant load.
+
+      - alert: GoravelMinePostgresDeadlocks
+        expr: increase(pg_stat_database_deadlocks[15m]) > 0
+        for: 1m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: database
+        annotations:
+          summary: PostgreSQL deadlocks detected
+          description: Deadlocks occurred in the last 15m. Check conflicting transactions and recent write-path changes.
+
+      - alert: GoravelMineRedisExporterDown
+        expr: |
+          (up{job=~"redis-exporter.*"} == 0)
+            or
+          absent(up{job=~"redis-exporter.*"})
+        for: 5m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: cache
+        annotations:
+          summary: Redis exporter down
+          description: Redis exporter cannot be scraped. Check exporter pod, REDIS_ADDR, password, and Redis network path.
+
+      - alert: GoravelMineRedisMemoryHigh
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes > 0.85)
+            and on(instance, job)
+          (redis_memory_max_bytes > 0)
+        for: 10m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: cache
+        annotations:
+          summary: Redis memory above 85%
+          description: Redis memory is high. Check eviction policy, cache key growth, queues, and sessions.
+
+      - alert: GoravelMineRedisRejectedConnections
+        expr: increase(redis_rejected_connections_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: cache
+        annotations:
+          summary: Redis rejected connections
+          description: Redis rejected connections in the last 5m. Check maxclients, app concurrency, and Redis health.

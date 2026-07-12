@@ -1,0 +1,362 @@
+{
+  "install": [
+    {
+      "id": "platform-rbac",
+      "name": "Platform RBAC",
+      "action": "install",
+      "enabled": true,
+      "command": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "platform-tenant",
+      "name": "Platform Tenant",
+      "action": "install",
+      "enabled": true,
+      "command": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "platform-observability",
+      "name": "Platform Observability",
+      "action": "install",
+      "enabled": true,
+      "command": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "reference-case",
+      "name": "Golden Reference Case",
+      "action": "install",
+      "enabled": true,
+      "command": "go run . artisan migrate",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "approval required with CRUD/API/E2E evidence"
+    },
+    {
+      "id": "scheduled-task",
+      "name": "Scheduled Task",
+      "action": "install",
+      "enabled": true,
+      "command": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "tenant-rbac",
+      "name": "Tenant RBAC",
+      "action": "install",
+      "enabled": true,
+      "command": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "action": "install",
+      "enabled": true,
+      "command": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "data-center",
+      "name": "Data Center",
+      "action": "install",
+      "enabled": true,
+      "command": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    }
+  ],
+  "rollback": [
+    {
+      "id": "data-center",
+      "name": "Data Center",
+      "action": "rollback",
+      "enabled": true,
+      "command": "go run . artisan migrate:rollback",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "action": "rollback",
+      "enabled": true,
+      "command": "go run . artisan migrate:rollback",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "tenant-rbac",
+      "name": "Tenant RBAC",
+      "action": "rollback",
+      "enabled": true,
+      "command": "go run . artisan migrate:rollback",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "scheduled-task",
+      "name": "Scheduled Task",
+      "action": "rollback",
+      "enabled": true,
+      "command": "go run . artisan migrate:rollback",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "reference-case",
+      "name": "Golden Reference Case",
+      "action": "rollback",
+      "enabled": true,
+      "command": "go run . artisan reference-case:rollback",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "approval required with CRUD/API/E2E evidence"
+    },
+    {
+      "id": "platform-observability",
+      "name": "Platform Observability",
+      "action": "rollback",
+      "enabled": true,
+      "command": "go run . artisan migrate:rollback",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "platform-tenant",
+      "name": "Platform Tenant",
+      "action": "rollback",
+      "enabled": true,
+      "command": "go run . artisan migrate:rollback",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "platform-rbac",
+      "name": "Platform RBAC",
+      "action": "rollback",
+      "enabled": true,
+      "command": "go run . artisan migrate:rollback",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    }
+  ],
+  "uninstall": [
+    {
+      "id": "data-center",
+      "name": "Data Center",
+      "action": "uninstall",
+      "enabled": true,
+      "command": "manual data review required",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "action": "uninstall",
+      "enabled": true,
+      "command": "manual data review required",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "tenant-rbac",
+      "name": "Tenant RBAC",
+      "action": "uninstall",
+      "enabled": true,
+      "command": "manual data review required",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "scheduled-task",
+      "name": "Scheduled Task",
+      "action": "uninstall",
+      "enabled": true,
+      "command": "manual data review required",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "reference-case",
+      "name": "Golden Reference Case",
+      "action": "uninstall",
+      "enabled": true,
+      "command": "manual data review required",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "approval required with CRUD/API/E2E evidence"
+    },
+    {
+      "id": "platform-observability",
+      "name": "Platform Observability",
+      "action": "uninstall",
+      "enabled": true,
+      "command": "manual data review required",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "platform-tenant",
+      "name": "Platform Tenant",
+      "action": "uninstall",
+      "enabled": true,
+      "command": "manual data review required",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "platform-rbac",
+      "name": "Platform RBAC",
+      "action": "uninstall",
+      "enabled": true,
+      "command": "manual data review required",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    }
+  ],
+  "upgrade": [
+    {
+      "id": "platform-rbac",
+      "name": "Platform RBAC",
+      "action": "upgrade",
+      "enabled": true,
+      "command": "go run . artisan migrate",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "platform-tenant",
+      "name": "Platform Tenant",
+      "action": "upgrade",
+      "enabled": true,
+      "command": "go run . artisan migrate",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "platform-observability",
+      "name": "Platform Observability",
+      "action": "upgrade",
+      "enabled": true,
+      "command": "go run . artisan migrate",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "reference-case",
+      "name": "Golden Reference Case",
+      "action": "upgrade",
+      "enabled": true,
+      "command": "go run . artisan reference-case:upgrade",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "approval required with CRUD/API/E2E evidence"
+    },
+    {
+      "id": "scheduled-task",
+      "name": "Scheduled Task",
+      "action": "upgrade",
+      "enabled": true,
+      "command": "go run . artisan migrate",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "tenant-rbac",
+      "name": "Tenant RBAC",
+      "action": "upgrade",
+      "enabled": true,
+      "command": "go run . artisan migrate",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "action": "upgrade",
+      "enabled": true,
+      "command": "go run . artisan migrate",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "data-center",
+      "name": "Data Center",
+      "action": "upgrade",
+      "enabled": true,
+      "command": "go run . artisan migrate",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    }
+  ]
+}

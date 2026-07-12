@@ -1,0 +1,32 @@
+{{- if and .Values.worker.enabled .Values.worker.autoscaling.enabled .Values.worker.autoscaling.keda.enabled }}
+{{- if gt (int .Values.worker.autoscaling.minReplicas) (int .Values.worker.autoscaling.maxReplicas) }}
+{{- fail "worker.autoscaling.minReplicas must not exceed worker.autoscaling.maxReplicas" }}
+{{- end }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}-queue-worker
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+    app.kubernetes.io/component: queue-worker
+spec:
+  scaleTargetRef:
+    name: {{ include "goravel-mine.fullname" . }}-queue-worker
+  minReplicaCount: {{ .Values.worker.autoscaling.minReplicas }}
+  maxReplicaCount: {{ .Values.worker.autoscaling.maxReplicas }}
+  cooldownPeriod: {{ .Values.worker.autoscaling.cooldownPeriodSeconds }}
+  pollingInterval: {{ .Values.worker.autoscaling.pollingIntervalSeconds }}
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: {{ .Values.worker.autoscaling.prometheus.serverAddress | quote }}
+        metricName: goravel_queue_pending_jobs
+        query: {{ printf "sum(goravel_queue_pending_jobs{queue_class=~%q})" .Values.worker.autoscaling.queueClassPattern | quote }}
+        threshold: {{ .Values.worker.autoscaling.targetPendingJobs | quote }}
+    - type: prometheus
+      metadata:
+        serverAddress: {{ .Values.worker.autoscaling.prometheus.serverAddress | quote }}
+        metricName: goravel_queue_oldest_backlog_age_seconds
+        query: {{ printf "max(goravel_queue_oldest_backlog_age_seconds{queue_class=~%q})" .Values.worker.autoscaling.queueClassPattern | quote }}
+        threshold: {{ .Values.worker.autoscaling.targetOldestAgeSeconds | quote }}
+{{- end }}

@@ -1,0 +1,18 @@
+{{- if and .Values.backup.enabled .Values.backup.pvc.create (not .Values.backup.existingClaim) (not .Values.backup.s3Bucket) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "goravel-mine.backupClaimName" . }}
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  accessModes:
+    {{- toYaml .Values.backup.pvc.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.backup.pvc.size | quote }}
+  {{- if .Values.backup.pvc.storageClass }}
+  storageClassName: {{ .Values.backup.pvc.storageClass | quote }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,3188 @@
+{
+  "modules": [
+    {
+      "id": "platform-rbac",
+      "name": "Platform RBAC",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/platformrbac",
+        "registry_key": "platform-rbac",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "enabled": true,
+      "dependencies": [],
+      "lifecycle": {
+        "install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "uninstall": "manual data review required",
+        "upgrade": "go run . artisan migrate",
+        "rollback": "go run . artisan migrate:rollback",
+        "destructive_check": "go run . artisan module:manifest:check",
+        "supports_hot_disable": false,
+        "requires_restart": true,
+        "breaking_change_policy": "document in release notes and block without review"
+      },
+      "seed_strategy": {
+        "mode": "idempotent",
+        "idempotent": true,
+        "command": "go run . artisan db:seed"
+      },
+      "frontend": {},
+      "routes": [
+        {
+          "name": "platform.permission.menus",
+          "method": "GET",
+          "path": "/admin/platform/permission/menus",
+          "middlewares": [
+            "platform-auth"
+          ]
+        },
+        {
+          "name": "platform.permission.roles",
+          "method": "GET",
+          "path": "/admin/platform/permission/roles",
+          "middlewares": [
+            "platform-auth"
+          ]
+        },
+        {
+          "name": "platform.permission.update",
+          "method": "POST",
+          "path": "/admin/platform/permission/update",
+          "middlewares": [
+            "platform-auth-audit"
+          ]
+        },
+        {
+          "name": "platform.user.list",
+          "method": "GET",
+          "path": "/admin/platform/user/list",
+          "permission": "platform:user:list",
+          "permissions": [
+            "platform:user:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.user.create",
+          "method": "POST",
+          "path": "/admin/platform/user",
+          "permission": "platform:user:save",
+          "permissions": [
+            "platform:user:save"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.user.update",
+          "method": "PUT",
+          "path": "/admin/platform/user/{id}",
+          "permission": "platform:user:update",
+          "permissions": [
+            "platform:user:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.user.delete",
+          "method": "DELETE",
+          "path": "/admin/platform/user",
+          "permission": "platform:user:delete",
+          "permissions": [
+            "platform:user:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.user.password",
+          "method": "PUT",
+          "path": "/admin/platform/user/password",
+          "permission": "platform:user:password",
+          "permissions": [
+            "platform:user:password"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.user.roles",
+          "method": "GET",
+          "path": "/admin/platform/user/{id}/roles",
+          "permission": "platform:user:getRole",
+          "permissions": [
+            "platform:user:getRole"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.user.set-roles",
+          "method": "PUT",
+          "path": "/admin/platform/user/{id}/roles",
+          "permission": "platform:user:setRole",
+          "permissions": [
+            "platform:user:setRole"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.role.list",
+          "method": "GET",
+          "path": "/admin/platform/role/list",
+          "permission": "platform:role:list",
+          "permissions": [
+            "platform:role:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.role.create",
+          "method": "POST",
+          "path": "/admin/platform/role",
+          "permission": "platform:role:save",
+          "permissions": [
+            "platform:role:save"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.role.update",
+          "method": "PUT",
+          "path": "/admin/platform/role/{id}",
+          "permission": "platform:role:update",
+          "permissions": [
+            "platform:role:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.role.delete",
+          "method": "DELETE",
+          "path": "/admin/platform/role",
+          "permission": "platform:role:delete",
+          "permissions": [
+            "platform:role:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.role.permissions",
+          "method": "GET",
+          "path": "/admin/platform/role/{id}/permissions",
+          "permission": "platform:role:getMenu",
+          "permissions": [
+            "platform:role:getMenu"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.role.set-menu",
+          "method": "PUT",
+          "path": "/admin/platform/role/{id}/permissions",
+          "permission": "platform:role:setMenu",
+          "permissions": [
+            "platform:role:setMenu"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.menu.list",
+          "method": "GET",
+          "path": "/admin/platform/menu/list",
+          "permission": "platform:menu:list",
+          "permissions": [
+            "platform:menu:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.menu.create",
+          "method": "POST",
+          "path": "/admin/platform/menu",
+          "permission": "platform:menu:create",
+          "permissions": [
+            "platform:menu:create"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.menu.update",
+          "method": "PUT",
+          "path": "/admin/platform/menu/{id}",
+          "permission": "platform:menu:save",
+          "permissions": [
+            "platform:menu:save"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.menu.delete",
+          "method": "DELETE",
+          "path": "/admin/platform/menu",
+          "permission": "platform:menu:delete",
+          "permissions": [
+            "platform:menu:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "key": "platform:user",
+          "parent_key": "platform",
+          "title": "平台用户",
+          "path": "/platform/user",
+          "component": "base/views/platform/user/index",
+          "permission": "platform:user:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.user",
+          "sort": 30
+        },
+        {
+          "key": "platform:role",
+          "parent_key": "platform",
+          "title": "平台角色",
+          "path": "/platform/role",
+          "component": "base/views/platform/role/index",
+          "permission": "platform:role:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.role",
+          "sort": 40
+        },
+        {
+          "key": "platform:menu",
+          "parent_key": "platform",
+          "title": "平台菜单",
+          "path": "/platform/menu",
+          "component": "base/views/platform/menu/index",
+          "permission": "platform:menu:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.menu",
+          "sort": 50
+        }
+      ],
+      "permissions": [
+        {
+          "key": "platform:user:list",
+          "description": "平台用户列表"
+        },
+        {
+          "key": "platform:user:save",
+          "description": "平台用户保存"
+        },
+        {
+          "key": "platform:user:update",
+          "description": "平台用户更新"
+        },
+        {
+          "key": "platform:user:delete",
+          "description": "平台用户删除"
+        },
+        {
+          "key": "platform:user:password",
+          "description": "平台用户初始化密码"
+        },
+        {
+          "key": "platform:user:getRole",
+          "description": "获取平台用户角色"
+        },
+        {
+          "key": "platform:user:setRole",
+          "description": "平台用户角色赋予"
+        },
+        {
+          "key": "platform:role:list",
+          "description": "平台角色列表"
+        },
+        {
+          "key": "platform:role:save",
+          "description": "平台角色保存"
+        },
+        {
+          "key": "platform:role:update",
+          "description": "平台角色更新"
+        },
+        {
+          "key": "platform:role:delete",
+          "description": "平台角色删除"
+        },
+        {
+          "key": "platform:role:getMenu",
+          "description": "获取平台角色菜单"
+        },
+        {
+          "key": "platform:role:setMenu",
+          "description": "平台角色菜单赋予"
+        },
+        {
+          "key": "platform:menu:list",
+          "description": "平台菜单列表"
+        },
+        {
+          "key": "platform:menu:create",
+          "description": "平台菜单保存"
+        },
+        {
+          "key": "platform:menu:save",
+          "description": "平台菜单更新"
+        },
+        {
+          "key": "platform:menu:delete",
+          "description": "平台菜单删除"
+        }
+      ],
+      "migrations": [],
+      "openapi_files": [
+        "docs/api-contract/openapi/admin-base-apis.openapi.json"
+      ],
+      "test_templates": [
+        "tests/feature/admin/platform_rbac_test.go",
+        "tests/feature/admin/platform_bootstrap_test.go"
+      ]
+    },
+    {
+      "id": "platform-tenant",
+      "name": "Platform Tenant",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/platformtenant",
+        "registry_key": "platform-tenant",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "enabled": true,
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "lifecycle": {
+        "install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "uninstall": "manual data review required",
+        "upgrade": "go run . artisan migrate",
+        "rollback": "go run . artisan migrate:rollback",
+        "destructive_check": "go run . artisan module:manifest:check",
+        "supports_hot_disable": false,
+        "requires_restart": true,
+        "breaking_change_policy": "document in release notes and block without review"
+      },
+      "seed_strategy": {
+        "mode": "idempotent",
+        "idempotent": true,
+        "command": "go run . artisan db:seed"
+      },
+      "frontend": {},
+      "routes": [
+        {
+          "name": "platform.tenant-plan.list",
+          "method": "GET",
+          "path": "/admin/platform/tenant-plan/list",
+          "permission": "platform:tenantPlan:list",
+          "permissions": [
+            "platform:tenantPlan:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant-plan.options",
+          "method": "GET",
+          "path": "/admin/platform/tenant-plan/options",
+          "permission": "platform:tenantPlan:list",
+          "permissions": [
+            "platform:tenantPlan:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant-plan.create",
+          "method": "POST",
+          "path": "/admin/platform/tenant-plan",
+          "permission": "platform:tenantPlan:save",
+          "permissions": [
+            "platform:tenantPlan:save"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant-plan.update",
+          "method": "PUT",
+          "path": "/admin/platform/tenant-plan/{id}",
+          "permission": "platform:tenantPlan:update",
+          "permissions": [
+            "platform:tenantPlan:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant-plan.delete",
+          "method": "DELETE",
+          "path": "/admin/platform/tenant-plan",
+          "permission": "platform:tenantPlan:delete",
+          "permissions": [
+            "platform:tenantPlan:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.list",
+          "method": "GET",
+          "path": "/admin/platform/tenant/list",
+          "permission": "platform:tenant:list",
+          "permissions": [
+            "platform:tenant:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.permission-list",
+          "method": "GET",
+          "path": "/admin/platform/tenant/permission-catalog",
+          "permission": "platform:tenant:permissions",
+          "permissions": [
+            "platform:tenant:permissions",
+            "platform:tenantPlan:save",
+            "platform:tenantPlan:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.create",
+          "method": "POST",
+          "path": "/admin/platform/tenant",
+          "permission": "platform:tenant:save",
+          "permissions": [
+            "platform:tenant:save"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.update",
+          "method": "PUT",
+          "path": "/admin/platform/tenant/{id}",
+          "permission": "platform:tenant:update",
+          "permissions": [
+            "platform:tenant:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.usage",
+          "method": "GET",
+          "path": "/admin/platform/tenant/{id}/usage",
+          "permission": "platform:tenant:usage",
+          "permissions": [
+            "platform:tenant:usage"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.governance",
+          "method": "GET",
+          "path": "/admin/platform/tenant/{id}/governance",
+          "permission": "platform:tenant:governance",
+          "permissions": [
+            "platform:tenant:governance",
+            "platform:tenant:destroy"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.set-governance",
+          "method": "PUT",
+          "path": "/admin/platform/tenant/{id}/governance",
+          "permission": "platform:tenant:governance",
+          "permissions": [
+            "platform:tenant:governance"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.permissions",
+          "method": "GET",
+          "path": "/admin/platform/tenant/{id}/permissions",
+          "permission": "platform:tenant:permissions",
+          "permissions": [
+            "platform:tenant:permissions"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.set-permissions",
+          "method": "PUT",
+          "path": "/admin/platform/tenant/{id}/permissions",
+          "permission": "platform:tenant:permissions",
+          "permissions": [
+            "platform:tenant:permissions"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.plan-diff",
+          "method": "POST",
+          "path": "/admin/platform/tenant/{id}/permissions/plan-diff",
+          "permission": "platform:tenant:updatePlan",
+          "permissions": [
+            "platform:tenant:updatePlan"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.update-plan",
+          "method": "PUT",
+          "path": "/admin/platform/tenant/{id}/plan",
+          "permission": "platform:tenant:updatePlan",
+          "permissions": [
+            "platform:tenant:updatePlan"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.suspend",
+          "method": "PUT",
+          "path": "/admin/platform/tenant/{id}/suspend",
+          "permission": "platform:tenant:suspend",
+          "permissions": [
+            "platform:tenant:suspend"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.resume",
+          "method": "PUT",
+          "path": "/admin/platform/tenant/{id}/resume",
+          "permission": "platform:tenant:resume",
+          "permissions": [
+            "platform:tenant:resume"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.archive",
+          "method": "PUT",
+          "path": "/admin/platform/tenant/{id}/archive",
+          "permission": "platform:tenant:archive",
+          "permissions": [
+            "platform:tenant:archive"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.destroy",
+          "method": "DELETE",
+          "path": "/admin/platform/tenant",
+          "permission": "platform:tenant:destroy",
+          "permissions": [
+            "platform:tenant:destroy"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.export",
+          "method": "POST",
+          "path": "/admin/platform/tenant/{id}/exports",
+          "permission": "platform:tenant:export",
+          "permissions": [
+            "platform:tenant:export"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.export-status",
+          "method": "GET",
+          "path": "/admin/platform/tenant/{id}/exports/{run_id}",
+          "permission": "platform:tenant:export",
+          "permissions": [
+            "platform:tenant:export"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.tenant.export-download",
+          "method": "GET",
+          "path": "/admin/platform/tenant/{id}/exports/{run_id}/download",
+          "permission": "platform:tenant:export",
+          "permissions": [
+            "platform:tenant:export"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "key": "platform:tenant",
+          "parent_key": "platform:tenantManage",
+          "title": "租户管理",
+          "path": "/tenant-manage/tenant",
+          "component": "base/views/platform/tenant/index",
+          "permission": "platform:tenant:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.tenant",
+          "sort": 10
+        },
+        {
+          "key": "platform:tenantPlan",
+          "parent_key": "platform:tenantManage",
+          "title": "套餐管理",
+          "path": "/tenant-manage/tenant-plan",
+          "component": "base/views/platform/tenantPlan/index",
+          "permission": "platform:tenantPlan:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.tenantPlan",
+          "sort": 20
+        }
+      ],
+      "permissions": [
+        {
+          "key": "platform:tenant:list",
+          "description": "租户列表"
+        },
+        {
+          "key": "platform:tenant:save",
+          "description": "租户保存"
+        },
+        {
+          "key": "platform:tenant:update",
+          "description": "租户更新"
+        },
+        {
+          "key": "platform:tenant:suspend",
+          "description": "租户挂起"
+        },
+        {
+          "key": "platform:tenant:resume",
+          "description": "租户恢复"
+        },
+        {
+          "key": "platform:tenant:archive",
+          "description": "租户归档"
+        },
+        {
+          "key": "platform:tenant:destroy",
+          "description": "租户销毁"
+        },
+        {
+          "key": "platform:tenant:usage",
+          "description": "租户用量"
+        },
+        {
+          "key": "platform:tenant:governance",
+          "description": "租户治理"
+        },
+        {
+          "key": "platform:tenant:export",
+          "description": "租户数据导出"
+        },
+        {
+          "key": "platform:tenant:permissions",
+          "description": "租户权限分配"
+        },
+        {
+          "key": "platform:tenant:updatePlan",
+          "description": "租户套餐变更"
+        },
+        {
+          "key": "platform:tenantPlan:list",
+          "description": "套餐列表"
+        },
+        {
+          "key": "platform:tenantPlan:save",
+          "description": "套餐保存"
+        },
+        {
+          "key": "platform:tenantPlan:update",
+          "description": "套餐更新"
+        },
+        {
+          "key": "platform:tenantPlan:delete",
+          "description": "套餐删除"
+        }
+      ],
+      "migrations": [],
+      "openapi_files": [
+        "docs/api-contract/openapi/admin-base-apis.openapi.json"
+      ],
+      "test_templates": [
+        "tests/feature/admin/tenant_platform_test.go",
+        "tests/unit/tenant_service_test.go"
+      ]
+    },
+    {
+      "id": "platform-observability",
+      "name": "Platform Observability",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/platformobservability",
+        "registry_key": "platform-observability",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "enabled": true,
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "lifecycle": {
+        "install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "uninstall": "manual data review required",
+        "upgrade": "go run . artisan migrate",
+        "rollback": "go run . artisan migrate:rollback",
+        "destructive_check": "go run . artisan module:manifest:check",
+        "supports_hot_disable": false,
+        "requires_restart": true,
+        "breaking_change_policy": "document in release notes and block without review"
+      },
+      "seed_strategy": {
+        "mode": "idempotent",
+        "idempotent": true,
+        "command": "go run . artisan db:seed"
+      },
+      "frontend": {},
+      "routes": [
+        {
+          "name": "platform.observability.slow-requests",
+          "method": "GET",
+          "path": "/admin/platform/observability/slow-requests",
+          "permission": "platform:observability:list",
+          "permissions": [
+            "platform:observability:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.module-lifecycle.state",
+          "method": "GET",
+          "path": "/admin/platform/module-lifecycle/state",
+          "permission": "platform:moduleLifecycle:list",
+          "permissions": [
+            "platform:moduleLifecycle:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.module-lifecycle.runs",
+          "method": "GET",
+          "path": "/admin/platform/module-lifecycle/runs",
+          "permission": "platform:moduleLifecycle:list",
+          "permissions": [
+            "platform:moduleLifecycle:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.module-lifecycle.steps",
+          "method": "GET",
+          "path": "/admin/platform/module-lifecycle/steps",
+          "permission": "platform:moduleLifecycle:log",
+          "permissions": [
+            "platform:moduleLifecycle:log"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.module-lifecycle.locks",
+          "method": "GET",
+          "path": "/admin/platform/module-lifecycle/locks",
+          "permission": "platform:moduleLifecycle:list",
+          "permissions": [
+            "platform:moduleLifecycle:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.module-lifecycle.diff",
+          "method": "GET",
+          "path": "/admin/platform/module-lifecycle/diff",
+          "permission": "platform:moduleLifecycle:list",
+          "permissions": [
+            "platform:moduleLifecycle:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.module-lifecycle.release",
+          "method": "POST",
+          "path": "/admin/platform/module-lifecycle/locks/release-stale",
+          "permission": "platform:moduleLifecycle:execute",
+          "permissions": [
+            "platform:moduleLifecycle:execute"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.module-lifecycle.execute",
+          "method": "POST",
+          "path": "/admin/platform/module-lifecycle/execute",
+          "permission": "platform:moduleLifecycle:execute",
+          "permissions": [
+            "platform:moduleLifecycle:execute"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "key": "platform:observability",
+          "parent_key": "dashboard",
+          "title": "系统监控",
+          "path": "/dashboard/observability",
+          "component": "base/views/platform/observability/index",
+          "permission": "platform:observability:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.observability",
+          "sort": 40
+        },
+        {
+          "key": "platform:moduleLifecycle",
+          "parent_key": "platform:system",
+          "title": "模块治理",
+          "path": "/platform-system/module-lifecycle",
+          "component": "base/views/platform/moduleLifecycle/index",
+          "permission": "platform:moduleLifecycle:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.moduleLifecycle",
+          "sort": 40
+        }
+      ],
+      "permissions": [
+        {
+          "key": "platform:observability:list",
+          "description": "监控面板"
+        },
+        {
+          "key": "platform:moduleLifecycle:list",
+          "description": "模块治理面板"
+        },
+        {
+          "key": "platform:moduleLifecycle:log",
+          "description": "模块生命周期日志"
+        },
+        {
+          "key": "platform:moduleLifecycle:execute",
+          "description": "模块生命周期执行"
+        }
+      ],
+      "migrations": [],
+      "openapi_files": [
+        "docs/api-contract/openapi/admin-base-apis.openapi.json",
+        "docs/api-contract/openapi/module-governance.openapi.json"
+      ],
+      "test_templates": [
+        "tests/unit/observability_test.go",
+        "tests/feature/observability_test.go"
+      ]
+    },
+    {
+      "id": "reference-case",
+      "name": "Golden Reference Case",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/referencecase",
+        "registry_key": "reference-case",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "enabled": true,
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "lifecycle": {
+        "install": "go run . artisan migrate",
+        "uninstall": "manual data review required",
+        "upgrade": "go run . artisan reference-case:upgrade",
+        "rollback": "go run . artisan reference-case:rollback",
+        "destructive_check": "go run . artisan module:manifest:check",
+        "supports_hot_disable": false,
+        "requires_restart": true,
+        "breaking_change_policy": "approval required with CRUD/API/E2E evidence"
+      },
+      "seed_strategy": {
+        "mode": "idempotent",
+        "idempotent": true,
+        "command": "go run . artisan db:seed",
+        "notes": "idempotently seeds golden-case baseline"
+      },
+      "frontend": {},
+      "routes": [
+        {
+          "name": "platform.reference-case.list",
+          "method": "GET",
+          "path": "/admin/platform/reference-case/list",
+          "permission": "platform:referenceCase:list",
+          "permissions": [
+            "platform:referenceCase:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.reference-case.create",
+          "method": "POST",
+          "path": "/admin/platform/reference-case",
+          "permission": "platform:referenceCase:save",
+          "permissions": [
+            "platform:referenceCase:save"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.reference-case.update",
+          "method": "PUT",
+          "path": "/admin/platform/reference-case/{id}",
+          "permission": "platform:referenceCase:update",
+          "permissions": [
+            "platform:referenceCase:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.reference-case.delete",
+          "method": "DELETE",
+          "path": "/admin/platform/reference-case",
+          "permission": "platform:referenceCase:delete",
+          "permissions": [
+            "platform:referenceCase:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "key": "platform:referenceCase",
+          "parent_key": "platform:system",
+          "title": "参考模块",
+          "path": "/platform-system/reference-case",
+          "component": "base/views/platform/referenceCase/index",
+          "permission": "platform:referenceCase:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.referenceCase",
+          "sort": 50
+        }
+      ],
+      "permissions": [
+        {
+          "key": "platform:referenceCase:list",
+          "description": "参考模块列表"
+        },
+        {
+          "key": "platform:referenceCase:save",
+          "description": "参考模块保存"
+        },
+        {
+          "key": "platform:referenceCase:update",
+          "description": "参考模块更新"
+        },
+        {
+          "key": "platform:referenceCase:delete",
+          "description": "参考模块删除"
+        }
+      ],
+      "migrations": [
+        "202607090003_create_reference_case_table"
+      ],
+      "openapi_files": [
+        "docs/api-contract/openapi/reference-case.openapi.json"
+      ],
+      "test_templates": [
+        "tests/feature/admin/reference_case_test.go",
+        "MineAdmin-web/tests/e2e/reference-case.spec.ts"
+      ]
+    },
+    {
+      "id": "scheduled-task",
+      "name": "Scheduled Task",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/scheduledtask",
+        "registry_key": "scheduled-task",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "enabled": true,
+      "dependencies": [
+        {
+          "id": "platform-tenant",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "lifecycle": {
+        "install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "uninstall": "manual data review required",
+        "upgrade": "go run . artisan migrate",
+        "rollback": "go run . artisan migrate:rollback",
+        "destructive_check": "go run . artisan module:manifest:check",
+        "supports_hot_disable": false,
+        "requires_restart": true,
+        "breaking_change_policy": "document in release notes and block without review"
+      },
+      "seed_strategy": {
+        "mode": "idempotent",
+        "idempotent": true,
+        "command": "go run . artisan db:seed"
+      },
+      "frontend": {},
+      "routes": [
+        {
+          "name": "platform.scheduled-task.list",
+          "method": "GET",
+          "path": "/admin/platform/scheduled-task/list",
+          "permission": "platform:scheduledTask:list",
+          "permissions": [
+            "platform:scheduledTask:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.scheduled-task.tenant-options",
+          "method": "GET",
+          "path": "/admin/platform/scheduled-task/tenant-options",
+          "permission": "platform:scheduledTask:list",
+          "permissions": [
+            "platform:scheduledTask:list",
+            "platform:scheduledTask:save",
+            "platform:scheduledTask:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.scheduled-task.detail",
+          "method": "GET",
+          "path": "/admin/platform/scheduled-task/{id}",
+          "permission": "platform:scheduledTask:list",
+          "permissions": [
+            "platform:scheduledTask:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.scheduled-task.create",
+          "method": "POST",
+          "path": "/admin/platform/scheduled-task",
+          "permission": "platform:scheduledTask:save",
+          "permissions": [
+            "platform:scheduledTask:save"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.scheduled-task.update",
+          "method": "PUT",
+          "path": "/admin/platform/scheduled-task/{id}",
+          "permission": "platform:scheduledTask:update",
+          "permissions": [
+            "platform:scheduledTask:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.scheduled-task.delete",
+          "method": "DELETE",
+          "path": "/admin/platform/scheduled-task",
+          "permission": "platform:scheduledTask:delete",
+          "permissions": [
+            "platform:scheduledTask:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.scheduled-task.enable",
+          "method": "PUT",
+          "path": "/admin/platform/scheduled-task/{id}/enable",
+          "permission": "platform:scheduledTask:update",
+          "permissions": [
+            "platform:scheduledTask:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.scheduled-task.disable",
+          "method": "PUT",
+          "path": "/admin/platform/scheduled-task/{id}/disable",
+          "permission": "platform:scheduledTask:update",
+          "permissions": [
+            "platform:scheduledTask:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.scheduled-task.run",
+          "method": "POST",
+          "path": "/admin/platform/scheduled-task/{id}/run",
+          "permission": "platform:scheduledTask:run",
+          "permissions": [
+            "platform:scheduledTask:run"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.scheduled-task.logs",
+          "method": "GET",
+          "path": "/admin/platform/scheduled-task-log/list",
+          "permission": "platform:scheduledTask:log",
+          "permissions": [
+            "platform:scheduledTask:log"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "key": "platform:scheduledTask",
+          "parent_key": "platform:system",
+          "title": "计划任务",
+          "path": "/platform-system/scheduled-task",
+          "component": "base/views/platform/scheduledTask/index",
+          "permission": "platform:scheduledTask:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.scheduledTask",
+          "sort": 30
+        }
+      ],
+      "permissions": [
+        {
+          "key": "platform:scheduledTask:list",
+          "description": "计划任务列表"
+        },
+        {
+          "key": "platform:scheduledTask:save",
+          "description": "计划任务保存"
+        },
+        {
+          "key": "platform:scheduledTask:update",
+          "description": "计划任务更新"
+        },
+        {
+          "key": "platform:scheduledTask:delete",
+          "description": "计划任务删除"
+        },
+        {
+          "key": "platform:scheduledTask:run",
+          "description": "计划任务执行"
+        },
+        {
+          "key": "platform:scheduledTask:log",
+          "description": "计划任务日志"
+        }
+      ],
+      "migrations": [
+        "202607040001_create_scheduled_task_tables"
+      ],
+      "openapi_files": [
+        "docs/api-contract/openapi/admin-base-apis.openapi.json"
+      ],
+      "test_templates": [
+        "tests/feature/admin/scheduled_task_test.go",
+        "tests/unit/scheduled_task_cron_test.go",
+        "tests/unit/scheduled_task_runner_test.go"
+      ]
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/security",
+        "registry_key": "security",
+        "version": "1.0.0",
+        "owner": "security-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "enabled": true,
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        },
+        {
+          "id": "tenant-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "lifecycle": {
+        "install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "uninstall": "manual data review required",
+        "upgrade": "go run . artisan migrate",
+        "rollback": "go run . artisan migrate:rollback",
+        "destructive_check": "go run . artisan module:manifest:check",
+        "supports_hot_disable": false,
+        "requires_restart": true,
+        "breaking_change_policy": "document in release notes and block without review"
+      },
+      "seed_strategy": {
+        "mode": "idempotent",
+        "idempotent": true,
+        "command": "go run . artisan db:seed"
+      },
+      "frontend": {},
+      "routes": [
+        {
+          "name": "tenant.passport.entry",
+          "method": "GET",
+          "path": "/admin/passport/entry",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "tenant.passport.csrf-token",
+          "method": "GET",
+          "path": "/admin/passport/csrf-token",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "tenant.passport.login",
+          "method": "POST",
+          "path": "/admin/passport/login",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.mfa-login",
+          "method": "POST",
+          "path": "/admin/passport/mfa/login",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.password-change",
+          "method": "POST",
+          "path": "/admin/passport/password/change",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.sso-login",
+          "method": "POST",
+          "path": "/admin/passport/sso/login",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.sso-authorize",
+          "method": "POST",
+          "path": "/admin/passport/sso/authorize",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.sso-callback",
+          "method": "POST",
+          "path": "/admin/passport/sso/callback",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.branding",
+          "method": "GET",
+          "path": "/admin/passport/branding",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.info",
+          "method": "GET",
+          "path": "/admin/passport/getInfo",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.logout",
+          "method": "POST",
+          "path": "/admin/passport/logout",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.refresh",
+          "method": "POST",
+          "path": "/admin/passport/refresh",
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.passport.captcha",
+          "method": "GET",
+          "path": "/admin/passport/captcha",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "system.captcha",
+          "method": "GET",
+          "path": "/api/system/captcha",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "platform.passport.csrf-token",
+          "method": "GET",
+          "path": "/admin/platform/passport/csrf-token",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "platform.passport.login",
+          "method": "POST",
+          "path": "/admin/platform/passport/login",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "platform.passport.mfa-login",
+          "method": "POST",
+          "path": "/admin/platform/passport/mfa/login",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "platform.passport.password-change",
+          "method": "POST",
+          "path": "/admin/platform/passport/password/change",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "platform.passport.info",
+          "method": "GET",
+          "path": "/admin/platform/passport/getInfo",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "platform.passport.logout",
+          "method": "POST",
+          "path": "/admin/platform/passport/logout",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "platform.passport.refresh",
+          "method": "POST",
+          "path": "/admin/platform/passport/refresh",
+          "middlewares": [
+            "public"
+          ]
+        },
+        {
+          "name": "platform.security.mfa.setup",
+          "method": "POST",
+          "path": "/admin/platform/security/mfa/setup",
+          "permission": "platform:security:mfa",
+          "permissions": [
+            "platform:security:mfa"
+          ],
+          "middlewares": [
+            "platform-self-audit"
+          ]
+        },
+        {
+          "name": "platform.security.mfa.confirm",
+          "method": "POST",
+          "path": "/admin/platform/security/mfa/confirm",
+          "permission": "platform:security:mfa",
+          "permissions": [
+            "platform:security:mfa"
+          ],
+          "middlewares": [
+            "platform-self-audit"
+          ]
+        },
+        {
+          "name": "platform.security.mfa.disable",
+          "method": "POST",
+          "path": "/admin/platform/security/mfa/disable",
+          "permission": "platform:security:mfa",
+          "permissions": [
+            "platform:security:mfa"
+          ],
+          "middlewares": [
+            "platform-self-audit"
+          ]
+        },
+        {
+          "name": "platform.security.reauth-token",
+          "method": "POST",
+          "path": "/admin/platform/security/reauth-token",
+          "permission": "platform:security:control",
+          "permissions": [
+            "platform:security:control",
+            "platform:security:mfa",
+            "platform:moduleLifecycle:execute",
+            "platform:tenant:destroy",
+            "platform:tenant:export",
+            "platform:tenant:permissions",
+            "platform:tenant:updatePlan",
+            "platform:tenant:governance",
+            "platform:tenant:suspend",
+            "platform:tenant:resume",
+            "platform:tenant:archive",
+            "platform:user:password",
+            "platform:user:setRole",
+            "platform:role:setMenu",
+            "platform:storageConfig:save",
+            "platform:storageConfig:update",
+            "platform:storageConfig:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.security.approval.create",
+          "method": "POST",
+          "path": "/admin/platform/security/approvals",
+          "permission": "platform:security:control",
+          "permissions": [
+            "platform:security:control",
+            "platform:security:mfa",
+            "platform:moduleLifecycle:execute",
+            "platform:tenant:destroy",
+            "platform:tenant:export",
+            "platform:tenant:permissions",
+            "platform:tenant:updatePlan",
+            "platform:tenant:governance",
+            "platform:tenant:suspend",
+            "platform:tenant:resume",
+            "platform:tenant:archive",
+            "platform:user:password",
+            "platform:user:setRole",
+            "platform:role:setMenu",
+            "platform:storageConfig:save",
+            "platform:storageConfig:update",
+            "platform:storageConfig:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.security.approval.detail",
+          "method": "GET",
+          "path": "/admin/platform/security/approvals/{approval_id}",
+          "permission": "platform:security:control",
+          "permissions": [
+            "platform:security:control",
+            "platform:security:mfa",
+            "platform:moduleLifecycle:execute",
+            "platform:tenant:destroy",
+            "platform:tenant:export",
+            "platform:tenant:permissions",
+            "platform:tenant:updatePlan",
+            "platform:tenant:governance",
+            "platform:tenant:suspend",
+            "platform:tenant:resume",
+            "platform:tenant:archive",
+            "platform:user:password",
+            "platform:user:setRole",
+            "platform:role:setMenu",
+            "platform:storageConfig:save",
+            "platform:storageConfig:update",
+            "platform:storageConfig:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.security.approval.approve",
+          "method": "PUT",
+          "path": "/admin/platform/security/approvals/{approval_id}/approve",
+          "permission": "platform:security:control",
+          "permissions": [
+            "platform:security:control",
+            "platform:security:mfa",
+            "platform:moduleLifecycle:execute",
+            "platform:tenant:destroy",
+            "platform:tenant:export",
+            "platform:tenant:permissions",
+            "platform:tenant:updatePlan",
+            "platform:tenant:governance",
+            "platform:tenant:suspend",
+            "platform:tenant:resume",
+            "platform:tenant:archive",
+            "platform:user:password",
+            "platform:user:setRole",
+            "platform:role:setMenu",
+            "platform:storageConfig:save",
+            "platform:storageConfig:update",
+            "platform:storageConfig:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "tenant.security.reauth-token",
+          "method": "POST",
+          "path": "/admin/security/reauth-token",
+          "permission": "security:mfa",
+          "permissions": [
+            "security:mfa",
+            "permission:user:password",
+            "permission:user:setRole",
+            "permission:role:setMenu",
+            "security:ssoProvider:save",
+            "security:ssoProvider:update",
+            "security:ssoProvider:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.security.approval.create",
+          "method": "POST",
+          "path": "/admin/security/approvals",
+          "permission": "security:mfa",
+          "permissions": [
+            "security:mfa",
+            "permission:user:password",
+            "permission:user:setRole",
+            "permission:role:setMenu",
+            "security:ssoProvider:save",
+            "security:ssoProvider:update",
+            "security:ssoProvider:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.security.approval.detail",
+          "method": "GET",
+          "path": "/admin/security/approvals/{approval_id}",
+          "permission": "security:mfa",
+          "permissions": [
+            "security:mfa",
+            "permission:user:password",
+            "permission:user:setRole",
+            "permission:role:setMenu",
+            "security:ssoProvider:save",
+            "security:ssoProvider:update",
+            "security:ssoProvider:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.security.approval.approve",
+          "method": "PUT",
+          "path": "/admin/security/approvals/{approval_id}/approve",
+          "permission": "security:mfa",
+          "permissions": [
+            "security:mfa",
+            "permission:user:password",
+            "permission:user:setRole",
+            "permission:role:setMenu",
+            "security:ssoProvider:save",
+            "security:ssoProvider:update",
+            "security:ssoProvider:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.security.mfa.setup",
+          "method": "POST",
+          "path": "/admin/security/mfa/setup",
+          "permission": "security:mfa",
+          "permissions": [
+            "security:mfa"
+          ],
+          "middlewares": [
+            "tenant-audit-only"
+          ]
+        },
+        {
+          "name": "tenant.security.mfa.confirm",
+          "method": "POST",
+          "path": "/admin/security/mfa/confirm",
+          "permission": "security:mfa",
+          "permissions": [
+            "security:mfa"
+          ],
+          "middlewares": [
+            "tenant-audit-only"
+          ]
+        },
+        {
+          "name": "tenant.security.mfa.disable",
+          "method": "POST",
+          "path": "/admin/security/mfa/disable",
+          "permission": "security:mfa",
+          "permissions": [
+            "security:mfa"
+          ],
+          "middlewares": [
+            "tenant-audit-only"
+          ]
+        },
+        {
+          "name": "tenant.sso-provider.list",
+          "method": "GET",
+          "path": "/admin/sso-provider/list",
+          "permission": "security:ssoProvider:list",
+          "permissions": [
+            "security:ssoProvider:list"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.sso-provider.create",
+          "method": "POST",
+          "path": "/admin/sso-provider",
+          "permission": "security:ssoProvider:save",
+          "permissions": [
+            "security:ssoProvider:save"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.sso-provider.update",
+          "method": "PUT",
+          "path": "/admin/sso-provider/{id}",
+          "permission": "security:ssoProvider:update",
+          "permissions": [
+            "security:ssoProvider:update"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.sso-provider.delete",
+          "method": "DELETE",
+          "path": "/admin/sso-provider",
+          "permission": "security:ssoProvider:delete",
+          "permissions": [
+            "security:ssoProvider:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.sso-user-binding.list",
+          "method": "GET",
+          "path": "/admin/sso-user-binding/list",
+          "permission": "security:ssoUserBinding:list",
+          "permissions": [
+            "security:ssoUserBinding:list"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.sso-user-binding.detail",
+          "method": "GET",
+          "path": "/admin/sso-user-binding/{id}",
+          "permission": "security:ssoUserBinding:detail",
+          "permissions": [
+            "security:ssoUserBinding:detail"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.sso-user-binding.user",
+          "method": "GET",
+          "path": "/admin/sso-user-binding/user/{id}",
+          "permission": "security:ssoUserBinding:user",
+          "permissions": [
+            "security:ssoUserBinding:user"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.sso-user-binding.unbind",
+          "method": "DELETE",
+          "path": "/admin/sso-user-binding/{id}",
+          "permission": "security:ssoUserBinding:unbind",
+          "permissions": [
+            "security:ssoUserBinding:unbind"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.sso-login-log.list",
+          "method": "GET",
+          "path": "/admin/sso-login-log/list",
+          "permission": "log:ssoLogin:list",
+          "permissions": [
+            "log:ssoLogin:list"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.sso-login-log.stats",
+          "method": "GET",
+          "path": "/admin/sso-login-log/stats",
+          "permission": "log:ssoLogin:stats",
+          "permissions": [
+            "log:ssoLogin:stats"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "key": "security:ssoProvider",
+          "parent_key": "security:sso",
+          "title": "身份源配置",
+          "path": "/security/sso/provider",
+          "component": "base/views/security/ssoProvider/index",
+          "permission": "security:ssoProvider:list",
+          "type": "M",
+          "i18n": "baseMenu.security.ssoProvider",
+          "sort": 10
+        },
+        {
+          "key": "security:ssoUserBinding",
+          "parent_key": "security:sso",
+          "title": "用户绑定",
+          "path": "/security/sso/binding",
+          "component": "base/views/security/ssoUserBinding/index",
+          "permission": "security:ssoUserBinding:list",
+          "type": "M",
+          "i18n": "baseMenu.security.ssoUserBinding",
+          "sort": 20
+        },
+        {
+          "key": "security:ssoLoginAudit",
+          "parent_key": "security:sso",
+          "title": "登录审计",
+          "path": "/security/sso/login-audit",
+          "component": "base/views/log/ssoLogin",
+          "permission": "log:ssoLogin:list",
+          "type": "M",
+          "i18n": "baseMenu.security.ssoLoginAudit",
+          "sort": 30
+        }
+      ],
+      "permissions": [
+        {
+          "key": "platform:security:mfa",
+          "description": "平台 MFA 管理"
+        },
+        {
+          "key": "platform:security:control",
+          "description": "平台敏感操作控制"
+        },
+        {
+          "key": "security:mfa",
+          "description": "租户 MFA 管理"
+        },
+        {
+          "key": "security:ssoProvider:list",
+          "description": "单点登录配置列表"
+        },
+        {
+          "key": "security:ssoProvider:save",
+          "description": "单点登录配置保存"
+        },
+        {
+          "key": "security:ssoProvider:update",
+          "description": "单点登录配置更新"
+        },
+        {
+          "key": "security:ssoProvider:delete",
+          "description": "单点登录配置删除"
+        },
+        {
+          "key": "security:ssoUserBinding:list",
+          "description": "单点登录用户绑定列表"
+        },
+        {
+          "key": "security:ssoUserBinding:detail",
+          "description": "单点登录用户绑定详情"
+        },
+        {
+          "key": "security:ssoUserBinding:user",
+          "description": "用户单点登录绑定"
+        },
+        {
+          "key": "security:ssoUserBinding:unbind",
+          "description": "单点登录解绑"
+        },
+        {
+          "key": "log:ssoLogin:list",
+          "description": "SSO 登录日志列表"
+        },
+        {
+          "key": "log:ssoLogin:stats",
+          "description": "SSO 登录统计"
+        }
+      ],
+      "migrations": [],
+      "openapi_files": [
+        "docs/api-contract/openapi/admin-base-apis.openapi.json"
+      ],
+      "test_templates": [
+        "tests/feature/admin/sso_provider_test.go",
+        "tests/feature/admin/passport_test.go"
+      ]
+    },
+    {
+      "id": "data-center",
+      "name": "Data Center",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/datacenter",
+        "registry_key": "data-center",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "enabled": true,
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        },
+        {
+          "id": "tenant-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "lifecycle": {
+        "install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "uninstall": "manual data review required",
+        "upgrade": "go run . artisan migrate",
+        "rollback": "go run . artisan migrate:rollback",
+        "destructive_check": "go run . artisan module:manifest:check",
+        "supports_hot_disable": false,
+        "requires_restart": true,
+        "breaking_change_policy": "document in release notes and block without review"
+      },
+      "seed_strategy": {
+        "mode": "idempotent",
+        "idempotent": true,
+        "command": "go run . artisan db:seed"
+      },
+      "frontend": {},
+      "routes": [
+        {
+          "name": "platform.attachment.upload",
+          "method": "POST",
+          "path": "/admin/platform/attachment/upload",
+          "permission": "platform:attachment:upload",
+          "permissions": [
+            "platform:attachment:upload",
+            "platform:user:save",
+            "platform:user:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.dictionary.options",
+          "method": "GET",
+          "path": "/admin/platform/dictionary/options",
+          "permission": "platform:dictionary:list",
+          "permissions": [
+            "platform:dictionary:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.dictionary.list",
+          "method": "GET",
+          "path": "/admin/platform/dictionary/list",
+          "permission": "platform:dictionary:list",
+          "permissions": [
+            "platform:dictionary:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.dictionary.detail",
+          "method": "GET",
+          "path": "/admin/platform/dictionary/{id}",
+          "permission": "platform:dictionary:list",
+          "permissions": [
+            "platform:dictionary:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.dictionary.create",
+          "method": "POST",
+          "path": "/admin/platform/dictionary",
+          "permission": "platform:dictionary:save",
+          "permissions": [
+            "platform:dictionary:save"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.dictionary.update",
+          "method": "PUT",
+          "path": "/admin/platform/dictionary/{id}",
+          "permission": "platform:dictionary:update",
+          "permissions": [
+            "platform:dictionary:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.dictionary.delete",
+          "method": "DELETE",
+          "path": "/admin/platform/dictionary",
+          "permission": "platform:dictionary:delete",
+          "permissions": [
+            "platform:dictionary:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.dictionary.dispatch-all",
+          "method": "POST",
+          "path": "/admin/platform/dictionary/dispatch",
+          "permission": "platform:dictionary:dispatch",
+          "permissions": [
+            "platform:dictionary:dispatch"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.dictionary.dispatch",
+          "method": "POST",
+          "path": "/admin/platform/dictionary/dispatch/{id}",
+          "permission": "platform:dictionary:dispatch",
+          "permissions": [
+            "platform:dictionary:dispatch"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.storage-config.list",
+          "method": "GET",
+          "path": "/admin/platform/storage-config/list",
+          "permission": "platform:storageConfig:list",
+          "permissions": [
+            "platform:storageConfig:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.storage-config.create",
+          "method": "POST",
+          "path": "/admin/platform/storage-config",
+          "permission": "platform:storageConfig:save",
+          "permissions": [
+            "platform:storageConfig:save"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.storage-config.update",
+          "method": "PUT",
+          "path": "/admin/platform/storage-config/{id}",
+          "permission": "platform:storageConfig:update",
+          "permissions": [
+            "platform:storageConfig:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.storage-config.delete",
+          "method": "DELETE",
+          "path": "/admin/platform/storage-config",
+          "permission": "platform:storageConfig:delete",
+          "permissions": [
+            "platform:storageConfig:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.queue-failed.list",
+          "method": "GET",
+          "path": "/admin/platform/queue/failed-jobs",
+          "permission": "platform:queueFailedJob:list",
+          "permissions": [
+            "platform:queueFailedJob:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.queue-failed.retry",
+          "method": "POST",
+          "path": "/admin/platform/queue/failed-jobs/retry",
+          "permission": "platform:queueFailedJob:retry",
+          "permissions": [
+            "platform:queueFailedJob:retry"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.queue-failed.delete",
+          "method": "DELETE",
+          "path": "/admin/platform/queue/failed-jobs",
+          "permission": "platform:queueFailedJob:delete",
+          "permissions": [
+            "platform:queueFailedJob:delete"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "tenant.dictionary.options",
+          "method": "GET",
+          "path": "/admin/dictionary/options",
+          "permission": "dataCenter:dictionary:list",
+          "permissions": [
+            "dataCenter:dictionary:list"
+          ],
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.dictionary.list",
+          "method": "GET",
+          "path": "/admin/dictionary/list",
+          "permission": "dataCenter:dictionary:list",
+          "permissions": [
+            "dataCenter:dictionary:list"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.dictionary.items",
+          "method": "GET",
+          "path": "/admin/dictionary/{id}/items",
+          "permission": "dataCenter:dictionary:list",
+          "permissions": [
+            "dataCenter:dictionary:list"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.dictionary.update-type",
+          "method": "PUT",
+          "path": "/admin/dictionary/{id}",
+          "permission": "dataCenter:dictionary:update",
+          "permissions": [
+            "dataCenter:dictionary:update"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.dictionary.update-item",
+          "method": "PUT",
+          "path": "/admin/dictionary-item/{id}",
+          "permission": "dataCenter:dictionary:update",
+          "permissions": [
+            "dataCenter:dictionary:update"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.attachment.list",
+          "method": "GET",
+          "path": "/admin/attachment/list",
+          "permission": "dataCenter:attachment:list",
+          "permissions": [
+            "dataCenter:attachment:list"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.attachment.upload",
+          "method": "POST",
+          "path": "/admin/attachment/upload",
+          "permission": "dataCenter:attachment:upload",
+          "permissions": [
+            "dataCenter:attachment:upload"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.attachment.delete",
+          "method": "DELETE",
+          "path": "/admin/attachment/{id}",
+          "permission": "dataCenter:attachment:delete",
+          "permissions": [
+            "dataCenter:attachment:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.user-login-log.list",
+          "method": "GET",
+          "path": "/admin/user-login-log/list",
+          "permission": "log:userLogin:list",
+          "permissions": [
+            "log:userLogin:list"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.user-operation-log.list",
+          "method": "GET",
+          "path": "/admin/user-operation-log/list",
+          "permission": "log:userOperation:list",
+          "permissions": [
+            "log:userOperation:list"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "key": "platform:dictionary",
+          "parent_key": "platform:system",
+          "title": "字典管理",
+          "path": "/platform-system/dictionary",
+          "component": "base/views/platform/dictionary/index",
+          "permission": "platform:dictionary:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.dictionary",
+          "sort": 10
+        },
+        {
+          "key": "platform:storageConfig",
+          "parent_key": "platform:system",
+          "title": "储存配置",
+          "path": "/platform-system/storage-config",
+          "component": "base/views/platform/storageConfig/index",
+          "permission": "platform:storageConfig:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.storageConfig",
+          "sort": 20
+        },
+        {
+          "key": "dataCenter:dictionary",
+          "parent_key": "dataCenter",
+          "title": "数据字典",
+          "path": "/data-center/dictionary",
+          "component": "base/views/dataCenter/dictionary/index",
+          "permission": "dataCenter:dictionary:list",
+          "type": "M",
+          "i18n": "baseMenu.dataCenter.dictionary",
+          "sort": 20
+        },
+        {
+          "key": "dataCenter:attachment",
+          "parent_key": "dataCenter",
+          "title": "附件管理",
+          "path": "/data-center/attachment",
+          "component": "base/views/dataCenter/attachment/index",
+          "permission": "dataCenter:attachment:list",
+          "type": "M",
+          "i18n": "baseMenu.dataCenter.attachment",
+          "sort": 10
+        },
+        {
+          "key": "log:userLogin",
+          "parent_key": "log",
+          "title": "登录日志",
+          "path": "/log/user-login",
+          "component": "base/views/log/userLogin",
+          "permission": "log:userLogin:list",
+          "type": "M",
+          "i18n": "baseMenu.log.userLoginLog",
+          "sort": 10
+        },
+        {
+          "key": "log:userOperation",
+          "parent_key": "log",
+          "title": "操作日志",
+          "path": "/log/user-operation",
+          "component": "base/views/log/userOperation",
+          "permission": "log:userOperation:list",
+          "type": "M",
+          "i18n": "baseMenu.log.operationLog",
+          "sort": 20
+        }
+      ],
+      "permissions": [
+        {
+          "key": "platform:attachment:upload",
+          "description": "平台附件上传"
+        },
+        {
+          "key": "platform:dictionary:list",
+          "description": "字典列表"
+        },
+        {
+          "key": "platform:dictionary:save",
+          "description": "字典保存"
+        },
+        {
+          "key": "platform:dictionary:update",
+          "description": "字典更新"
+        },
+        {
+          "key": "platform:dictionary:delete",
+          "description": "字典删除"
+        },
+        {
+          "key": "platform:dictionary:dispatch",
+          "description": "字典分发"
+        },
+        {
+          "key": "platform:storageConfig:list",
+          "description": "储存配置列表"
+        },
+        {
+          "key": "platform:storageConfig:save",
+          "description": "储存配置保存"
+        },
+        {
+          "key": "platform:storageConfig:update",
+          "description": "储存配置更新"
+        },
+        {
+          "key": "platform:storageConfig:delete",
+          "description": "储存配置删除"
+        },
+        {
+          "key": "platform:queueFailedJob:list",
+          "description": "失败队列列表"
+        },
+        {
+          "key": "platform:queueFailedJob:retry",
+          "description": "失败队列重试"
+        },
+        {
+          "key": "platform:queueFailedJob:delete",
+          "description": "失败队列丢弃"
+        },
+        {
+          "key": "dataCenter:dictionary:list",
+          "description": "数据字典列表"
+        },
+        {
+          "key": "dataCenter:dictionary:update",
+          "description": "数据字典更新"
+        },
+        {
+          "key": "dataCenter:attachment:list",
+          "description": "附件列表"
+        },
+        {
+          "key": "dataCenter:attachment:upload",
+          "description": "附件上传"
+        },
+        {
+          "key": "dataCenter:attachment:delete",
+          "description": "附件删除"
+        },
+        {
+          "key": "log:userLogin:list",
+          "description": "登录日志列表"
+        },
+        {
+          "key": "log:userOperation:list",
+          "description": "操作日志列表"
+        }
+      ],
+      "migrations": [],
+      "openapi_files": [
+        "docs/api-contract/openapi/admin-base-apis.openapi.json"
+      ],
+      "test_templates": [
+        "tests/feature/admin/attachment_test.go",
+        "tests/feature/admin/storage_config_test.go",
+        "tests/feature/admin/log_test.go"
+      ]
+    },
+    {
+      "id": "tenant-rbac",
+      "name": "Tenant RBAC",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/tenantrbac",
+        "registry_key": "tenant-rbac",
+        "version": "1.0.0",
+        "owner": "tenant-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "enabled": true,
+      "dependencies": [
+        {
+          "id": "platform-tenant",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "lifecycle": {
+        "install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "uninstall": "manual data review required",
+        "upgrade": "go run . artisan migrate",
+        "rollback": "go run . artisan migrate:rollback",
+        "destructive_check": "go run . artisan module:manifest:check",
+        "supports_hot_disable": false,
+        "requires_restart": true,
+        "breaking_change_policy": "document in release notes and block without review"
+      },
+      "seed_strategy": {
+        "mode": "idempotent",
+        "idempotent": true,
+        "command": "go run . artisan db:seed"
+      },
+      "frontend": {},
+      "routes": [
+        {
+          "name": "tenant.permission.menus",
+          "method": "GET",
+          "path": "/admin/permission/menus",
+          "permission": "permission:menu:index",
+          "permissions": [
+            "permission:menu:index"
+          ],
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.permission.roles",
+          "method": "GET",
+          "path": "/admin/permission/roles",
+          "permission": "permission:role:index",
+          "permissions": [
+            "permission:role:index"
+          ],
+          "middlewares": [
+            "tenant"
+          ]
+        },
+        {
+          "name": "tenant.permission.update",
+          "method": "POST",
+          "path": "/admin/permission/update",
+          "permission": "permission:user:update",
+          "permissions": [
+            "permission:user:update"
+          ],
+          "middlewares": [
+            "tenant-audit-only"
+          ]
+        },
+        {
+          "name": "tenant.user-profile.update",
+          "method": "PUT",
+          "path": "/admin/user/info",
+          "permission": "permission:user:update",
+          "permissions": [
+            "permission:user:update"
+          ],
+          "middlewares": [
+            "tenant-audit-only"
+          ]
+        },
+        {
+          "name": "tenant.user.list",
+          "method": "GET",
+          "path": "/admin/user/list",
+          "permission": "permission:user:index",
+          "permissions": [
+            "permission:user:index"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.user.create",
+          "method": "POST",
+          "path": "/admin/user",
+          "permission": "permission:user:save",
+          "permissions": [
+            "permission:user:save"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.user.update",
+          "method": "PUT",
+          "path": "/admin/user/{id}",
+          "permission": "permission:user:update",
+          "permissions": [
+            "permission:user:update"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.user.delete",
+          "method": "DELETE",
+          "path": "/admin/user",
+          "permission": "permission:user:delete",
+          "permissions": [
+            "permission:user:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.user.password",
+          "method": "PUT",
+          "path": "/admin/user/password",
+          "permission": "permission:user:password",
+          "permissions": [
+            "permission:user:password"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.user.roles",
+          "method": "GET",
+          "path": "/admin/user/{id}/roles",
+          "permission": "permission:user:getRole",
+          "permissions": [
+            "permission:user:getRole"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.user.set-roles",
+          "method": "PUT",
+          "path": "/admin/user/{id}/roles",
+          "permission": "permission:user:setRole",
+          "permissions": [
+            "permission:user:setRole"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.role.list",
+          "method": "GET",
+          "path": "/admin/role/list",
+          "permission": "permission:role:index",
+          "permissions": [
+            "permission:role:index"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.role.create",
+          "method": "POST",
+          "path": "/admin/role",
+          "permission": "permission:role:save",
+          "permissions": [
+            "permission:role:save"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.role.update",
+          "method": "PUT",
+          "path": "/admin/role/{id}",
+          "permission": "permission:role:update",
+          "permissions": [
+            "permission:role:update"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.role.delete",
+          "method": "DELETE",
+          "path": "/admin/role",
+          "permission": "permission:role:delete",
+          "permissions": [
+            "permission:role:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.role.permissions",
+          "method": "GET",
+          "path": "/admin/role/{id}/permissions",
+          "permission": "permission:role:getMenu",
+          "permissions": [
+            "permission:role:getMenu"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.role.set-permissions",
+          "method": "PUT",
+          "path": "/admin/role/{id}/permissions",
+          "permission": "permission:role:setMenu",
+          "permissions": [
+            "permission:role:setMenu"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.menu.list",
+          "method": "GET",
+          "path": "/admin/menu/list",
+          "permission": "permission:menu:index",
+          "permissions": [
+            "permission:menu:index"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.menu.create",
+          "method": "POST",
+          "path": "/admin/menu",
+          "permission": "permission:menu:create",
+          "permissions": [
+            "permission:menu:create"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.menu.update",
+          "method": "PUT",
+          "path": "/admin/menu/{id}",
+          "permission": "permission:menu:save",
+          "permissions": [
+            "permission:menu:save"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.menu.delete",
+          "method": "DELETE",
+          "path": "/admin/menu",
+          "permission": "permission:menu:delete",
+          "permissions": [
+            "permission:menu:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.department.list",
+          "method": "GET",
+          "path": "/admin/department/list",
+          "permission": "permission:department:index",
+          "permissions": [
+            "permission:department:index"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.department.create",
+          "method": "POST",
+          "path": "/admin/department",
+          "permission": "permission:department:save",
+          "permissions": [
+            "permission:department:save"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.department.update",
+          "method": "PUT",
+          "path": "/admin/department/{id}",
+          "permission": "permission:department:update",
+          "permissions": [
+            "permission:department:update"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.department.delete",
+          "method": "DELETE",
+          "path": "/admin/department",
+          "permission": "permission:department:delete",
+          "permissions": [
+            "permission:department:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.position.list",
+          "method": "GET",
+          "path": "/admin/position/list",
+          "permission": "permission:position:index",
+          "permissions": [
+            "permission:position:index"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.position.create",
+          "method": "POST",
+          "path": "/admin/position",
+          "permission": "permission:position:save",
+          "permissions": [
+            "permission:position:save"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.position.update",
+          "method": "PUT",
+          "path": "/admin/position/{id}",
+          "permission": "permission:position:update",
+          "permissions": [
+            "permission:position:update"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.position.data-scope",
+          "method": "PUT",
+          "path": "/admin/position/{id}/data_permission",
+          "permission": "permission:position:data_permission",
+          "permissions": [
+            "permission:position:data_permission"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.position.delete",
+          "method": "DELETE",
+          "path": "/admin/position",
+          "permission": "permission:position:delete",
+          "permissions": [
+            "permission:position:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.leader.list",
+          "method": "GET",
+          "path": "/admin/leader/list",
+          "permission": "permission:leader:index",
+          "permissions": [
+            "permission:leader:index"
+          ],
+          "middlewares": [
+            "tenant-rbac"
+          ]
+        },
+        {
+          "name": "tenant.leader.create",
+          "method": "POST",
+          "path": "/admin/leader",
+          "permission": "permission:leader:save",
+          "permissions": [
+            "permission:leader:save"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.leader.update",
+          "method": "PUT",
+          "path": "/admin/leader/{id}",
+          "permission": "permission:leader:save",
+          "permissions": [
+            "permission:leader:save"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        },
+        {
+          "name": "tenant.leader.delete",
+          "method": "DELETE",
+          "path": "/admin/leader",
+          "permission": "permission:leader:delete",
+          "permissions": [
+            "permission:leader:delete"
+          ],
+          "middlewares": [
+            "tenant-rbac-audit"
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "key": "permission:user",
+          "parent_key": "permission",
+          "title": "用户管理",
+          "path": "/permission/user",
+          "component": "base/views/permission/user/index",
+          "permission": "permission:user:index",
+          "type": "M",
+          "i18n": "baseMenu.permission.user",
+          "sort": 10
+        },
+        {
+          "key": "permission:menu",
+          "parent_key": "permission",
+          "title": "菜单管理",
+          "path": "/permission/menu",
+          "component": "base/views/permission/menu/index",
+          "permission": "permission:menu:index",
+          "type": "M",
+          "i18n": "baseMenu.permission.menu",
+          "sort": 20
+        },
+        {
+          "key": "permission:role",
+          "parent_key": "permission",
+          "title": "角色管理",
+          "path": "/permission/role",
+          "component": "base/views/permission/role/index",
+          "permission": "permission:role:index",
+          "type": "M",
+          "i18n": "baseMenu.permission.role",
+          "sort": 30
+        },
+        {
+          "key": "permission:department",
+          "parent_key": "permission",
+          "title": "部门管理",
+          "path": "/permission/department",
+          "component": "base/views/permission/department/index",
+          "permission": "permission:department:index",
+          "type": "M",
+          "i18n": "baseMenu.permission.department",
+          "sort": 40
+        },
+        {
+          "key": "permission:position",
+          "parent_key": "permission",
+          "title": "岗位管理",
+          "path": "/permission/position",
+          "component": "base/views/permission/department/index",
+          "permission": "permission:position:index",
+          "type": "M",
+          "i18n": "baseMenu.permission.positionList",
+          "sort": 50
+        },
+        {
+          "key": "permission:leader",
+          "parent_key": "permission",
+          "title": "领导管理",
+          "path": "/permission/leader",
+          "component": "base/views/permission/department/index",
+          "permission": "permission:leader:index",
+          "type": "M",
+          "i18n": "baseMenu.permission.leaderList",
+          "sort": 60
+        }
+      ],
+      "permissions": [
+        {
+          "key": "permission:user:index",
+          "description": "用户列表"
+        },
+        {
+          "key": "permission:user:save",
+          "description": "用户保存"
+        },
+        {
+          "key": "permission:user:update",
+          "description": "用户更新"
+        },
+        {
+          "key": "permission:user:delete",
+          "description": "用户删除"
+        },
+        {
+          "key": "permission:user:password",
+          "description": "用户初始化密码"
+        },
+        {
+          "key": "permission:user:getRole",
+          "description": "获取用户角色"
+        },
+        {
+          "key": "permission:user:setRole",
+          "description": "用户角色赋予"
+        },
+        {
+          "key": "permission:menu:index",
+          "description": "菜单列表"
+        },
+        {
+          "key": "permission:menu:create",
+          "description": "菜单保存"
+        },
+        {
+          "key": "permission:menu:save",
+          "description": "菜单更新"
+        },
+        {
+          "key": "permission:menu:delete",
+          "description": "菜单删除"
+        },
+        {
+          "key": "permission:role:index",
+          "description": "角色列表"
+        },
+        {
+          "key": "permission:role:save",
+          "description": "角色保存"
+        },
+        {
+          "key": "permission:role:update",
+          "description": "角色更新"
+        },
+        {
+          "key": "permission:role:delete",
+          "description": "角色删除"
+        },
+        {
+          "key": "permission:role:getMenu",
+          "description": "获取角色菜单"
+        },
+        {
+          "key": "permission:role:setMenu",
+          "description": "角色菜单赋予"
+        },
+        {
+          "key": "permission:department:index",
+          "description": "部门列表"
+        },
+        {
+          "key": "permission:department:save",
+          "description": "部门保存"
+        },
+        {
+          "key": "permission:department:update",
+          "description": "部门更新"
+        },
+        {
+          "key": "permission:department:delete",
+          "description": "部门删除"
+        },
+        {
+          "key": "permission:position:index",
+          "description": "岗位列表"
+        },
+        {
+          "key": "permission:position:save",
+          "description": "岗位保存"
+        },
+        {
+          "key": "permission:position:update",
+          "description": "岗位更新"
+        },
+        {
+          "key": "permission:position:delete",
+          "description": "岗位删除"
+        },
+        {
+          "key": "permission:position:data_permission",
+          "description": "岗位数据权限"
+        },
+        {
+          "key": "permission:leader:index",
+          "description": "领导列表"
+        },
+        {
+          "key": "permission:leader:save",
+          "description": "领导保存"
+        },
+        {
+          "key": "permission:leader:delete",
+          "description": "领导删除"
+        }
+      ],
+      "migrations": [],
+      "openapi_files": [
+        "docs/api-contract/openapi/admin-base-apis.openapi.json"
+      ],
+      "test_templates": [
+        "tests/feature/admin/user_role_menu_test.go",
+        "tests/feature/admin/org_test.go",
+        "tests/unit/data_permission_test.go"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+groups:
+  - name: goravel-mine.synthetic
+    interval: 30s
+    rules:
+      - alert: GoravelMineSyntheticPage
+        expr: vector(1)
+        for: 1m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: drill
+        annotations:
+          summary: Synthetic page alert for Goravel Mine
+          description: Test-only alert. Load this rule only during alert-routing drills, then remove it.
+
+      - alert: GoravelMineSyntheticTicket
+        expr: vector(1)
+        for: 1m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: drill
+        annotations:
+          summary: Synthetic ticket alert for Goravel Mine
+          description: Test-only alert. Load this rule only during ticket-routing drills, then remove it.

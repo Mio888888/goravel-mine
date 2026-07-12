@@ -1,0 +1,126 @@
+.module-lifecycle-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 12px;
+}
+
+.module-lifecycle-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 6px;
+}
+
+.module-lifecycle-toolbar h2,
+.module-lifecycle-page .section-title h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.module-lifecycle-toolbar p,
+.module-lifecycle-stat span,
+.module-lifecycle-page .section-title span {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+
+.module-lifecycle-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.module-lifecycle-stat {
+  min-height: 78px;
+  padding: 16px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 6px;
+}
+
+.module-lifecycle-stat strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.module-lifecycle-section {
+  min-width: 0;
+  padding: 16px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 6px;
+}
+
+.module-lifecycle-action,
+.module-lifecycle-filter {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(140px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.module-lifecycle-action .el-form-item,
+.module-lifecycle-filter .el-form-item {
+  margin-bottom: 0;
+}
+
+.module-lifecycle-submit,
+.module-lifecycle-filter-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.module-lifecycle-tabs {
+  min-width: 0;
+}
+
+.module-lifecycle-tabs .el-tabs__header {
+  margin: 0 0 10px;
+}
+
+.module-lifecycle-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.module-lifecycle-page .section-title {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+/* Keep legacy media syntax aligned with the pre-refactor browser compatibility surface. */
+/* stylelint-disable media-feature-range-notation */
+@media (max-width: 1200px) {
+  .module-lifecycle-action,
+  .module-lifecycle-filter,
+  .module-lifecycle-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .module-lifecycle-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .module-lifecycle-action,
+  .module-lifecycle-filter,
+  .module-lifecycle-stats {
+    grid-template-columns: 1fr;
+  }
+}
+/* stylelint-enable media-feature-range-notation */

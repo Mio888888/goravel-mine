@@ -1,0 +1,2277 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MineAdmin Admin Base API Contract",
+    "version": "2026-07-06",
+    "description": "Scoped subset for documented admin-base APIs; not a full route list. Add new endpoints here before generating an SDK for them."
+  },
+  "servers": [{ "url": "/" }],
+  "security": [{ "bearerAuth": [] }],
+  "tags": [
+    { "name": "Passport" },
+    { "name": "SecurityControl" },
+    { "name": "Permission" },
+    { "name": "User" },
+    { "name": "Role" },
+    { "name": "Menu" },
+    { "name": "Organization" },
+    { "name": "PlatformStorageConfig" },
+    { "name": "Attachment" },
+    { "name": "Logs" }
+  ],
+  "paths": {
+    "/admin/passport/login": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportLogin",
+        "security": [],
+        "requestBody": { "$ref": "#/components/requestBodies/LoginRequest" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthChallengeResponse" }
+        }
+      }
+    },
+    "/admin/passport/mfa/login": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportMfaLogin",
+        "security": [],
+        "requestBody": { "$ref": "#/components/requestBodies/MFALoginRequest" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthChallengeResponse" }
+        }
+      }
+    },
+    "/admin/passport/password/change": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportPasswordChange",
+        "security": [],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PasswordChangeRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthTokenResponse" }
+        }
+      }
+    },
+    "/admin/passport/sso/authorize": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportSSOAuthorize",
+        "security": [],
+        "requestBody": { "$ref": "#/components/requestBodies/SSOAuthorizationRequest" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/SSOAuthorizationResponse" }
+        }
+      }
+    },
+    "/admin/passport/sso/callback": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportSSOCallback",
+        "security": [],
+        "requestBody": { "$ref": "#/components/requestBodies/SSOCallbackRequest" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthTokenResponse" }
+        }
+      }
+    },
+    "/admin/platform/passport/password/change": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPlatformPassportPasswordChange",
+        "security": [],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PasswordChangeRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthTokenResponse" }
+        }
+      }
+    },
+    "/admin/passport/csrf-token": {
+      "get": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportCsrfToken",
+        "security": [],
+        "responses": {
+          "200": { "$ref": "#/components/responses/CSRFTokenResponse" }
+        }
+      }
+    },
+    "/admin/security/mfa/setup": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminSecurityMfaSetup",
+        "responses": {
+          "200": { "$ref": "#/components/responses/MFASetupResponse" }
+        }
+      }
+    },
+    "/admin/security/mfa/confirm": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminSecurityMfaConfirm",
+        "requestBody": { "$ref": "#/components/requestBodies/MFACodeRequest" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/MFARecoveryCodesResponse" }
+        }
+      }
+    },
+    "/admin/security/mfa/disable": {
+      "post": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminSecurityMfaDisable",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/MFADisableRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/security/reauth-token": {
+      "post": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminSecurityReauthToken",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ReauthTokenRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/ReauthTokenResponse" }
+        }
+      }
+    },
+    "/admin/security/approvals": {
+      "post": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminSecurityApprovalCreate",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ApprovalCreateRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/ApprovalResponse" }
+        }
+      }
+    },
+    "/admin/security/approvals/{approval_id}": {
+      "get": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminSecurityApprovalDetail",
+        "parameters": [{ "$ref": "#/components/parameters/ApprovalId" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/ApprovalResponse" }
+        }
+      }
+    },
+    "/admin/security/approvals/{approval_id}/approve": {
+      "put": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminSecurityApprovalApprove",
+        "parameters": [{ "$ref": "#/components/parameters/ApprovalId" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/ApprovalResponse" }
+        }
+      }
+    },
+    "/admin/platform/security/mfa/setup": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPlatformSecurityMfaSetup",
+        "responses": {
+          "200": { "$ref": "#/components/responses/MFASetupResponse" }
+        }
+      }
+    },
+    "/admin/platform/security/mfa/confirm": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPlatformSecurityMfaConfirm",
+        "requestBody": { "$ref": "#/components/requestBodies/MFACodeRequest" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/MFARecoveryCodesResponse" }
+        }
+      }
+    },
+    "/admin/platform/security/mfa/disable": {
+      "post": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminPlatformSecurityMfaDisable",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/MFADisableRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/platform/security/reauth-token": {
+      "post": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminPlatformSecurityReauthToken",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ReauthTokenRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/ReauthTokenResponse" }
+        }
+      }
+    },
+    "/admin/platform/security/approvals": {
+      "post": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminPlatformSecurityApprovalCreate",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ApprovalCreateRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/ApprovalResponse" }
+        }
+      }
+    },
+    "/admin/platform/security/approvals/{approval_id}": {
+      "get": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminPlatformSecurityApprovalDetail",
+        "parameters": [{ "$ref": "#/components/parameters/ApprovalId" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/ApprovalResponse" }
+        }
+      }
+    },
+    "/admin/platform/security/approvals/{approval_id}/approve": {
+      "put": {
+        "tags": ["SecurityControl"],
+        "operationId": "adminPlatformSecurityApprovalApprove",
+        "parameters": [{ "$ref": "#/components/parameters/ApprovalId" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/ApprovalResponse" }
+        }
+      }
+    },
+    "/admin/passport/logout": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportLogout",
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/passport/refresh": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportRefresh",
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthTokenResponse" }
+        }
+      }
+    },
+    "/admin/passport/getInfo": {
+      "get": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportGetInfo",
+        "responses": {
+          "200": { "$ref": "#/components/responses/CurrentUserResponse" }
+        }
+      }
+    },
+    "/admin/passport/captcha": {
+      "get": {
+        "tags": ["Passport"],
+        "operationId": "adminPassportCaptcha",
+        "security": [],
+        "responses": {
+          "200": { "$ref": "#/components/responses/CaptchaResponse" }
+        }
+      }
+    },
+    "/api/system/captcha": {
+      "get": {
+        "tags": ["Passport"],
+        "operationId": "apiSystemCaptcha",
+        "security": [],
+        "responses": {
+          "200": { "$ref": "#/components/responses/CaptchaResponse" }
+        }
+      }
+    },
+    "/admin/permission/menus": {
+      "get": {
+        "tags": ["Permission"],
+        "operationId": "adminPermissionMenus",
+        "responses": {
+          "200": { "$ref": "#/components/responses/MenuTreeResponse" }
+        }
+      }
+    },
+    "/admin/permission/roles": {
+      "get": {
+        "tags": ["Permission"],
+        "operationId": "adminPermissionRoles",
+        "responses": {
+          "200": { "$ref": "#/components/responses/RoleArrayResponse" }
+        }
+      }
+    },
+    "/admin/permission/update": {
+      "post": {
+        "tags": ["Permission"],
+        "operationId": "adminPermissionUpdate",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PermissionUpdateRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/user/info": {
+      "put": {
+        "tags": ["User"],
+        "operationId": "adminUserInfoUpdate",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PermissionUpdateRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/user/list": {
+      "get": {
+        "tags": ["User"],
+        "operationId": "adminUserList",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" },
+          { "name": "username", "in": "query", "schema": { "type": "string" } },
+          { "name": "nickname", "in": "query", "schema": { "type": "string" } },
+          { "name": "phone", "in": "query", "schema": { "type": "string" } },
+          { "name": "email", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/PageResponse" }
+        }
+      }
+    },
+    "/admin/user": {
+      "post": {
+        "tags": ["User"],
+        "operationId": "adminUserCreate",
+        "requestBody": { "$ref": "#/components/requestBodies/UserPayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "operationId": "adminUserDelete",
+        "requestBody": { "$ref": "#/components/requestBodies/IdList" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/user/{id}": {
+      "put": {
+        "tags": ["User"],
+        "operationId": "adminUserUpdate",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": { "$ref": "#/components/requestBodies/UserPayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/user/password": {
+      "put": {
+        "tags": ["User"],
+        "operationId": "adminUserResetPassword",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UserPasswordResetRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/user/{id}/roles": {
+      "get": {
+        "tags": ["User"],
+        "operationId": "adminUserRoles",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/RoleArrayResponse" }
+        }
+      },
+      "put": {
+        "tags": ["User"],
+        "operationId": "adminUserSetRoles",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/RoleCodesRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/role/list": {
+      "get": {
+        "tags": ["Role"],
+        "operationId": "adminRoleList",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" },
+          { "name": "name", "in": "query", "schema": { "type": "string" } },
+          { "name": "code", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/PageResponse" }
+        }
+      }
+    },
+    "/admin/role": {
+      "post": {
+        "tags": ["Role"],
+        "operationId": "adminRoleCreate",
+        "requestBody": { "$ref": "#/components/requestBodies/RolePayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      },
+      "delete": {
+        "tags": ["Role"],
+        "operationId": "adminRoleDelete",
+        "requestBody": { "$ref": "#/components/requestBodies/IdList" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/role/{id}": {
+      "put": {
+        "tags": ["Role"],
+        "operationId": "adminRoleUpdate",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": { "$ref": "#/components/requestBodies/RolePayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/role/{id}/permissions": {
+      "get": {
+        "tags": ["Role"],
+        "operationId": "adminRolePermissions",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/StringArrayResponse" }
+        }
+      },
+      "put": {
+        "tags": ["Role"],
+        "operationId": "adminRoleSetPermissions",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/RolePermissionsRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/menu/list": {
+      "get": {
+        "tags": ["Menu"],
+        "operationId": "adminMenuList",
+        "responses": {
+          "200": { "$ref": "#/components/responses/MenuTreeResponse" }
+        }
+      }
+    },
+    "/admin/menu": {
+      "post": {
+        "tags": ["Menu"],
+        "operationId": "adminMenuCreate",
+        "requestBody": { "$ref": "#/components/requestBodies/MenuPayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      },
+      "delete": {
+        "tags": ["Menu"],
+        "operationId": "adminMenuDelete",
+        "requestBody": { "$ref": "#/components/requestBodies/IdList" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/menu/{id}": {
+      "put": {
+        "tags": ["Menu"],
+        "operationId": "adminMenuUpdate",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": { "$ref": "#/components/requestBodies/MenuPayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/department/list": {
+      "get": {
+        "tags": ["Organization"],
+        "operationId": "adminDepartmentList",
+        "responses": {
+          "200": { "$ref": "#/components/responses/PageResponse" }
+        }
+      }
+    },
+    "/admin/department": {
+      "post": {
+        "tags": ["Organization"],
+        "operationId": "adminDepartmentCreate",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/DepartmentPayload"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      },
+      "delete": {
+        "tags": ["Organization"],
+        "operationId": "adminDepartmentDelete",
+        "requestBody": { "$ref": "#/components/requestBodies/IdList" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/department/{id}": {
+      "put": {
+        "tags": ["Organization"],
+        "operationId": "adminDepartmentUpdate",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/DepartmentPayload"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/position/list": {
+      "get": {
+        "tags": ["Organization"],
+        "operationId": "adminPositionList",
+        "responses": {
+          "200": { "$ref": "#/components/responses/PageResponse" }
+        }
+      }
+    },
+    "/admin/position": {
+      "post": {
+        "tags": ["Organization"],
+        "operationId": "adminPositionCreate",
+        "requestBody": { "$ref": "#/components/requestBodies/PositionPayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      },
+      "delete": {
+        "tags": ["Organization"],
+        "operationId": "adminPositionDelete",
+        "requestBody": { "$ref": "#/components/requestBodies/IdList" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/position/{id}": {
+      "put": {
+        "tags": ["Organization"],
+        "operationId": "adminPositionUpdate",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": { "$ref": "#/components/requestBodies/PositionPayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/position/{id}/data_permission": {
+      "put": {
+        "tags": ["Organization"],
+        "operationId": "adminPositionSetDataPermission",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PositionDataPermissionPayload"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/leader/list": {
+      "get": {
+        "tags": ["Organization"],
+        "operationId": "adminLeaderList",
+        "responses": {
+          "200": { "$ref": "#/components/responses/PageResponse" }
+        }
+      }
+    },
+    "/admin/leader": {
+      "post": {
+        "tags": ["Organization"],
+        "operationId": "adminLeaderCreate",
+        "requestBody": { "$ref": "#/components/requestBodies/LeaderPayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      },
+      "delete": {
+        "tags": ["Organization"],
+        "operationId": "adminLeaderDelete",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/LeaderDeletePayload"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/platform/storage-config/list": {
+      "get": {
+        "tags": ["PlatformStorageConfig"],
+        "operationId": "adminPlatformStorageConfigList",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PageSize" },
+          { "$ref": "#/components/parameters/PerPage" },
+          { "name": "name", "in": "query", "schema": { "type": "string" } },
+          { "name": "provider", "in": "query", "schema": { "type": "string" } },
+          { "name": "driver", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/PageResponse" }
+        }
+      }
+    },
+    "/admin/platform/storage-config": {
+      "post": {
+        "tags": ["PlatformStorageConfig"],
+        "operationId": "adminPlatformStorageConfigCreate",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/StorageConfigPayload"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/StorageConfigResponse" }
+        }
+      },
+      "delete": {
+        "tags": ["PlatformStorageConfig"],
+        "operationId": "adminPlatformStorageConfigDelete",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SensitiveIdsObject"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/platform/storage-config/{id}": {
+      "put": {
+        "tags": ["PlatformStorageConfig"],
+        "operationId": "adminPlatformStorageConfigUpdate",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/StorageConfigPayload"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/StorageConfigResponse" }
+        }
+      }
+    },
+    "/admin/attachment/upload": {
+      "post": {
+        "tags": ["Attachment"],
+        "operationId": "adminAttachmentUpload",
+        "requestBody": { "$ref": "#/components/requestBodies/FileUpload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AttachmentResponse" }
+        }
+      }
+    },
+    "/admin/attachment/list": {
+      "get": {
+        "tags": ["Attachment"],
+        "operationId": "adminAttachmentList",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PageSize" },
+          { "$ref": "#/components/parameters/PerPage" },
+          { "name": "suffix", "in": "query", "schema": { "type": "string" } },
+          {
+            "name": "mime_type",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "origin_name",
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/PageResponse" }
+        }
+      }
+    },
+    "/admin/attachment/{id}": {
+      "delete": {
+        "tags": ["Attachment"],
+        "operationId": "adminAttachmentDelete",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/user-login-log/list": {
+      "get": {
+        "tags": ["Logs"],
+        "operationId": "adminUserLoginLogList",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" },
+          { "name": "username", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "ip", "in": "query", "schema": { "type": "string" } },
+          { "name": "os", "in": "query", "schema": { "type": "string" } },
+          { "name": "browser", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/PageResponse" }
+        }
+      }
+    },
+    "/admin/user-operation-log/list": {
+      "get": {
+        "tags": ["Logs"],
+        "operationId": "adminUserOperationLogList",
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" },
+          { "name": "username", "in": "query", "schema": { "type": "string" } },
+          { "name": "method", "in": "query", "schema": { "type": "string" } },
+          { "name": "router", "in": "query", "schema": { "type": "string" } },
+          {
+            "name": "service_name",
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "$ref": "#/components/responses/PageResponse" }
+        }
+      }
+    },
+    "/admin/platform/attachment/upload": {
+      "post": {
+        "tags": ["Attachment"],
+        "operationId": "adminPlatformAttachmentUpload",
+        "requestBody": { "$ref": "#/components/requestBodies/FileUpload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AttachmentResponse" }
+        }
+      }
+    },
+    "/admin/leader/{id}": {
+      "put": {
+        "tags": ["Organization"],
+        "operationId": "adminLeaderUpdate",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": { "$ref": "#/components/requestBodies/LeaderPayload" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/platform/passport/login": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPlatformPassportLogin",
+        "security": [],
+        "requestBody": { "$ref": "#/components/requestBodies/LoginRequest" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthChallengeResponse" }
+        }
+      }
+    },
+    "/admin/platform/passport/mfa/login": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPlatformPassportMfaLogin",
+        "security": [],
+        "requestBody": { "$ref": "#/components/requestBodies/MFALoginRequest" },
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthChallengeResponse" }
+        }
+      }
+    },
+    "/admin/platform/passport/csrf-token": {
+      "get": {
+        "tags": ["Passport"],
+        "operationId": "adminPlatformPassportCsrfToken",
+        "security": [],
+        "responses": {
+          "200": { "$ref": "#/components/responses/CSRFTokenResponse" }
+        }
+      }
+    },
+    "/admin/platform/passport/getInfo": {
+      "get": {
+        "tags": ["Passport"],
+        "operationId": "adminPlatformPassportGetInfo",
+        "responses": {
+          "200": { "$ref": "#/components/responses/CurrentUserResponse" }
+        }
+      }
+    },
+    "/admin/platform/passport/logout": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPlatformPassportLogout",
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/platform/passport/refresh": {
+      "post": {
+        "tags": ["Passport"],
+        "operationId": "adminPlatformPassportRefresh",
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthTokenResponse" }
+        }
+      }
+    },
+    "/admin/platform/permission/menus": {
+      "get": {
+        "tags": ["Permission"],
+        "operationId": "adminPlatformPermissionMenus",
+        "responses": {
+          "200": { "$ref": "#/components/responses/MenuTreeResponse" }
+        }
+      }
+    },
+    "/admin/platform/permission/roles": {
+      "get": {
+        "tags": ["Permission"],
+        "operationId": "adminPlatformPermissionRoles",
+        "responses": {
+          "200": { "$ref": "#/components/responses/RoleArrayResponse" }
+        }
+      }
+    },
+    "/admin/platform/permission/update": {
+      "post": {
+        "tags": ["Permission"],
+        "operationId": "adminPlatformPermissionUpdate",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/PermissionUpdateRequest"
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/EmptyArrayResponse" }
+        }
+      }
+    },
+    "/admin/platform/tenant/{id}/exports": {
+      "post": {
+        "tags": ["PlatformTenant"],
+        "operationId": "adminPlatformTenantExportCreate",
+        "parameters": [{ "$ref": "#/components/parameters/Id" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TenantExportRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200；业务状态由 JSON code 表示。",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TenantExportRunResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/tenant/{id}/exports/{run_id}": {
+      "get": {
+        "tags": ["PlatformTenant"],
+        "operationId": "adminPlatformTenantExportStatus",
+        "parameters": [
+          { "$ref": "#/components/parameters/Id" },
+          { "name": "run_id", "in": "path", "required": true, "schema": { "type": "integer", "format": "uint64" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200；completed 时返回一次性五分钟下载 token。",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TenantExportStatusResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/tenant/{id}/exports/{run_id}/download": {
+      "get": {
+        "tags": ["PlatformTenant"],
+        "operationId": "adminPlatformTenantExportDownload",
+        "parameters": [
+          { "$ref": "#/components/parameters/Id" },
+          { "name": "run_id", "in": "path", "required": true, "schema": { "type": "integer", "format": "uint64" } },
+          { "name": "token", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "解密后的 JSONL 或 CSV；token 绑定 operator、tenant、run 且仅可使用一次。",
+            "content": {
+              "application/x-ndjson": { "schema": { "type": "string", "format": "binary" } },
+              "text/csv": { "schema": { "type": "string", "format": "binary" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "integer", "format": "uint64", "minimum": 1 }
+      },
+      "ApprovalId": {
+        "name": "approval_id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "default": 1 }
+      },
+      "PerPage": {
+        "name": "per_page",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "default": 15 }
+      },
+      "PageSize": {
+        "name": "page_size",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "default": 15 }
+      }
+    },
+    "responses": {
+      "AuthChallengeResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AuthTokenData" }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/MFAChallengeData"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PasswordChangeChallengeData"
+                        }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "AuthTokenResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AuthTokenData" }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "SSOAuthorizationResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/SSOAuthorizationData" }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "CaptchaResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/CaptchaData" }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "CSRFTokenResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/CSRFTokenData" }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "CurrentUserResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CurrentUserData"
+                        }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "EmptyArrayResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/EmptyArray" }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "ReauthTokenResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ReauthTokenData"
+                        }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "ApprovalResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/ApprovalData" }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "MFASetupResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/MFASetupData" }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "MFARecoveryCodesResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/MFARecoveryCodesData"
+                        }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "MenuTreeResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/MenuItem" }
+                        }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "RoleArrayResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/RoleData" }
+                        }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "StringArrayResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "PageResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/PageData" }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "AttachmentResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AttachmentData"
+                        }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      },
+      "StorageConfigResponse": {
+        "description": "HTTP 200；业务状态由 JSON code 表示。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/ApiResponse" },
+                    {
+                      "type": "object",
+                      "required": ["data"],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/StorageConfigData"
+                        }
+                      }
+                    }
+                  ]
+                },
+                { "$ref": "#/components/schemas/ErrorResponse" }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "requestBodies": {
+      "LoginRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/LoginRequest" }
+          }
+        }
+      },
+      "MFALoginRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/MFALoginRequest" }
+          }
+        }
+      },
+      "PasswordChangeRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PasswordChangeRequest" }
+          }
+        }
+      },
+      "SSOAuthorizationRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/SSOAuthorizationRequest" }
+          }
+        }
+      },
+      "SSOCallbackRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/SSOCallbackRequest" }
+          }
+        }
+      },
+      "MFACodeRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/MFACodeRequest" }
+          }
+        }
+      },
+      "MFADisableRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/MFADisableRequest" }
+          }
+        }
+      },
+      "ReauthTokenRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ReauthTokenRequest" }
+          }
+        }
+      },
+      "ApprovalCreateRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ApprovalCreateRequest" }
+          }
+        }
+      },
+      "PermissionUpdateRequest": {
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PermissionUpdateRequest" }
+          }
+        }
+      },
+      "UserPayload": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/UserPayload" }
+          }
+        }
+      },
+      "UserPasswordResetRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UserPasswordResetRequest"
+            }
+          }
+        }
+      },
+      "RoleCodesRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/RoleCodesRequest" }
+          }
+        }
+      },
+      "RolePayload": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/RolePayload" }
+          }
+        }
+      },
+      "RolePermissionsRequest": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/RolePermissionsRequest" }
+          }
+        }
+      },
+      "MenuPayload": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/MenuPayload" }
+          }
+        }
+      },
+      "DepartmentPayload": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/DepartmentPayload" }
+          }
+        }
+      },
+      "PositionPayload": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/PositionPayload" }
+          }
+        }
+      },
+      "PositionDataPermissionPayload": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PositionDataPermissionPayload"
+            }
+          }
+        }
+      },
+      "LeaderPayload": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/LeaderPayload" }
+          }
+        }
+      },
+      "LeaderDeletePayload": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/LeaderDeletePayload" }
+          }
+        }
+      },
+      "StorageConfigPayload": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/StorageConfigPayload" }
+          }
+        }
+      },
+      "IdList": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/IdList" }
+          }
+        }
+      },
+      "IdsObject": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/IdsObject" }
+          }
+        }
+      },
+      "SensitiveIdsObject": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                { "$ref": "#/components/schemas/IdsObject" },
+                {
+                  "$ref": "#/components/schemas/SensitiveOperationEvidence"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "FileUpload": {
+        "required": true,
+        "content": {
+          "multipart/form-data": {
+            "schema": { "$ref": "#/components/schemas/FileUpload" }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "required": ["code", "message", "data"],
+        "properties": {
+          "code": { "type": "integer", "enum": [200] },
+          "message": { "type": "string" },
+          "data": {}
+        }
+      },
+      "IdList": {
+        "type": "array",
+        "items": { "type": "integer", "format": "uint64", "minimum": 1 }
+      },
+      "IdsObject": {
+        "type": "object",
+        "required": ["ids"],
+        "properties": { "ids": { "$ref": "#/components/schemas/IdList" } }
+      },
+      "SensitiveOperationEvidence": {
+        "type": "object",
+        "required": ["reauth_token", "approval_id"],
+        "properties": {
+          "reauth_token": { "type": "string", "minLength": 1 },
+          "approval_id": { "type": "string", "minLength": 1 }
+        }
+      },
+      "StringList": { "type": "array", "items": { "type": "string" } },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string", "format": "password" },
+          "code": { "type": "string" },
+          "captcha_key": { "type": "string" },
+          "key": { "type": "string" }
+        }
+      },
+      "MFALoginRequest": {
+        "type": "object",
+        "required": ["mfa_token", "mfa_code"],
+        "properties": {
+          "mfa_token": { "type": "string" },
+          "mfa_code": { "type": "string" }
+        }
+      },
+      "PasswordChangeRequest": {
+        "type": "object",
+        "required": [
+          "password_change_token",
+          "old_password",
+          "new_password",
+          "new_password_confirmation"
+        ],
+        "properties": {
+          "password_change_token": { "type": "string" },
+          "old_password": { "type": "string", "format": "password" },
+          "new_password": { "type": "string", "format": "password" },
+          "new_password_confirmation": {
+            "type": "string",
+            "format": "password"
+          }
+        }
+      },
+      "SSOAuthorizationRequest": {
+        "type": "object",
+        "required": ["provider"],
+        "properties": {
+          "provider": { "type": "string", "minLength": 1 },
+          "scene": { "type": "string", "default": "admin" }
+        }
+      },
+      "SSOCallbackRequest": {
+        "type": "object",
+        "required": ["transaction_id", "code", "state"],
+        "properties": {
+          "transaction_id": { "type": "string", "minLength": 1 },
+          "code": { "type": "string", "minLength": 1 },
+          "state": { "type": "string", "minLength": 1 }
+        }
+      },
+      "MFACodeRequest": {
+        "type": "object",
+        "required": ["code"],
+        "properties": { "code": { "type": "string" } }
+      },
+      "MFADisableRequest": {
+        "type": "object",
+        "required": ["code", "reauth_token", "approval_id"],
+        "properties": {
+          "code": { "type": "string" },
+          "reauth_token": { "type": "string", "minLength": 1 },
+          "approval_id": { "type": "string", "minLength": 1 }
+        }
+      },
+      "ReauthTokenRequest": {
+        "type": "object",
+        "required": ["password", "operation", "resource"],
+        "properties": {
+          "password": { "type": "string", "format": "password" },
+          "mfa_code": { "type": "string" },
+          "operation": { "type": "string", "minLength": 1 },
+          "resource": { "type": "string", "minLength": 1 }
+        }
+      },
+      "ApprovalCreateRequest": {
+        "type": "object",
+        "required": ["resource", "reason"],
+        "properties": {
+          "policy_key": { "type": "string" },
+          "scope": { "type": "string" },
+          "resource": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      },
+      "PermissionUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "nickname": { "type": "string" },
+          "avatar": { "type": "string" },
+          "signed": { "type": "string" },
+          "backend_setting": { "type": "object", "additionalProperties": true },
+          "old_password": { "type": "string", "format": "password" },
+          "new_password": { "type": "string", "format": "password" },
+          "new_password_confirmation": {
+            "type": "string",
+            "format": "password"
+          }
+        }
+      },
+      "UserPayload": {
+        "type": "object",
+        "required": ["username"],
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string", "format": "password" },
+          "user_type": {
+            "oneOf": [{ "type": "string" }, { "type": "integer" }]
+          },
+          "nickname": { "type": "string" },
+          "phone": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "avatar": { "type": "string" },
+          "signed": { "type": "string" },
+          "dashboard": { "type": "string" },
+          "status": { "type": "integer", "enum": [1, 2] },
+          "department": { "$ref": "#/components/schemas/IdList" },
+          "position": { "$ref": "#/components/schemas/IdList" },
+          "backend_setting": { "type": "object", "additionalProperties": true },
+          "remark": { "type": "string" }
+        }
+      },
+      "UserPasswordResetRequest": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": { "type": "integer", "format": "uint64", "minimum": 1 }
+            }
+          },
+          { "$ref": "#/components/schemas/SensitiveOperationEvidence" }
+        ]
+      },
+      "RoleCodesRequest": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": ["role_codes"],
+            "properties": {
+              "role_codes": { "$ref": "#/components/schemas/StringList" }
+            }
+          },
+          { "$ref": "#/components/schemas/SensitiveOperationEvidence" }
+        ]
+      },
+      "RolePayload": {
+        "type": "object",
+        "required": ["name", "code"],
+        "properties": {
+          "name": { "type": "string" },
+          "code": { "type": "string" },
+          "status": { "type": "integer", "enum": [1, 2] },
+          "sort": { "type": "integer" },
+          "remark": { "type": "string" }
+        }
+      },
+      "RolePermissionsRequest": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": ["permissions"],
+            "properties": {
+              "permissions": { "$ref": "#/components/schemas/StringList" }
+            }
+          },
+          { "$ref": "#/components/schemas/SensitiveOperationEvidence" }
+        ]
+      },
+      "MenuPayload": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "parent_id": { "type": "integer", "format": "uint64" },
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "component": { "type": "string" },
+          "status": { "type": "integer", "enum": [1, 2] },
+          "sort": { "type": "integer" },
+          "meta": { "type": "object", "additionalProperties": true },
+          "btnPermission": {
+            "type": "array",
+            "items": { "type": "object", "additionalProperties": true }
+          },
+          "redirect": { "type": "string" },
+          "remark": { "type": "string" }
+        }
+      },
+      "DepartmentPayload": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "parent_id": { "type": "integer", "format": "uint64" },
+          "department_users": { "$ref": "#/components/schemas/IdList" },
+          "leader": { "$ref": "#/components/schemas/IdList" }
+        }
+      },
+      "PositionPayload": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "dept_id": { "type": "integer", "format": "uint64" }
+        }
+      },
+      "PositionDataPermissionPayload": {
+        "type": "object",
+        "required": ["policy_type"],
+        "properties": {
+          "policy_type": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "DEPT_SELF",
+              "DEPT_TREE",
+              "SELF",
+              "CUSTOM_DEPT",
+              "CUSTOM_FUNC"
+            ]
+          },
+          "value": { "$ref": "#/components/schemas/IdList" }
+        }
+      },
+      "LeaderPayload": {
+        "type": "object",
+        "required": ["dept_id", "user_id"],
+        "properties": {
+          "dept_id": { "type": "integer", "format": "uint64" },
+          "user_id": { "$ref": "#/components/schemas/IdList" }
+        }
+      },
+      "LeaderDeletePayload": {
+        "type": "object",
+        "required": ["dept_id", "user_ids"],
+        "properties": {
+          "dept_id": { "type": "integer", "format": "uint64" },
+          "user_ids": { "$ref": "#/components/schemas/IdList" }
+        }
+      },
+      "StorageConfigPayload": {
+        "type": "object",
+        "required": ["name", "provider", "driver"],
+        "properties": {
+          "name": { "type": "string" },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "local",
+              "minio",
+              "aws_s3",
+              "aliyun_oss",
+              "tencent_cos",
+              "qiniu",
+              "huawei_obs"
+            ]
+          },
+          "driver": { "type": "string", "enum": ["local", "s3_compatible"] },
+          "bucket": { "type": "string" },
+          "endpoint": { "type": "string" },
+          "region": { "type": "string" },
+          "access_key": { "type": "string" },
+          "secret_key": { "type": "string", "format": "password" },
+          "base_url": { "type": "string" },
+          "path_prefix": { "type": "string" },
+          "is_default": { "type": "boolean" },
+          "status": { "type": "integer", "enum": [1, 2] },
+          "options": { "type": "object", "additionalProperties": true },
+          "remark": { "type": "string" },
+          "reauth_token": { "type": "string", "minLength": 1 },
+          "approval_id": { "type": "string", "minLength": 1 }
+        }
+      },
+      "FileUpload": {
+        "type": "object",
+        "required": ["file"],
+        "properties": { "file": { "type": "string", "format": "binary" } }
+      },
+      "EmptyArray": {
+        "type": "array",
+        "maxItems": 0,
+        "items": { "type": "object", "additionalProperties": true }
+      },
+      "ObjectData": { "type": "object", "additionalProperties": true },
+      "AuthTokenData": {
+        "type": "object",
+        "required": ["access_token", "refresh_token", "expire_at"],
+        "properties": {
+          "access_token": { "type": "string" },
+          "refresh_token": { "type": "string" },
+          "expire_at": { "type": "integer" }
+        }
+      },
+      "SSOAuthorizationData": {
+        "type": "object",
+        "required": ["transaction_id", "state", "authorization_url"],
+        "properties": {
+          "transaction_id": { "type": "string" },
+          "state": { "type": "string" },
+          "authorization_url": { "type": "string", "format": "uri" }
+        }
+      },
+      "PasswordChangeChallengeData": {
+        "type": "object",
+        "required": ["password_change_required", "password_change_token"],
+        "properties": {
+          "password_change_required": { "type": "boolean", "const": true },
+          "password_change_token": { "type": "string" }
+        }
+      },
+      "MFAChallengeData": {
+        "type": "object",
+        "required": ["mfa_required", "mfa_token"],
+        "properties": {
+          "mfa_required": { "type": "boolean", "const": true },
+          "mfa_token": { "type": "string" }
+        }
+      },
+      "CaptchaData": {
+        "type": "object",
+        "required": ["key", "base64"],
+        "properties": {
+          "key": { "type": "string" },
+          "base64": { "type": "string" }
+        }
+      },
+      "CSRFTokenData": {
+        "type": "object",
+        "required": ["csrf_token"],
+        "properties": { "csrf_token": { "type": "string" } }
+      },
+      "MFASetupData": {
+        "type": "object",
+        "required": ["secret", "uri"],
+        "properties": {
+          "secret": { "type": "string" },
+          "uri": { "type": "string" }
+        }
+      },
+      "MFARecoveryCodesData": {
+        "type": "object",
+        "required": ["recovery_codes"],
+        "properties": {
+          "recovery_codes": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ReauthTokenData": {
+        "type": "object",
+        "required": ["reauth_token", "expires_at"],
+        "properties": {
+          "reauth_token": { "type": "string" },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ApprovalData": {
+        "type": "object",
+        "required": [
+          "approval_id",
+          "requester_id",
+          "approver_id",
+          "tenant_id",
+          "policy_key",
+          "binding_digest",
+          "scope",
+          "resource",
+          "status",
+          "reason"
+        ],
+        "properties": {
+          "approval_id": { "type": "string" },
+          "requester_id": { "type": "integer", "format": "uint64" },
+          "approver_id": { "type": "integer", "format": "uint64" },
+          "tenant_id": { "type": "integer", "format": "uint64" },
+          "policy_key": { "type": "string" },
+          "binding_digest": { "type": "string" },
+          "scope": { "type": "string" },
+          "resource": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "approved"] },
+          "reason": { "type": "string" },
+          "used_at": { "type": "string", "format": "date-time" },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CurrentUserData": {
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "nickname",
+          "departments",
+          "positions",
+          "roles"
+        ],
+        "properties": {
+          "id": { "type": "integer", "format": "uint64" },
+          "username": { "type": "string" },
+          "nickname": { "type": "string" },
+          "avatar": { "type": "string" },
+          "signed": { "type": "string" },
+          "phone": { "type": "string" },
+          "email": { "type": "string" },
+          "departments": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObjectData" }
+          },
+          "positions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObjectData" }
+          },
+          "roles": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RoleData" }
+          },
+          "backend_setting": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "RoleData": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "uint64" },
+          "code": { "type": "string" },
+          "name": { "type": "string" },
+          "status": { "type": "integer" }
+        },
+        "additionalProperties": true
+      },
+      "MenuItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "uint64" },
+          "parent_id": { "type": "integer", "format": "uint64" },
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "component": { "type": "string" },
+          "meta": { "type": "object", "additionalProperties": true },
+          "children": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MenuItem" }
+          }
+        },
+        "additionalProperties": true
+      },
+      "PageData": {
+        "type": "object",
+        "required": ["list", "total"],
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObjectData" }
+          },
+          "total": { "type": "integer", "format": "int64" }
+        }
+      },
+      "AttachmentData": {
+        "type": "object",
+        "required": [
+          "id",
+          "origin_name",
+          "object_name",
+          "hash",
+          "mime_type",
+          "storage_path",
+          "suffix",
+          "size_byte",
+          "url"
+        ],
+        "properties": {
+          "id": { "type": "integer", "format": "uint64" },
+          "storage_config_id": { "type": "integer", "format": "uint64" },
+          "origin_name": { "type": "string" },
+          "object_name": { "type": "string" },
+          "hash": { "type": "string" },
+          "mime_type": { "type": "string" },
+          "storage_mode": { "type": "string" },
+          "storage_path": { "type": "string" },
+          "suffix": { "type": "string" },
+          "size_byte": { "type": "integer", "format": "int64" },
+          "url": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "StorageConfigData": {
+        "type": "object",
+        "required": ["id", "name", "provider", "driver", "status"],
+        "properties": {
+          "id": { "type": "integer", "format": "uint64" },
+          "name": { "type": "string" },
+          "provider": { "type": "string" },
+          "driver": { "type": "string" },
+          "bucket": { "type": "string" },
+          "endpoint": { "type": "string" },
+          "region": { "type": "string" },
+          "base_url": { "type": "string" },
+          "path_prefix": { "type": "string" },
+          "is_default": { "type": "boolean" },
+          "status": { "type": "integer" },
+          "options": { "type": "object", "additionalProperties": true },
+          "remark": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "TenantExportRequest": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SensitiveOperationEvidence" },
+          {
+            "type": "object",
+            "required": ["dataset", "format"],
+            "properties": {
+              "dataset": { "type": "string", "enum": ["users"] },
+              "format": { "type": "string", "enum": ["jsonl", "csv"] },
+              "filters": {
+                "type": "object",
+                "properties": { "status": { "type": "string", "enum": ["1", "2"] } },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "TenantExportRun": {
+        "type": "object",
+        "required": ["id", "tenant_id", "tenant_code", "kind", "idempotency_key", "policy_version", "status", "created_at", "updated_at"],
+        "properties": {
+          "id": { "type": "integer", "format": "uint64" },
+          "tenant_id": { "type": "integer", "format": "uint64" },
+          "tenant_code": { "type": "string" },
+          "kind": { "type": "string", "enum": ["export"] },
+          "idempotency_key": { "type": "string" },
+          "policy_version": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "running", "artifact_written", "completed", "failed", "stale"] },
+          "error": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TenantExportStatus": {
+        "type": "object",
+        "required": ["run"],
+        "properties": {
+          "run": { "$ref": "#/components/schemas/TenantExportRun" },
+          "download_token": { "type": "string" },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TenantExportRunResponse": {
+        "oneOf": [
+          { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "$ref": "#/components/schemas/TenantExportRun" } } }] },
+          { "$ref": "#/components/schemas/ErrorResponse" }
+        ]
+      },
+      "TenantExportStatusResponse": {
+        "oneOf": [
+          { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "$ref": "#/components/schemas/TenantExportStatus" } } }] },
+          { "$ref": "#/components/schemas/ErrorResponse" }
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["code", "message", "data"],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "enum": [401, 403, 404, 405, 406, 422, 423, 429, 500]
+          },
+          "message": { "type": "string" },
+          "data": { "$ref": "#/components/schemas/EmptyArray" }
+        }
+      }
+    }
+  }
+}

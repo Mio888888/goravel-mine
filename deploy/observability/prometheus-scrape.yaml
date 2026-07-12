@@ -1,0 +1,26 @@
+scrape_configs:
+  - job_name: goravel-mine
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scheme: http
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/secrets/goravel-mine-secret/OBS_METRICS_TOKEN
+    kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+            - goravel-mine
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: goravel-mine
+      - source_labels: [__meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: http
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - target_label: service
+        replacement: goravel-mine

@@ -1,0 +1,94 @@
+{
+  "routes": [
+    {
+      "name": "platform.module-lifecycle.state",
+      "method": "GET",
+      "path": "/admin/platform/module-lifecycle/state",
+      "permission": "platform:moduleLifecycle:list",
+      "middlewares": [
+        "platform-admin"
+      ]
+    },
+    {
+      "name": "platform.module-lifecycle.runs",
+      "method": "GET",
+      "path": "/admin/platform/module-lifecycle/runs",
+      "permission": "platform:moduleLifecycle:list",
+      "middlewares": [
+        "platform-admin"
+      ]
+    },
+    {
+      "name": "platform.module-lifecycle.steps",
+      "method": "GET",
+      "path": "/admin/platform/module-lifecycle/steps",
+      "permission": "platform:moduleLifecycle:log",
+      "middlewares": [
+        "platform-admin"
+      ]
+    },
+    {
+      "name": "platform.module-lifecycle.locks",
+      "method": "GET",
+      "path": "/admin/platform/module-lifecycle/locks",
+      "permission": "platform:moduleLifecycle:list",
+      "middlewares": [
+        "platform-admin"
+      ]
+    },
+    {
+      "name": "platform.module-lifecycle.diff",
+      "method": "GET",
+      "path": "/admin/platform/module-lifecycle/diff",
+      "permission": "platform:moduleLifecycle:list",
+      "middlewares": [
+        "platform-admin"
+      ]
+    },
+    {
+      "name": "platform.module-lifecycle.release",
+      "method": "POST",
+      "path": "/admin/platform/module-lifecycle/locks/release-stale",
+      "permission": "platform:moduleLifecycle:execute",
+      "middlewares": [
+        "platform-admin"
+      ]
+    },
+    {
+      "name": "platform.module-lifecycle.execute",
+      "method": "POST",
+      "path": "/admin/platform/module-lifecycle/execute",
+      "permission": "platform:moduleLifecycle:execute",
+      "middlewares": [
+        "platform-admin"
+      ]
+    }
+  ],
+  "menus": [
+    {
+      "key": "platform:moduleLifecycle",
+      "parent_key": "platform:system",
+      "title": "模块治理",
+      "path": "/platform-system/module-lifecycle",
+      "component": "base/views/platform/moduleLifecycle/index",
+      "permission": "platform:moduleLifecycle:list",
+      "type": "M",
+      "i18n": "baseMenu.platform.moduleLifecycle",
+      "sort": 40
+    }
+  ],
+  "permissions": [
+    {
+      "key": "platform:moduleLifecycle:list",
+      "description": "模块治理面板"
+    },
+    {
+      "key": "platform:moduleLifecycle:log",
+      "description": "模块生命周期日志"
+    },
+    {
+      "key": "platform:moduleLifecycle:execute",
+      "description": "模块生命周期执行"
+    }
+  ]
+}

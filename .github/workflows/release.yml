@@ -1,0 +1,829 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, for example v0.1.0"
+        required: true
+        type: string
+      target_dry_run:
+        description: "Target cluster server dry-run policy"
+        required: false
+        default: required
+        type: choice
+        options:
+          - skip
+          - required
+      staging_smoke:
+        description: "Staging preflight policy"
+        required: false
+        default: required
+        type: choice
+        options:
+          - auto
+          - skip
+          - required
+      change_ticket:
+        description: "Required change ticket, for example CHG-123"
+        required: true
+        type: string
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  quality-gate:
+    name: CI quality gate
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+  release:
+    name: Build, sign, and publish release
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+      actions: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Resolve release metadata
+        id: meta
+        env:
+          VERSION_INPUT: ${{ inputs.version || '' }}
+        run: |
+          set -eu
+          version="${GITHUB_REF_NAME}"
+          if [ -n "$VERSION_INPUT" ]; then
+            version="$VERSION_INPUT"
+          fi
+          if ! printf '%s' "$version" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Version must match vMAJOR.MINOR.PATCH, got: $version" >&2
+            exit 1
+          fi
+
+          repo="$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+          short_sha="$(git rev-parse --short=12 HEAD)"
+          semver="${version#v}"
+          backend_image="$REGISTRY/$repo/backend"
+          frontend_image="$REGISTRY/$repo/frontend"
+          backup_image="$REGISTRY/$repo/backup"
+
+          {
+            echo "version=$version"
+            echo "semver=$semver"
+            echo "short_sha=$short_sha"
+            echo "backend_image=$backend_image"
+            echo "frontend_image=$frontend_image"
+            echo "backup_image=$backup_image"
+            echo "backend_tags<<EOF"
+            echo "$backend_image:$version"
+            echo "$backend_image:sha-$short_sha"
+            echo "EOF"
+            echo "backup_tags<<EOF"
+            echo "$backup_image:$version"
+            echo "$backup_image:sha-$short_sha"
+            echo "EOF"
+            echo "frontend_tags<<EOF"
+            echo "$frontend_image:$version"
+            echo "$frontend_image:sha-$short_sha"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Resolve target dry-run policy
+        id: target_dry_run
+        env:
+          TARGET_DRY_RUN_INPUT: ${{ inputs.target_dry_run || 'required' }}
+          HAS_PROD_KUBE_CONFIG: ${{ secrets.PROD_KUBE_CONFIG_B64 != '' }}
+        run: |
+          set -eu
+          mode="$TARGET_DRY_RUN_INPUT"
+          if [ "$mode" = "required" ] && [ "$HAS_PROD_KUBE_CONFIG" != "true" ]; then
+            {
+              echo "PROD_KUBE_CONFIG_B64 is not configured."
+              echo "Set repository secret PROD_KUBE_CONFIG_B64 or rerun with target_dry_run=skip."
+            } >&2
+            exit 1
+          fi
+
+          enabled=false
+          reason="PROD_KUBE_CONFIG_B64 not configured; target cluster server dry-run skipped."
+          if [ "$mode" = "skip" ]; then
+            reason="target_dry_run=skip; target cluster server dry-run skipped."
+          elif [ "$HAS_PROD_KUBE_CONFIG" = "true" ]; then
+            enabled=true
+            reason="PROD_KUBE_CONFIG_B64 configured; target cluster server dry-run enabled."
+          fi
+
+          {
+            echo "mode=$mode"
+            echo "enabled=$enabled"
+            echo "reason=$reason"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Resolve staging preflight policy
+        id: staging_smoke
+        env:
+          STAGING_SMOKE_INPUT: ${{ inputs.staging_smoke || 'required' }}
+          HAS_STAGING_APP_URL: ${{ secrets.STAGING_APP_URL != '' }}
+          HAS_STAGING_METRICS_TOKEN: ${{ secrets.STAGING_METRICS_TOKEN != '' }}
+          HAS_STAGING_PROM_URL: ${{ secrets.STAGING_PROM_URL != '' }}
+          HAS_STAGING_LOKI_URL: ${{ secrets.STAGING_LOKI_URL != '' }}
+          HAS_STAGING_ALERTMANAGER_URL: ${{ secrets.STAGING_ALERTMANAGER_URL != '' }}
+          HAS_STAGING_GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL != '' }}
+          HAS_STAGING_GRAFANA_TOKEN: ${{ secrets.STAGING_GRAFANA_TOKEN != '' }}
+        run: |
+          set -eu
+          mode="$STAGING_SMOKE_INPUT"
+          missing=""
+          for item in \
+            STAGING_APP_URL:$HAS_STAGING_APP_URL \
+            STAGING_METRICS_TOKEN:$HAS_STAGING_METRICS_TOKEN \
+            STAGING_PROM_URL:$HAS_STAGING_PROM_URL \
+            STAGING_LOKI_URL:$HAS_STAGING_LOKI_URL \
+            STAGING_ALERTMANAGER_URL:$HAS_STAGING_ALERTMANAGER_URL \
+            STAGING_GRAFANA_URL:$HAS_STAGING_GRAFANA_URL \
+            STAGING_GRAFANA_TOKEN:$HAS_STAGING_GRAFANA_TOKEN
+          do
+            name="${item%%:*}"
+            present="${item#*:}"
+            if [ "$present" != "true" ]; then
+              missing="${missing}${missing:+, }${name}"
+            fi
+          done
+          if [ "$mode" = "required" ] && [ -n "$missing" ]; then
+            {
+              echo "Missing staging smoke secrets: $missing."
+              echo "Set all staging smoke secrets or rerun with staging_smoke=skip."
+            } >&2
+            exit 1
+          fi
+
+          enabled=false
+          reason="staging smoke secrets not fully configured; staging preflight skipped."
+          if [ "$mode" = "required" ]; then
+            enabled=true
+            reason="staging smoke secrets configured; strict staging preflight enabled."
+          elif [ "$mode" = "skip" ]; then
+            reason="staging_smoke=skip; staging preflight skipped."
+          elif [ -z "$missing" ]; then
+            enabled=true
+            reason="staging smoke secrets configured; strict staging preflight enabled."
+          elif [ -n "$missing" ]; then
+            reason="missing staging smoke secrets: $missing; staging preflight skipped."
+          fi
+
+          {
+            echo "mode=$mode"
+            echo "enabled=$enabled"
+            echo "reason=$reason"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check release immutability
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          BACKEND_IMAGE: ${{ steps.meta.outputs.backend_image }}
+          FRONTEND_IMAGE: ${{ steps.meta.outputs.frontend_image }}
+          BACKUP_IMAGE: ${{ steps.meta.outputs.backup_image }}
+        run: |
+          set -eu
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "GitHub Release already exists for $VERSION; refusing to overwrite." >&2
+            exit 1
+          fi
+          if docker buildx imagetools inspect "$BACKEND_IMAGE:$VERSION" >/dev/null 2>&1; then
+            echo "Backend image tag already exists: $BACKEND_IMAGE:$VERSION; refusing to overwrite." >&2
+            exit 1
+          fi
+          if docker buildx imagetools inspect "$FRONTEND_IMAGE:$VERSION" >/dev/null 2>&1; then
+            echo "Frontend image tag already exists: $FRONTEND_IMAGE:$VERSION; refusing to overwrite." >&2
+            exit 1
+          fi
+          if docker buildx imagetools inspect "$BACKUP_IMAGE:$VERSION" >/dev/null 2>&1; then
+            echo "Backup image tag already exists: $BACKUP_IMAGE:$VERSION; refusing to overwrite." >&2
+            exit 1
+          fi
+
+      - name: Prepare release artifacts
+        run: |
+          set -eu
+          rm -rf artifacts/sbom artifacts/compliance
+          mkdir -p artifacts/sbom artifacts/helm artifacts/compliance "$RUNNER_TEMP/compliance-evidence"
+
+      - name: Prepare protected compliance evidence
+        env:
+          VULNERABILITY_EXCEPTIONS_JSON: ${{ secrets.VULNERABILITY_EXCEPTIONS_JSON }}
+          LICENSE_REVIEWS_JSON: ${{ secrets.LICENSE_REVIEWS_JSON }}
+        run: |
+          set -eu
+          evidence_dir="$RUNNER_TEMP/compliance-evidence"
+          if [ -n "$VULNERABILITY_EXCEPTIONS_JSON" ]; then
+            printf '%s\n' "$VULNERABILITY_EXCEPTIONS_JSON" > "$evidence_dir/vulnerability-exceptions.json"
+          else
+            printf '%s\n' '{"exceptions":[]}' > "$evidence_dir/vulnerability-exceptions.json"
+          fi
+          if [ -n "$LICENSE_REVIEWS_JSON" ]; then
+            printf '%s\n' "$LICENSE_REVIEWS_JSON" > "$evidence_dir/license-reviews.json"
+          else
+            printf '%s\n' '{"reviews":[]}' > "$evidence_dir/license-reviews.json"
+          fi
+
+      - name: Run staging preflight
+        if: steps.staging_smoke.outputs.enabled == 'true'
+        env:
+          APP_URL: ${{ secrets.STAGING_APP_URL }}
+          METRICS_TOKEN: ${{ secrets.STAGING_METRICS_TOKEN }}
+          PROM_URL: ${{ secrets.STAGING_PROM_URL }}
+          LOKI_URL: ${{ secrets.STAGING_LOKI_URL }}
+          ALERTMANAGER_URL: ${{ secrets.STAGING_ALERTMANAGER_URL }}
+          GRAFANA_URL: ${{ secrets.STAGING_GRAFANA_URL }}
+          GRAFANA_TOKEN: ${{ secrets.STAGING_GRAFANA_TOKEN }}
+          OBS_SMOKE_STRICT: "true"
+        run: |
+          set -eu
+          scripts/observability-runtime-smoke.sh > artifacts/staging-preflight.txt
+
+      - name: Record skipped staging preflight
+        if: steps.staging_smoke.outputs.enabled != 'true'
+        env:
+          STAGING_SMOKE_REASON: ${{ steps.staging_smoke.outputs.reason }}
+        run: printf '%s\n' "$STAGING_SMOKE_REASON" > artifacts/staging-preflight.txt
+
+      - name: Generate backend dependency SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: cyclonedx
+          scanners: vuln,license
+          output: artifacts/sbom/backend-dependencies.cdx.json
+          skip-dirs: MineAdmin,MineAdmin-web
+
+      - name: Generate frontend dependency SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: MineAdmin-web
+          format: cyclonedx
+          scanners: vuln,license
+          output: artifacts/sbom/frontend-dependencies.cdx.json
+
+      - name: Check dependency license policy
+        env:
+          VULNERABILITY_EXCEPTIONS_FILE: ${{ runner.temp }}/compliance-evidence/vulnerability-exceptions.json
+          LICENSE_REVIEWS_FILE: ${{ runner.temp }}/compliance-evidence/license-reviews.json
+          SBOM_ARTIFACTS_JSON: '["artifacts/sbom/backend-dependencies.cdx.json","artifacts/sbom/frontend-dependencies.cdx.json"]'
+        run: bash scripts/check-license-policy.sh
+
+      - name: Generate module compatibility matrix
+        run: |
+          set -eu
+          framework_version="$(go list -m -f '{{.Version}}' github.com/goravel/framework)"
+          go run . artisan module:compatibility:export \
+            --framework-version="${framework_version#v}" \
+            --target=artifacts/module-compatibility-matrix.json
+
+      - name: Generate hash-bound module release evidence
+        env:
+          MODULE_ADMISSION_LOCK: app/moduleboot/module-admission.lock.json
+          MODULE_ADMISSION_REGISTRY: app/moduleboot/admitted_modules_gen.go
+          MODULE_OPENAPI_BUNDLE: artifacts/openapi/modules.openapi.json
+        run: |
+          set -eu
+          mkdir -p artifacts/openapi
+          go run . artisan module:openapi:lint --all --bundle="$MODULE_OPENAPI_BUNDLE"
+          bash scripts/release/generate-module-release-evidence.sh \
+            --action upgrade --target artifacts/module-release
+          bash scripts/release/verify-module-release-evidence.sh \
+            --target artifacts/module-release --git-sha "$GITHUB_SHA"
+
+      - name: Run golden module upgrade and rollback drill
+        env:
+          MODULE_LIFECYCLE_API_URL: ${{ secrets.STAGING_MODULE_LIFECYCLE_API_URL }}
+          MODULE_PLATFORM_API_URL: ${{ secrets.STAGING_MODULE_PLATFORM_API_URL }}
+          MODULE_LIFECYCLE_TOKEN: ${{ secrets.STAGING_MODULE_LIFECYCLE_TOKEN }}
+          GOLDEN_UPGRADE_REAUTH_TOKEN: ${{ secrets.GOLDEN_UPGRADE_REAUTH_TOKEN }}
+          GOLDEN_UPGRADE_APPROVAL_ID: ${{ secrets.GOLDEN_UPGRADE_APPROVAL_ID }}
+          GOLDEN_ROLLBACK_REAUTH_TOKEN: ${{ secrets.GOLDEN_ROLLBACK_REAUTH_TOKEN }}
+          GOLDEN_ROLLBACK_APPROVAL_ID: ${{ secrets.GOLDEN_ROLLBACK_APPROVAL_ID }}
+        run: bash scripts/golden-module-rollback-drill.sh
+
+      - name: Enforce pre-deployment release hard gate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_GATE_PHASE: predeploy
+          RELEASE_GIT_SHA: ${{ github.sha }}
+          CHANGE_TICKET: ${{ inputs.change_ticket }}
+          ROLLBACK_DRILL_ARTIFACT: artifacts/golden-rollback/evidence.json
+          DEPENDENCY_POLICY_ARTIFACT: artifacts/compliance/license-policy.json
+          COMPATIBILITY_MATRIX_ARTIFACT: artifacts/module-compatibility-matrix.json
+          MODULE_RELEASE_EVIDENCE_DIR: artifacts/module-release
+        run: bash scripts/release-hard-gate.sh
+
+      - name: Build and push backend image
+        id: build_backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.backend_tags }}
+          labels: |
+            org.opencontainers.image.title=goravel-mine-backend
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=release-backend
+          cache-to: type=gha,scope=release-backend,mode=max
+          provenance: true
+
+      - name: Build and push frontend image
+        id: build_frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: MineAdmin-web
+          file: MineAdmin-web/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.frontend_tags }}
+          labels: |
+            org.opencontainers.image.title=goravel-mine-frontend
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          build-args: |
+            MINE_NODE_ENV=production
+          cache-from: type=gha,scope=release-frontend
+          cache-to: type=gha,scope=release-frontend,mode=max
+          provenance: true
+
+      - name: Build and push backup image
+        id: build_backup
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/backup/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.backup_tags }}
+          labels: |
+            org.opencontainers.image.title=goravel-mine-backup
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=release-backup
+          cache-to: type=gha,scope=release-backup,mode=max
+          provenance: true
+
+      - name: Generate backend SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          scan-type: image
+          image-ref: ${{ steps.meta.outputs.backend_image }}@${{ steps.build_backend.outputs.digest }}
+          format: cyclonedx
+          output: artifacts/sbom/backend.cdx.json
+
+      - name: Generate frontend SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          scan-type: image
+          image-ref: ${{ steps.meta.outputs.frontend_image }}@${{ steps.build_frontend.outputs.digest }}
+          format: cyclonedx
+          output: artifacts/sbom/frontend.cdx.json
+
+      - name: Generate backup image SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          scan-type: image
+          image-ref: ${{ steps.meta.outputs.backup_image }}@${{ steps.build_backup.outputs.digest }}
+          format: cyclonedx
+          output: artifacts/sbom/backup.cdx.json
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign images and attach SBOM attestations
+        env:
+          BACKEND_REF: ${{ steps.meta.outputs.backend_image }}@${{ steps.build_backend.outputs.digest }}
+          FRONTEND_REF: ${{ steps.meta.outputs.frontend_image }}@${{ steps.build_frontend.outputs.digest }}
+          BACKUP_REF: ${{ steps.meta.outputs.backup_image }}@${{ steps.build_backup.outputs.digest }}
+        run: |
+          set -eu
+          cosign sign --yes "$BACKEND_REF"
+          cosign sign --yes "$FRONTEND_REF"
+          cosign attest --yes --type cyclonedx --predicate artifacts/sbom/backend.cdx.json "$BACKEND_REF"
+          cosign attest --yes --type cyclonedx --predicate artifacts/sbom/frontend.cdx.json "$FRONTEND_REF"
+          cosign sign --yes "$BACKUP_REF"
+          cosign attest --yes --type cyclonedx --predicate artifacts/sbom/backup.cdx.json "$BACKUP_REF"
+
+      - name: Verify image signatures
+        env:
+          BACKEND_REF: ${{ steps.meta.outputs.backend_image }}@${{ steps.build_backend.outputs.digest }}
+          FRONTEND_REF: ${{ steps.meta.outputs.frontend_image }}@${{ steps.build_frontend.outputs.digest }}
+          BACKUP_REF: ${{ steps.meta.outputs.backup_image }}@${{ steps.build_backup.outputs.digest }}
+          CERT_IDENTITY_REGEXP: https://github.com/${{ github.repository }}/.github/workflows/release.yml@refs/(tags|heads)/.*
+        run: |
+          set -eu
+          cosign verify \
+            --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp="$CERT_IDENTITY_REGEXP" \
+            "$BACKEND_REF" > artifacts/cosign-backend-verify.txt
+          cosign verify \
+            --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp="$CERT_IDENTITY_REGEXP" \
+            "$FRONTEND_REF" > artifacts/cosign-frontend-verify.txt
+          cosign verify \
+            --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp="$CERT_IDENTITY_REGEXP" \
+            "$BACKUP_REF" > artifacts/cosign-backup-verify.txt
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Setup Kind cluster
+        uses: helm/kind-action@v1
+
+      - name: Render Helm package and Kind server dry-run
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          SEMVER: ${{ steps.meta.outputs.semver }}
+          BACKEND_IMAGE: ${{ steps.meta.outputs.backend_image }}
+        run: |
+          set -eu
+          helm lint deploy/helm/goravel-mine \
+            --set image.repository="$BACKEND_IMAGE" \
+            --set image.tag="$VERSION" \
+            --set secret.existingSecret=goravel-mine-secret
+          helm template goravel-mine deploy/helm/goravel-mine \
+            --namespace goravel-mine \
+            --set image.repository="$BACKEND_IMAGE" \
+            --set image.tag="$VERSION" \
+            --set secret.existingSecret=goravel-mine-secret \
+            > artifacts/goravel-mine-helm.yaml
+          helm template goravel-mine deploy/helm/goravel-mine \
+            --namespace goravel-mine \
+            --set image.repository="$BACKEND_IMAGE" \
+            --set image.tag="$VERSION" \
+            --set secret.existingSecret=goravel-mine-secret \
+            --set migration.enabled=true \
+            --set backup.enabled=true \
+            --set backup.s3Bucket=ci-immutable-backups \
+            --set backup.kmsKeyId=alias/ci-backup \
+            --set backup.releaseGitSha="$GITHUB_SHA" \
+            --set backup.releaseImageDigest="${{ steps.build_backend.outputs.digest }}" \
+            --set backup.image="${{ steps.meta.outputs.backup_image }}@${{ steps.build_backup.outputs.digest }}" \
+            > artifacts/goravel-mine-helm-ops.yaml
+          kubectl create namespace goravel-mine --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply --dry-run=server --validate=strict --namespace goravel-mine -f artifacts/goravel-mine-helm.yaml \
+            > artifacts/kubectl-kind-server-dry-run.txt
+          kubectl apply --dry-run=server --validate=strict --namespace goravel-mine -f artifacts/goravel-mine-helm-ops.yaml \
+            > artifacts/kubectl-kind-server-dry-run-ops.txt
+          helm package deploy/helm/goravel-mine \
+            --version "$SEMVER" \
+            --app-version "$SEMVER" \
+            --destination artifacts/helm
+
+      - name: Optional server dry-run against target cluster
+        if: steps.target_dry_run.outputs.enabled == 'true'
+        env:
+          PROD_KUBE_CONFIG_B64: ${{ secrets.PROD_KUBE_CONFIG_B64 }}
+        run: |
+          set -eu
+          export KUBECONFIG="$RUNNER_TEMP/goravel-mine-kubeconfig"
+          trap 'rm -f "$KUBECONFIG"' EXIT
+          printf '%s' "$PROD_KUBE_CONFIG_B64" | base64 -d > "$KUBECONFIG"
+          kubectl apply --dry-run=server --namespace goravel-mine -f artifacts/goravel-mine-helm.yaml \
+            > artifacts/kubectl-server-dry-run.txt
+          kubectl apply --dry-run=server --namespace goravel-mine -f artifacts/goravel-mine-helm-ops.yaml \
+            > artifacts/kubectl-server-dry-run-ops.txt
+
+      - name: Record skipped server dry-run
+        if: steps.target_dry_run.outputs.enabled != 'true'
+        env:
+          TARGET_DRY_RUN_REASON: ${{ steps.target_dry_run.outputs.reason }}
+        run: |
+          printf '%s\n' "$TARGET_DRY_RUN_REASON" > artifacts/kubectl-server-dry-run.txt
+          printf '%s\n' "$TARGET_DRY_RUN_REASON" > artifacts/kubectl-server-dry-run-ops.txt
+
+      - name: Capture production rollback state
+        id: rollback_state
+        env:
+          PROD_KUBE_CONFIG_B64: ${{ secrets.PROD_KUBE_CONFIG_B64 }}
+          PROD_FRONTEND_DEPLOYMENT: ${{ secrets.PROD_FRONTEND_DEPLOYMENT }}
+          PROD_FRONTEND_CONTAINER: ${{ secrets.PROD_FRONTEND_CONTAINER }}
+        run: |
+          set -eu
+          : "${PROD_KUBE_CONFIG_B64:?PROD_KUBE_CONFIG_B64 is required for production deployment}"
+          : "${PROD_FRONTEND_DEPLOYMENT:?PROD_FRONTEND_DEPLOYMENT is required}"
+          : "${PROD_FRONTEND_CONTAINER:?PROD_FRONTEND_CONTAINER is required}"
+          export KUBECONFIG="$RUNNER_TEMP/goravel-mine-production-kubeconfig-state"
+          trap 'rm -f "$KUBECONFIG"' EXIT
+          printf '%s' "$PROD_KUBE_CONFIG_B64" | base64 -d > "$KUBECONFIG"
+          chmod 0600 "$KUBECONFIG"
+          previous_backend_revision="$(helm history goravel-mine --namespace goravel-mine -o json | jq -r 'map(select(.status == "deployed")) | last | .revision // empty')"
+          previous_frontend_image="$(kubectl get deployment "$PROD_FRONTEND_DEPLOYMENT" --namespace goravel-mine -o jsonpath="{.spec.template.spec.containers[?(@.name=='$PROD_FRONTEND_CONTAINER')].image}")"
+          test -n "$previous_backend_revision" && test -n "$previous_frontend_image"
+          printf 'previous_backend_revision=%s\nprevious_frontend_image=%s\n' "$previous_backend_revision" "$previous_frontend_image" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy digest-bound release to production
+        id: deploy
+        env:
+          PROD_KUBE_CONFIG_B64: ${{ secrets.PROD_KUBE_CONFIG_B64 }}
+          PROD_HELM_VALUES_B64: ${{ secrets.PROD_HELM_VALUES_B64 }}
+          BACKEND_IMAGE: ${{ steps.meta.outputs.backend_image }}
+          BACKEND_DIGEST: ${{ steps.build_backend.outputs.digest }}
+          FRONTEND_IMAGE: ${{ steps.meta.outputs.frontend_image }}
+          FRONTEND_DIGEST: ${{ steps.build_frontend.outputs.digest }}
+          PROD_FRONTEND_DEPLOYMENT: ${{ secrets.PROD_FRONTEND_DEPLOYMENT }}
+          PROD_FRONTEND_CONTAINER: ${{ secrets.PROD_FRONTEND_CONTAINER }}
+          BACKUP_IMAGE: ${{ steps.meta.outputs.backup_image }}
+          BACKUP_DIGEST: ${{ steps.build_backup.outputs.digest }}
+        run: |
+          set -eu
+          : "${PROD_KUBE_CONFIG_B64:?PROD_KUBE_CONFIG_B64 is required for production deployment}"
+          : "${PROD_HELM_VALUES_B64:?PROD_HELM_VALUES_B64 is required for production deployment}"
+          : "${PROD_FRONTEND_DEPLOYMENT:?PROD_FRONTEND_DEPLOYMENT is required}"
+          : "${PROD_FRONTEND_CONTAINER:?PROD_FRONTEND_CONTAINER is required}"
+          export KUBECONFIG="$RUNNER_TEMP/goravel-mine-production-kubeconfig"
+          values="$RUNNER_TEMP/goravel-mine-production-values.yaml"
+          trap 'rm -f "$KUBECONFIG" "$values"' EXIT
+          printf '%s' "$PROD_KUBE_CONFIG_B64" | base64 -d > "$KUBECONFIG"
+          printf '%s' "$PROD_HELM_VALUES_B64" | base64 -d > "$values"
+          chmod 0600 "$KUBECONFIG" "$values"
+          printf 'mutation_started=true\n' >> "$GITHUB_OUTPUT"
+          helm upgrade --install goravel-mine deploy/helm/goravel-mine \
+            --namespace goravel-mine --create-namespace --atomic --wait --timeout 15m \
+            -f "$values" \
+            --set image.repository="$BACKEND_IMAGE" \
+            --set image.digest="$BACKEND_DIGEST" \
+            --set-string releaseGitSha="$GITHUB_SHA" \
+            --set-string backup.image="$BACKUP_IMAGE@$BACKUP_DIGEST" \
+            --set-string backup.releaseGitSha="$GITHUB_SHA" \
+            --set-string backup.releaseImageDigest="$BACKEND_DIGEST"
+          kubectl rollout status deployment/goravel-mine --namespace goravel-mine --timeout=10m
+          kubectl set image "deployment/$PROD_FRONTEND_DEPLOYMENT" \
+            "$PROD_FRONTEND_CONTAINER=$FRONTEND_IMAGE@$FRONTEND_DIGEST" --namespace goravel-mine
+          kubectl rollout status "deployment/$PROD_FRONTEND_DEPLOYMENT" --namespace goravel-mine --timeout=10m
+          backend_uid="$(kubectl get deployment goravel-mine --namespace goravel-mine -o jsonpath='{.metadata.uid}')"
+          backend_revision="$(kubectl get deployment goravel-mine --namespace goravel-mine -o jsonpath='{.metadata.annotations.deployment\.kubernetes\.io/revision}')"
+          backend_pod_regex="$(kubectl get pods --namespace goravel-mine -l app.kubernetes.io/name=goravel-mine,app.kubernetes.io/component=web,release-git-sha="$GITHUB_SHA" -o json | jq -r '[.items[].metadata.name] | join("|")')"
+          frontend_uid="$(kubectl get deployment "$PROD_FRONTEND_DEPLOYMENT" --namespace goravel-mine -o jsonpath='{.metadata.uid}')"
+          frontend_revision="$(kubectl get deployment "$PROD_FRONTEND_DEPLOYMENT" --namespace goravel-mine -o jsonpath='{.metadata.annotations.deployment\.kubernetes\.io/revision}')"
+          started_at="$(date -u +%FT%TZ)"
+          test -n "$backend_uid" && test -n "$backend_revision" && test -n "$backend_pod_regex" && test -n "$frontend_uid" && test -n "$frontend_revision"
+          printf 'uid=backend:%s:%s,frontend:%s:%s\nbackend_pod_regex=%s\nstarted_at=%s\n' \
+            "$backend_uid" "$backend_revision" "$frontend_uid" "$frontend_revision" "$backend_pod_regex" "$started_at" >> "$GITHUB_OUTPUT"
+
+      - name: Collect fixed-window production SLO evidence
+        env:
+          RELEASE_GIT_SHA: ${{ github.sha }}
+          RELEASE_DEPLOYMENT_UID: ${{ steps.deploy.outputs.uid }}
+          RELEASE_METRICS_SELECTOR: release_git_sha="${{ github.sha }}"
+          RELEASE_LOG_SELECTOR: namespace="goravel-mine",pod=~"${{ steps.deploy.outputs.backend_pod_regex }}"
+          RELEASE_DEPLOYED_AT: ${{ steps.deploy.outputs.started_at }}
+          RELEASE_IMAGE_DIGESTS: backend=${{ steps.build_backend.outputs.digest }},frontend=${{ steps.build_frontend.outputs.digest }}
+          RELEASE_SLO_WINDOW_SECONDS: "1800"
+          PROM_URL: ${{ secrets.PROD_PROM_URL }}
+          LOKI_URL: ${{ secrets.PROD_LOKI_URL }}
+          ALERTMANAGER_URL: ${{ secrets.PROD_ALERTMANAGER_URL }}
+        run: bash scripts/collect-release-slo-evidence.sh
+
+      - name: Enforce final release hard gate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_GATE_PHASE: final
+          RELEASE_GIT_SHA: ${{ github.sha }}
+          RELEASE_IMAGE_DIGESTS: backend=${{ steps.build_backend.outputs.digest }},frontend=${{ steps.build_frontend.outputs.digest }}
+          CHANGE_TICKET: ${{ inputs.change_ticket }}
+          ROLLBACK_DRILL_ARTIFACT: artifacts/golden-rollback/evidence.json
+          SLO_OBSERVATION_ARTIFACT: artifacts/release/slo-evidence.json
+          DEPENDENCY_POLICY_ARTIFACT: artifacts/compliance/license-policy.json
+          COMPATIBILITY_MATRIX_ARTIFACT: artifacts/module-compatibility-matrix.json
+          MODULE_RELEASE_EVIDENCE_DIR: artifacts/module-release
+        run: bash scripts/release-hard-gate.sh
+
+      - name: Roll back failed production release
+        if: always() && (failure() || cancelled()) && steps.rollback_state.outcome == 'success' && steps.deploy.outputs.mutation_started == 'true'
+        env:
+          PROD_KUBE_CONFIG_B64: ${{ secrets.PROD_KUBE_CONFIG_B64 }}
+          PROD_FRONTEND_DEPLOYMENT: ${{ secrets.PROD_FRONTEND_DEPLOYMENT }}
+          PROD_FRONTEND_CONTAINER: ${{ secrets.PROD_FRONTEND_CONTAINER }}
+          PREVIOUS_BACKEND_REVISION: ${{ steps.rollback_state.outputs.previous_backend_revision }}
+          PREVIOUS_FRONTEND_IMAGE: ${{ steps.rollback_state.outputs.previous_frontend_image }}
+        run: |
+          set -eu
+          export KUBECONFIG="$RUNNER_TEMP/goravel-mine-production-kubeconfig-rollback"
+          trap 'rm -f "$KUBECONFIG"' EXIT
+          printf '%s' "$PROD_KUBE_CONFIG_B64" | base64 -d > "$KUBECONFIG"
+          chmod 0600 "$KUBECONFIG"
+          helm rollback goravel-mine "$PREVIOUS_BACKEND_REVISION" --namespace goravel-mine --wait --timeout 15m
+          kubectl set image "deployment/$PROD_FRONTEND_DEPLOYMENT" "$PROD_FRONTEND_CONTAINER=$PREVIOUS_FRONTEND_IMAGE" --namespace goravel-mine
+          kubectl rollout status "deployment/$PROD_FRONTEND_DEPLOYMENT" --namespace goravel-mine --timeout=10m
+
+      - name: Write release manifest
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          SEMVER: ${{ steps.meta.outputs.semver }}
+          BACKEND_REF: ${{ steps.meta.outputs.backend_image }}@${{ steps.build_backend.outputs.digest }}
+          FRONTEND_REF: ${{ steps.meta.outputs.frontend_image }}@${{ steps.build_frontend.outputs.digest }}
+          BACKUP_REF: ${{ steps.meta.outputs.backup_image }}@${{ steps.build_backup.outputs.digest }}
+          TARGET_DRY_RUN_MODE: ${{ steps.target_dry_run.outputs.mode }}
+          TARGET_DRY_RUN_ENABLED: ${{ steps.target_dry_run.outputs.enabled }}
+          TARGET_DRY_RUN_REASON: ${{ steps.target_dry_run.outputs.reason }}
+          STAGING_SMOKE_MODE: ${{ steps.staging_smoke.outputs.mode }}
+          STAGING_SMOKE_ENABLED: ${{ steps.staging_smoke.outputs.enabled }}
+          STAGING_SMOKE_REASON: ${{ steps.staging_smoke.outputs.reason }}
+          RELEASE_EVIDENCE_OWNER: ${{ github.actor }}
+        run: |
+          set -eu
+          published_at="$(date -u +%FT%TZ)"
+          cat > artifacts/release-manifest.json <<EOF
+          {
+            "version": "$VERSION",
+            "semver": "$SEMVER",
+            "git_sha": "$GITHUB_SHA",
+            "published_at": "$published_at",
+            "images": {
+              "backend": "$BACKEND_REF",
+              "frontend": "$FRONTEND_REF",
+              "backup": "$BACKUP_REF"
+            },
+            "sbom": {
+              "backend": "artifacts/sbom/backend.cdx.json",
+              "frontend": "artifacts/sbom/frontend.cdx.json"
+            },
+            "module_compatibility_matrix": "artifacts/module-compatibility-matrix.json",
+            "signature": {
+              "issuer": "https://token.actions.githubusercontent.com",
+              "workflow": "release.yml",
+              "mode": "cosign keyless"
+            },
+            "kubernetes": {
+              "helm_template": "artifacts/goravel-mine-helm.yaml",
+              "helm_template_ops": "artifacts/goravel-mine-helm-ops.yaml",
+              "kind_server_dry_run": "artifacts/kubectl-kind-server-dry-run.txt",
+              "kind_server_dry_run_ops": "artifacts/kubectl-kind-server-dry-run-ops.txt",
+              "server_dry_run": "artifacts/kubectl-server-dry-run.txt",
+              "server_dry_run_ops": "artifacts/kubectl-server-dry-run-ops.txt",
+              "target_server_dry_run_mode": "$TARGET_DRY_RUN_MODE",
+              "target_server_dry_run_enabled": "$TARGET_DRY_RUN_ENABLED",
+              "target_server_dry_run_reason": "$TARGET_DRY_RUN_REASON"
+            },
+            "staging": {
+              "preflight": "artifacts/staging-preflight.txt",
+              "preflight_mode": "$STAGING_SMOKE_MODE",
+              "preflight_enabled": "$STAGING_SMOKE_ENABLED",
+              "preflight_reason": "$STAGING_SMOKE_REASON"
+            },
+            "evidence": {
+              "owner": "$RELEASE_EVIDENCE_OWNER",
+              "predeploy_gate": "artifacts/release-predeploy-gate.json",
+              "hard_gate": "artifacts/release-hard-gate.json",
+              "required_artifacts": [
+                "artifacts/release-predeploy-gate.json",
+                "artifacts/release-hard-gate.json",
+                "artifacts/release-manifest.json",
+                "artifacts/staging-preflight.txt",
+                "artifacts/golden-rollback/evidence.json",
+                "artifacts/release/slo-evidence.json",
+                "artifacts/module-release/evidence-manifest.json",
+                "artifacts/dependency-policy.json",
+                "artifacts/compliance/license-policy.json",
+                "artifacts/module-compatibility-matrix.json",
+                "artifacts/kubectl-server-dry-run.txt",
+                "artifacts/cosign-backend-verify.txt",
+                "artifacts/cosign-frontend-verify.txt",
+                "artifacts/cosign-backup-verify.txt",
+                "artifacts/sbom/backend-dependencies.cdx.json",
+                "artifacts/sbom/frontend-dependencies.cdx.json",
+                "artifacts/sbom/backend.cdx.json",
+                "artifacts/sbom/frontend.cdx.json",
+                "artifacts/sbom/backup.cdx.json"
+              ],
+              "post_deploy_slo_window_minutes": 30,
+              "rollback_rehearsal_required": true,
+              "skip_policy": "Runtime rollback and SLO evidence cannot be skipped."
+            }
+          }
+          EOF
+
+      - name: Write release notes
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          BACKEND_REF: ${{ steps.meta.outputs.backend_image }}@${{ steps.build_backend.outputs.digest }}
+          FRONTEND_REF: ${{ steps.meta.outputs.frontend_image }}@${{ steps.build_frontend.outputs.digest }}
+          BACKUP_REF: ${{ steps.meta.outputs.backup_image }}@${{ steps.build_backup.outputs.digest }}
+          TARGET_DRY_RUN_REASON: ${{ steps.target_dry_run.outputs.reason }}
+          STAGING_SMOKE_REASON: ${{ steps.staging_smoke.outputs.reason }}
+        run: |
+          set -eu
+          cat > artifacts/release-notes.md <<EOF
+          # $VERSION
+
+          Backend image: \`$BACKEND_REF\`
+
+          Frontend image: \`$FRONTEND_REF\`
+
+          Backup image: \`$BACKUP_REF\`
+
+          Target cluster server dry-run: $TARGET_DRY_RUN_REASON
+
+          Staging preflight: $STAGING_SMOKE_REASON
+
+          Release artifacts include module evidence, real golden rollback evidence, 30-minute post-deploy SLO evidence, CycloneDX SBOM files, cosign verification output, rendered Helm manifests, Kubernetes dry-run output, and the release manifest.
+
+          Dependency policy evidence: \`artifacts/compliance/license-policy.json\`
+
+          Module compatibility matrix: \`artifacts/module-compatibility-matrix.json\`
+
+          Verify backend signature:
+
+          \`\`\`bash
+          cosign verify --certificate-oidc-issuer=https://token.actions.githubusercontent.com --certificate-identity-regexp='https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/(tags|heads)/.*' '$BACKEND_REF'
+          \`\`\`
+          EOF
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ steps.meta.outputs.version }}
+          path: artifacts/**
+
+      - name: Publish GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          set -eu
+          gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" --notes-file artifacts/release-notes.md
+          gh release upload "$VERSION" \
+            artifacts/release-manifest.json \
+            artifacts/release-predeploy-gate.json \
+            artifacts/release-hard-gate.json \
+            artifacts/release-notes.md \
+            artifacts/golden-rollback/evidence.json \
+            artifacts/release/slo-evidence.json \
+            artifacts/module-release/evidence-manifest.json \
+            artifacts/dependency-policy.json \
+            artifacts/compliance/license-policy.json \
+            artifacts/module-compatibility-matrix.json \
+            artifacts/sbom/backend-dependencies.cdx.json \
+            artifacts/sbom/frontend-dependencies.cdx.json \
+            artifacts/goravel-mine-helm.yaml \
+            artifacts/goravel-mine-helm-ops.yaml \
+            artifacts/kubectl-kind-server-dry-run.txt \
+            artifacts/kubectl-kind-server-dry-run-ops.txt \
+            artifacts/kubectl-server-dry-run.txt \
+            artifacts/kubectl-server-dry-run-ops.txt \
+            artifacts/staging-preflight.txt \
+            artifacts/cosign-backend-verify.txt \
+            artifacts/cosign-frontend-verify.txt \
+            artifacts/cosign-backup-verify.txt \
+            artifacts/sbom/backend.cdx.json \
+            artifacts/sbom/frontend.cdx.json \
+            artifacts/sbom/backup.cdx.json \
+            artifacts/helm/*.tgz

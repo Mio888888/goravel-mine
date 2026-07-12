@@ -1,0 +1,317 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/example/goravel-mine
+  tag: "0.1.0"
+  digest: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+releaseGitSha: unknown
+
+app:
+  env:
+    APP_NAME: GoravelMine
+    APP_ENV: production
+    APP_DEBUG: "false"
+    APP_URL: https://admin.example.com
+    APP_HOST: 0.0.0.0
+    APP_PORT: "3000"
+    CACHE_STORE: redis
+    QUEUE_CONNECTION: redis
+    QUEUE_WORKER_ENABLED: "false"
+    QUEUE_CONCURRENT: "2"
+    QUEUE_OUTBOX_ENABLED: "true"
+    QUEUE_OUTBOX_INTERVAL_SECONDS: "5"
+    QUEUE_OUTBOX_BATCH: "20"
+    QUEUE_OUTBOX_OWNER: queue-outbox-runner
+    DB_CONNECTION: postgres
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_DATABASE: goravel-mine
+    DB_USERNAME: goravel
+    DB_SCHEMA: public
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    REDIS_DB: "0"
+    LOG_CHANNEL: stack
+    LOG_LEVEL: info
+    LOG_FORMATTER: json
+    LOG_PRINT: "true"
+    OBS_METRICS_ENABLED: "true"
+    OBS_METRICS_PATH: /metrics
+    OBS_REQUEST_ID_HEADER: X-Request-Id
+    OBS_TRACE_ID_HEADER: X-Trace-Id
+    OBS_SLOW_REQUEST_THRESHOLD_MS: "1000"
+    OBS_SLOW_REQUEST_MAX_ENTRIES: "100"
+    OBS_SLOW_SQL_MAX_ENTRIES: "100"
+    OBS_AUDIT_ENABLED: "true"
+  extraEnv: {}
+
+secret:
+  create: false
+  existingSecret: goravel-mine-secret
+  data:
+    APP_KEY: ""
+    JWT_SECRET: ""
+    DB_PASSWORD: ""
+    REDIS_PASSWORD: ""
+    OBS_METRICS_TOKEN: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 20m
+  hosts:
+    - host: admin.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: goravel-mine-tls
+      hosts:
+        - admin.example.com
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteMany
+  size: 10Gi
+  storageClass: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+storageInit:
+  image: busybox:1.36
+  command:
+    - sh
+    - -c
+    - mkdir -p /storage/app/public/uploads /storage/framework/cache /storage/framework/sessions /storage/framework/views /storage/logs /storage/scripts
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+worker:
+  enabled: true
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 4
+    cooldownPeriodSeconds: 300
+    pollingIntervalSeconds: 30
+    targetPendingJobs: 10
+    targetOldestAgeSeconds: 60
+    queueClassPattern: "critical|default|bulk"
+    keda:
+      enabled: false
+    prometheus:
+      serverAddress: "http://prometheus-operated.monitoring.svc:9090"
+    prometheusAdapter:
+      oldestAgeMetricName: goravel_queue_oldest_backlog_age_seconds
+      pendingMetricName: goravel_queue_pending_jobs
+      queueClass: critical
+  env:
+    APP_AUTO_RUN: "false"
+    SCHEDULER_ENABLED: "false"
+    QUEUE_WORKER_ENABLED: "true"
+    QUEUE_CONCURRENT: "4"
+    QUEUE_OUTBOX_ENABLED: "true"
+    QUEUE_OUTBOX_OWNER: queue-outbox-runner
+  resources:
+    requests:
+      cpu: 250m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
+probes:
+  readiness:
+    path: /health/ready
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  liveness:
+    path: /health/live
+    initialDelaySeconds: 20
+    periodSeconds: 20
+    timeoutSeconds: 3
+    failureThreshold: 3
+  startup:
+    path: /health/live
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 12
+
+rollingUpdate:
+  maxSurge: 1
+  maxUnavailable: 0
+
+ha:
+  enabled: false
+  serviceAccountName: ""
+  priorityClassName: ""
+  hpa:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 80
+    scaleDownStabilizationWindowSeconds: 300
+  pdb:
+    enabled: true
+    minAvailable: 2
+  topology:
+    enabled: true
+    maxSkew: 1
+    webAntiAffinity: required
+    zoneWhenUnsatisfiable: DoNotSchedule
+    hostnameWhenUnsatisfiable: DoNotSchedule
+  networkPolicy:
+    enabled: true
+    appPort: 3000
+    ingress:
+      enabled: true
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+    metrics:
+      enabled: true
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus
+    destinations:
+      dns:
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+        port: 53
+      postgresql:
+        namespaceSelector: {}
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: postgresql
+        port: 5432
+        cidrs: []
+      redis:
+        namespaceSelector: {}
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: redis
+        port: 6379
+        cidrs: []
+      otel:
+        namespaceSelector: {}
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: otel-collector
+        port: 4318
+      objectStorage:
+        enabled: true
+        cidrs: []
+        port: 443
+      sso:
+        enabled: true
+        cidrs: []
+        port: 443
+
+migration:
+  enabled: false
+  hook: true
+  command:
+    - /www/main
+    - artisan
+    - migration:safe
+    - --scope=all
+    - --lock-timeout=30s
+  backoffLimit: 1
+  activeDeadlineSeconds: 900
+  ttlSecondsAfterFinished: 86400
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+backup:
+  enabled: false
+  schedule: "30 2 * * *"
+  timeZone: UTC
+  startingDeadlineSeconds: 900
+  activeDeadlineSeconds: 3600
+  image: ghcr.io/example/goravel-mine-backup:0.1.0
+  s3Bucket: ""
+  s3Prefix: goravel-mine/backups
+  kmsKeyId: ""
+  retentionDays: 30
+  releaseGitSha: ""
+  releaseImageDigest: ""
+  pvc:
+    create: true
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+    storageClass: ""
+  existingClaim: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+restoreDrill:
+  enabled: false
+  image: ghcr.io/example/goravel-mine-backup:0.1.0
+  sourceManifestSecret: ""
+  sourceManifestKey: manifest.json
+  targetNamespace: ""
+  targetDatabaseHost: postgres
+  targetDatabasePort: "5432"
+  targetDatabaseUsername: goravel
+  targetDatabase: ""
+  activeDeadlineSeconds: 3600

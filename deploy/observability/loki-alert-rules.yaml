@@ -1,0 +1,41 @@
+groups:
+  - name: goravel-mine.audit
+    interval: 30s
+    rules:
+      - alert: GoravelMineAuditFailureSpike
+        expr: |
+          sum(rate({service="goravel-mine"} | json event="extra.event", outcome="extra.outcome" | event="audit" | outcome="failure" [5m])) > 0.1
+        for: 10m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: audit
+        annotations:
+          summary: Goravel Mine audit failure spike
+          description: Audit failure events increased. Check audit dashboard and user operation logs.
+
+      - alert: GoravelMineAuditLogMissing
+        expr: |
+          (sum(rate({service="goravel-mine"} | json event="extra.event" | event="audit" [1h])) == 0)
+            or
+          absent_over_time({service="goravel-mine"} | json event="extra.event" | event="audit" [1h])
+        for: 2h
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: audit
+        annotations:
+          summary: Goravel Mine audit events missing
+          description: No audit events observed for 2h. Check OBS_AUDIT_ENABLED, operation middleware, and Loki pipeline.
+
+      - alert: GoravelMineTenantGovernanceSchedulerFailure
+        expr: |
+          sum(count_over_time({service="goravel-mine"} | json event="extra.event", outcome="extra.outcome" | event="tenant_governance" | outcome="failure" [10m])) > 0
+        for: 5m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: tenant-governance
+        annotations:
+          summary: Tenant governance scheduler failed
+          description: A retention, export, or isolation governance scheduler execution failed. Correlate tenant_id, kind, run_id, request_id, and trace_id.

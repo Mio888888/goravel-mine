@@ -1,0 +1,12 @@
+{
+  "schema_version": "v1",
+  "modules": [
+    {
+      "id": "unsafe",
+      "version": "latest",
+      "source_kind": "external",
+      "source_uri": "ftp://registry.example/unsafe.zip",
+      "digest": "sha256:bad"
+    }
+  ]
+}

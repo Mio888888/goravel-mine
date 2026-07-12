@@ -1,0 +1,123 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}-queue-worker
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+    app.kubernetes.io/component: queue-worker
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      {{- include "goravel-mine.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: queue-worker
+  template:
+    metadata:
+      labels:
+        {{- include "goravel-mine.selectorLabels" . | nindent 8 }}
+        release-git-sha: {{ .Values.releaseGitSha | quote }}
+        app.kubernetes.io/component: queue-worker
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.secret.create }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.ha.enabled .Values.ha.serviceAccountName }}
+      serviceAccountName: {{ .Values.ha.serviceAccountName }}
+      {{- end }}
+      {{- if and .Values.ha.enabled .Values.ha.priorityClassName }}
+      priorityClassName: {{ .Values.ha.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if and .Values.ha.enabled .Values.ha.topology.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: {{ .Values.ha.topology.maxSkew }}
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: {{ .Values.ha.topology.zoneWhenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+              {{- include "goravel-mine.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: queue-worker
+        - maxSkew: {{ .Values.ha.topology.maxSkew }}
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: {{ .Values.ha.topology.hostnameWhenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+              {{- include "goravel-mine.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: queue-worker
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    {{- include "goravel-mine.selectorLabels" . | nindent 20 }}
+                    app.kubernetes.io/component: queue-worker
+                topologyKey: kubernetes.io/hostname
+      {{- end }}
+      initContainers:
+        - name: init-storage
+          image: {{ .Values.storageInit.image | quote }}
+          command:
+            {{- toYaml .Values.storageInit.command | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- if .Values.ha.enabled }}
+            privileged: false
+            {{- end }}
+          {{- if .Values.ha.enabled }}
+          resources:
+            {{- toYaml .Values.storageInit.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: storage
+              mountPath: /storage
+      containers:
+        - name: queue-worker
+          image: {{ include "goravel-mine.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: RELEASE_GIT_SHA
+              value: {{ .Values.releaseGitSha | quote }}
+            {{- range $key, $value := .Values.worker.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "goravel-mine.fullname" . }}-config
+            - secretRef:
+                name: {{ include "goravel-mine.secretName" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- if .Values.ha.enabled }}
+            privileged: false
+            {{- end }}
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          volumeMounts:
+            - name: storage
+              mountPath: /www/storage
+            - name: tmp
+              mountPath: /tmp
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - name: storage
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "goravel-mine.storageClaimName" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: tmp
+          emptyDir: {}
+{{- end }}

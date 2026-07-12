@@ -1,0 +1,116 @@
+{
+  "overrides": [
+    {
+      "purl": "pkg:golang/github.com/golang/freetype@v0.0.0-20170609003504-e2365dfdc4a0",
+      "version": "v0.0.0-20170609003504-e2365dfdc4a0",
+      "license": "FTL OR GPL-2.0-or-later",
+      "owner": "backend-platform",
+      "evidence": "https://raw.githubusercontent.com/golang/freetype/e2365dfdc4a0/LICENSE"
+    },
+    {
+      "purl": "pkg:golang/github.com/mattn/go-localereader@v0.0.1",
+      "version": "v0.0.1",
+      "license": "MIT",
+      "owner": "backend-platform",
+      "evidence": "https://raw.githubusercontent.com/mattn/go-localereader/v0.0.1/README.md"
+    },
+    {
+      "purl_pattern": "^pkg:npm/%40esbuild/[^@]+@0\\.28\\.1$",
+      "version": "0.28.1",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://raw.githubusercontent.com/evanw/esbuild/v0.28.1/LICENSE.md"
+    },
+    {
+      "purl_pattern": "^pkg:npm/%40oxc-parser/binding-[^@]+@0\\.131\\.0$",
+      "version": "0.131.0",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://raw.githubusercontent.com/oxc-project/oxc/crates_v0.131.0/LICENSE"
+    },
+    {
+      "purl_pattern": "^pkg:npm/%40parcel/watcher-[^@]+@2\\.5\\.6$",
+      "version": "2.5.6",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://raw.githubusercontent.com/parcel-bundler/watcher/v2.5.6/LICENSE"
+    },
+    {
+      "purl_pattern": "^pkg:npm/%40rolldown/binding-[^@]+@1\\.1\\.3$",
+      "version": "1.1.3",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://raw.githubusercontent.com/rolldown/rolldown/v1.1.3/LICENSE"
+    },
+    {
+      "purl_pattern": "^pkg:npm/lightningcss-[^@]+@1\\.32\\.0$",
+      "version": "1.32.0",
+      "license": "MPL-2.0",
+      "owner": "frontend-platform",
+      "evidence": "https://raw.githubusercontent.com/parcel-bundler/lightningcss/v1.32.0/LICENSE"
+    },
+    {
+      "purl": "pkg:npm/%40emnapi/core@1.10.0",
+      "version": "1.10.0",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://registry.npmjs.org/%40emnapi%2Fcore/1.10.0"
+    },
+    {
+      "purl": "pkg:npm/%40emnapi/core@1.11.1",
+      "version": "1.11.1",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://registry.npmjs.org/%40emnapi%2Fcore/1.11.1"
+    },
+    {
+      "purl": "pkg:npm/%40emnapi/runtime@1.10.0",
+      "version": "1.10.0",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://registry.npmjs.org/%40emnapi%2Fruntime/1.10.0"
+    },
+    {
+      "purl": "pkg:npm/%40emnapi/runtime@1.11.1",
+      "version": "1.11.1",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://registry.npmjs.org/%40emnapi%2Fruntime/1.11.1"
+    },
+    {
+      "purl": "pkg:npm/%40emnapi/wasi-threads@1.2.1",
+      "version": "1.2.1",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://registry.npmjs.org/%40emnapi%2Fwasi-threads/1.2.1"
+    },
+    {
+      "purl": "pkg:npm/%40emnapi/wasi-threads@1.2.2",
+      "version": "1.2.2",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://registry.npmjs.org/%40emnapi%2Fwasi-threads/1.2.2"
+    },
+    {
+      "purl": "pkg:npm/%40napi-rs/wasm-runtime@1.1.6",
+      "version": "1.1.6",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://registry.npmjs.org/%40napi-rs%2Fwasm-runtime/1.1.6"
+    },
+    {
+      "purl": "pkg:npm/%40tybys/wasm-util@0.10.3",
+      "version": "0.10.3",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://registry.npmjs.org/%40tybys%2Fwasm-util/0.10.3"
+    },
+    {
+      "purl": "pkg:npm/%40popperjs/core@2.11.8",
+      "version": "2.11.8",
+      "license": "MIT",
+      "owner": "frontend-platform",
+      "evidence": "https://registry.npmjs.org/%40popperjs%2Fcore/2.11.8"
+    }
+  ]
+}

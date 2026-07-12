@@ -1,0 +1,79 @@
+{{- if .Values.restoreDrill.enabled }}
+{{- if not (regexMatch "(_restore_|_drill_)" .Values.restoreDrill.targetDatabase) }}
+{{- fail "restoreDrill.targetDatabase must contain _restore_ or _drill_" }}
+{{- end }}
+{{- if eq .Values.restoreDrill.targetNamespace .Release.Namespace }}
+{{- fail "restoreDrill.targetNamespace must differ from the release namespace" }}
+{{- end }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}-restore-drill
+  namespace: {{ required "restoreDrill.targetNamespace is required when restoreDrill.enabled=true" .Values.restoreDrill.targetNamespace | quote }}
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+    app.kubernetes.io/component: restore-drill
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: {{ .Values.restoreDrill.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "goravel-mine.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: restore-drill
+    spec:
+      restartPolicy: Never
+      {{- if and .Values.ha.enabled .Values.ha.serviceAccountName }}
+      serviceAccountName: {{ .Values.ha.serviceAccountName }}
+      {{- end }}
+      {{- if and .Values.ha.enabled .Values.ha.priorityClassName }}
+      priorityClassName: {{ .Values.ha.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: restore-drill
+          image: {{ .Values.restoreDrill.image | quote }}
+          command: ["/usr/local/bin/restore-drill"]
+          args:
+            - --source
+            - /evidence/manifest.json
+            - --target-db
+            - {{ .Values.restoreDrill.targetDatabase | quote }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "goravel-mine.fullname" . }}-config
+            - secretRef:
+                name: {{ include "goravel-mine.secretName" . }}
+          env:
+            - name: RESTORE_DB_HOST
+              value: {{ .Values.restoreDrill.targetDatabaseHost | quote }}
+            - name: RESTORE_DB_PORT
+              value: {{ .Values.restoreDrill.targetDatabasePort | quote }}
+            - name: RESTORE_DB_USERNAME
+              value: {{ .Values.restoreDrill.targetDatabaseUsername | quote }}
+            - name: RESTORE_PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "goravel-mine.secretName" . }}
+                  key: DB_PASSWORD
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.backup.resources | nindent 12 }}
+          volumeMounts:
+            - name: evidence
+              mountPath: /evidence
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: evidence
+          secret:
+            secretName: {{ required "restoreDrill.sourceManifestSecret is required" .Values.restoreDrill.sourceManifestSecret }}
+            items:
+              - key: {{ .Values.restoreDrill.sourceManifestKey }}
+                path: manifest.json
+        - name: tmp
+          emptyDir: {}
+{{- end }}

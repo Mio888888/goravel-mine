@@ -1,0 +1,760 @@
+baseUserManage:
+  avatar: 头像
+  username: 用户名
+  nickname: 昵称
+  phone: 手机
+  dept: 所属部门
+  post: 部门岗位
+  email: 邮箱
+  password: 密码
+  userType: 用户类型
+  role: 角色
+  signed: 个人签名
+  mainTitle: 用户管理
+  subTitle: 提供用户添加、编辑、删除功能，超管不可修改。
+  dataScope: 数据权限
+  setRole: 赋予角色
+  setDataScope: 设置数据权限
+  setRoleSuccess: 用户角色设置成功
+  initPassword: 初始化密码
+  setPassword: 是否将用户密码重置为[123456]?
+  setPasswordSuccess: 密码重置成功
+baseRoleManage:
+  mainTitle: 角色管理
+  subTitle: 提供用户角色、权限设置
+  name: 角色名称
+  code: 角色标识
+  permission: 权限菜单
+  setPermission: 赋予权限
+baseTenantManage:
+  mainTitle: 租户管理
+  subTitle: 管理平台租户与独立数据库初始化。
+  basicInfo: 基础信息
+  databaseInfo: 数据库隔离
+  billingInfo: 计费订阅
+  quotaInfo: 配额限制
+  brandingInfo: 白标配置
+  otherInfo: 其他信息
+  code: 租户编码
+  name: 租户名称
+  plan: 套餐
+  dbHost: 数据库主机
+  dbPort: 数据库端口
+  dbDatabase: 数据库名
+  dbUsername: 数据库用户
+  dbPassword: 数据库密码
+  dbSchema: Schema
+  customDomain: 自定义域名
+  initialize: 自动创建并初始化租户库
+  subscriptionStatus: 订阅状态
+  currency: 币种
+  amountCents: 金额（分）
+  expiresAt: 到期时间
+  apiRatePerMinute: API/分钟
+  maxUsers: 用户上限
+  maxRoles: 角色上限
+  maxStorageMb: 存储上限（MB）
+  appName: 应用名称
+  logoUrl: Logo URL
+  primaryColor: 主题色
+  mailFromName: 邮件发件名
+  usage: 用量
+  setPermission: 权限分配
+  allowedPermissions: 授权租户权限
+  permissionSuccess: 租户权限已更新
+  unlimited: 不限制
+  userUsage: 用户用量
+  roleUsage: 角色用量
+  storageUsage: 存储用量
+  createdAt: 创建时间
+  suspend: 挂起
+  resume: 恢复
+  archive: 归档
+  destroy: 销毁
+  suspendConfirm: 确认挂起该租户吗？
+  resumeConfirm: 确认恢复该租户吗？
+  archiveConfirm: 确认归档该租户吗？
+  destroyConfirm: 确认销毁所选租户吗？此操作会硬删除平台租户元数据。
+  suspendSuccess: 租户已挂起
+  resumeSuccess: 租户已恢复
+  archiveSuccess: 租户已归档
+  destroySuccess: 租户已销毁
+baseTenantPlanManage:
+  mainTitle: 套餐管理
+  subTitle: 统一维护租户套餐、默认配额与基础功能开关。
+  code: 套餐编码
+  name: 套餐名称
+baseReferenceCase:
+  mainTitle: 参考模块
+  subTitle: 内置 golden reference module，覆盖迁移、权限、菜单、OpenAPI、CRUD 与升级回滚样例。
+  code: 案例编码
+  title: 案例标题
+  enabled: 启用
+  disabled: 禁用
+  payload: Payload JSON
+  remark: 备注
+  codeRequired: 请输入案例编码
+  titleRequired: 请输入案例标题
+  payloadJsonError: Payload 必须是合法 JSON
+baseStorageConfigManage:
+  mainTitle: 储存配置
+  subTitle: 维护平台级储存策略，上传内容按平台与租户隔离路径。
+  name: 配置名称
+  provider: 储存方式
+  driver: 驱动
+  bucket: Bucket
+  endpoint: Endpoint
+  region: Region
+  accessKey: Access Key
+  secretKey: Secret Key
+  baseUrl: 访问域名
+  pathPrefix: 路径前缀
+  default: 默认
+  defaultEnabled: 默认
+  defaultDisabled: 否
+  options: 扩展配置 JSON
+  secretKeepTip: 留空则保持原密钥
+  optionsJsonError: 扩展配置必须是合法 JSON
+baseScheduledTaskManage:
+  mainTitle: 计划任务
+  subTitle: 维护平台级秒级任务、定点节点执行与运行日志。
+  name: 任务名称
+  code: 任务编码
+  description: 任务说明
+  cron: Cron 表达式
+  timezone: 时区
+  taskType: 任务类型
+  payload: 执行参数
+  urlMethod: 请求方法
+  url: 请求 URL
+  urlHeaders: 请求头 JSON
+  urlBody: 请求体
+  scriptCommand: 脚本文件
+  scriptArgs: 脚本参数
+  scriptArgsPlaceholder: 每行一个参数
+  scriptWorkdir: 工作目录
+  scriptWorkdirPlaceholder: 可选
+  backupConnection: 备份连接
+  backupTarget: 备份目标
+  timeout: 超时秒数
+  allowOverlap: 允许重叠
+  targetIps: 指定节点 IP
+  tenants: 执行租户
+  allTenants: 留空表示全部启用租户
+  nextRunAt: 下次执行
+  lastStatus: 最近状态
+  run: 执行
+  runSuccess: 任务已执行
+  enable: 启用
+  disable: 禁用
+  logs: 执行日志
+  triggerMode: 触发方式
+  logStatus: 状态
+  nodeIp: 节点 IP
+  startedAt: 开始时间
+  duration: 耗时(ms)
+  exitCode: 退出码
+  errorMessage: 错误
+  payloadJsonError: Payload 必须是合法 JSON
+baseObservability:
+  title: 系统监控
+  subtitle: 慢请求、慢 SQL 与 HTTP 指标采样
+  refresh: 刷新
+  totalRequests: 总请求
+  inflight: 进行中
+  routeCount: 路由数
+  slowCount: 慢请求
+  uptime: 运行时间
+  slowRequests: 慢请求
+  slowSql: 慢 SQL
+  slowRoutes: 慢请求路由
+  retained: 保留 {count} 条
+  routes: '{count} 个路由'
+  items: '{count} 条'
+  method: 方法
+  route: 路由
+  status: 状态
+  duration: 耗时
+  requestId: 请求 ID
+  traceId: Trace ID
+  ip: IP
+  recordedAt: 记录时间
+  rows: 行数
+  sql: SQL
+  count: 数量
+  uptimeDays: '{days}天 {hours}小时'
+  uptimeHours: '{hours}小时 {minutes}分钟'
+  uptimeMinutes: '{minutes}分钟'
+baseSecurityEvidence:
+  title: 敏感操作凭证
+  operation: 操作
+  resource: 资源
+  approvalId: 审批 ID
+  loadApproval: 加载审批
+  requestApproval: 申请审批
+  approveApproval: 批准审批
+  approvalRequired: 请先填写审批 ID
+  password: 当前密码
+  passwordRequired: 请输入当前密码
+  mfaCode: MFA 验证码或恢复码
+  reauthenticate: 二次认证
+  reauthReady: 二次认证已就绪
+  reauthMissing: 尚未二次认证
+  continue: 继续操作
+  notReady: 须先取得已批准审批并完成二次认证
+  requestFailed: 敏感操作凭证请求失败
+  status:
+    missing: 未加载
+    pending: 待审批
+    approved: 已批准
+    rejected: 已拒绝
+baseModuleLifecycle:
+  title: 模块治理
+  subtitle: 查看模块状态、执行记录、锁状态，并执行 dry-run 或受控生命周期动作
+  refresh: 刷新
+  totalModules: 模块总数
+  persistedModules: 已落库状态
+  disabledModules: 已禁用
+  failedModules: 异常模块
+  actionLabel: 生命周期动作
+  moduleLabel: 模块
+  allModules: 全部模块
+  executeMode: 执行模式
+  dryRun: Dry-run
+  execute: 执行
+  owner: Owner
+  reason: 原因
+  stateTab: 模块状态
+  runsTab: 执行历史
+  stepsTab: Step 记录
+  locksTab: 锁状态
+  diffTab: 状态差异
+  moduleId: 模块 ID
+  name: 名称
+  version: 版本
+  enabled: 启用
+  persistedStatus: 状态
+  lastAction: 最近动作
+  lastError: 最近错误
+  command: 命令
+  statusLabel: 状态
+  error: 错误
+  startedAt: 开始时间
+  finishedAt: 结束时间
+  lockKey: 锁 Key
+  runKey: Run Key
+  expiresAt: 过期时间
+  updatedAt: 更新时间
+  manifestVersion: Manifest 版本
+  persistedVersion: 持久化版本
+  drift: 差异
+  dryRunResult: Dry-run 结果
+  executeResult: 执行结果
+  destructiveCheck: 破坏性校验
+  idempotencyKey: 幂等 Key
+  confirmToken: 确认 Token
+  stepName: Step
+  viewSteps: 查看 Step
+  executeRequirement: 真实执行必须填写 Owner 与原因
+  securityRequirement: 真实执行须填写确认 Token {token}，并完成敏感操作凭证流程
+  executeConfirm: 确认执行真实生命周期动作？该动作可能迁移数据库或写入模块状态。
+  releaseLocks: 释放过期锁
+  releaseRequirement: 释放过期锁须填写确认 Token release-stale-locks，并完成敏感操作凭证流程
+  releaseConfirm: 确认释放过期模块生命周期锁？
+  releaseDryRunSuccess: 过期锁 dry-run 已完成
+  releaseSuccess: 过期锁已释放
+  dryRunSuccess: Dry-run 已完成
+  executeSuccess: 执行已提交
+  yes: 是
+  no: 否
+  statusUnknown: 未知
+  action:
+    install: 安装
+    upgrade: 升级
+    rollback: 回滚
+    uninstall: 卸载
+  status:
+    planned: 已规划
+    running: 执行中
+    succeeded: 成功
+    failed: 失败
+    skipped: 已跳过
+    lock_blocked: 锁阻塞
+    manual_required: 需人工处理
+    reconciliation_required: 需人工核对
+  actionInstall: 安装
+  actionUpgrade: 升级
+  actionRollback: 回滚
+  actionUninstall: 卸载
+baseDictionaryManage:
+  platformMainTitle: 字典管理
+  platformSubTitle: 平台维护默认字典模板，租户创建时分发副本。
+  tenantMainTitle: 数据字典
+  tenantSubTitle: 维护当前租户的字典展示项，系统编码和值不可变更。
+  code: 字典编码
+  name: 字典名称
+  items: 字典项
+  itemLabel: 项名称
+  itemValue: 项值
+  itemCount: 项数
+  color: 颜色
+  version: 版本
+  dispatch: 分发默认字典
+  dispatchConfirm: 确认将默认字典补发到所有启用租户吗？该操作不会覆盖租户已修改的展示字段。
+  dispatchSuccess: 默认字典已分发
+  deleteTemplateTip: 默认字典已分发后不能删除，请优先禁用。
+baseSsoProviderManage:
+  mainTitle: 单点登录配置
+  subTitle: 按场景维护企业身份源、授权端点与权限映射。
+  basicInfo: 基础信息
+  identityInfo: 身份校验
+  oauthInfo: OAuth / OIDC
+  samlInfo: SAML
+  name: 配置标识
+  displayName: 展示名称
+  scene: 使用场景
+  type: 协议类型
+  issuer: 签发方
+  audience: 受众
+  jwtSecret: JWT 签名密钥
+  discoveryUrl: 发现文档地址
+  authorizationEndpoint: 授权端点
+  tokenEndpoint: 令牌端点
+  userinfoEndpoint: 用户信息端点
+  jwksUri: JWKS 地址
+  jwksJson: JWKS JSON
+  clientId: 客户端 ID
+  clientSecret: 客户端密钥
+  scope: 授权范围
+  redirectUri: 回调地址
+  enablePkce: 启用 PKCE
+  enableNonce: 启用 Nonce
+  autoCreate: 自动创建用户
+  icon: 登录图标
+  buttonColor: 按钮颜色
+  displayOrder: 显示排序
+  samlEntrypoint: SAML 登录入口
+  samlEntityId: SAML 实体 ID
+  samlCertificate: SAML 证书
+  roleMapping: 角色映射
+  dataPermissionMapping: 数据权限映射
+  typeOidc: OIDC
+  typeOauth2: OAuth2
+  typeSaml: SAML
+  sceneAdmin: 管理后台
+  sceneMobile: 移动端
+  scenePortal: 门户端
+  enabled: 启用
+  disabled: 禁用
+baseSsoUserBinding:
+  mainTitle: 单点登录用户绑定
+  subTitle: 查看企业身份源账号与本地用户的绑定关系。
+  username: 本地用户名
+  nickname: 本地昵称
+  providerName: 身份源
+  providerType: 协议
+  providerScene: 场景
+  ssoUserId: 外部用户 ID
+  ssoEmail: 外部邮箱
+  ssoUsername: 外部用户名
+  loginCount: 登录次数
+  firstLoginAt: 首次登录
+  lastLoginAt: 最近登录
+  unbind: 解绑
+  unbindConfirm: 确认解绑该单点登录账号吗？
+  unbindSuccess: 解绑成功
+basePlatformUserManage:
+  avatar: 头像
+  username: 用户名
+  nickname: 昵称
+  phone: 手机
+  email: 邮箱
+  password: 密码
+  userType: 用户类型
+  platformUser: 平台用户
+  dashboard: 默认首页
+  role: 平台角色
+  mainTitle: 平台用户
+  subTitle: 管理平台管理员账号，独立于租户内部用户。
+  setRole: 赋予角色
+  setRoleSuccess: 平台用户角色设置成功
+  initPassword: 初始化密码
+  setPassword: 是否将平台用户密码重置为[123456]?
+  setPasswordSuccess: 密码重置成功
+basePlatformRoleManage:
+  mainTitle: 平台角色
+  subTitle: 管理平台级角色与平台菜单权限。
+  name: 角色名称
+  code: 角色标识
+  permission: 平台权限菜单
+  setPermission: 赋予权限
+  setPermissionSuccess: 平台角色权限设置成功
+basePlatformMenuManage:
+  addError: 此操作已执行过，请点击左侧菜单重新操作。
+  deleteChildren: 当前菜单存在子菜单，请先删除子级。
+  addTopMenu: 新增顶级菜单
+  parentMenu: 上级菜单
+  name: 菜单名称
+  code: 菜单标识
+  url: 菜单路由
+  icon: 菜单图标
+  type: 菜单类型
+  route: 路由地址
+  view: 视图地址
+  link: 链接/iFrame
+  activeName: 高亮菜单
+  redirect: 路由重定向
+  i18n: 国际化
+  sort: 排序
+  useDefaultLayout:
+    help: 不使用页面则可自定义布局
+    label: 使用默认布局
+    true: 是
+    false: 否
+  isEnabled: 是否启用
+  isHidden: 是否隐藏
+  isCache: 是否缓存
+  isCopyright: 版权显示
+  isBreadcrumb: 面包屑显示
+  isAffix: Tab是否固定
+  remark: 备注
+  baseInfo: 基础信息
+  frontAuth: 前端权限验证
+  otherInfo: 其他信息
+  typeItem:
+    M: 菜单
+    B: 按钮
+    L: 外链
+    I: iFrame
+  BtnPermission:
+    label: 按钮权限
+    name: 按钮名称
+    code: 按钮标识
+    i18n: 按钮国际化
+    noBtn: 没有按钮菜单?
+    add: 新增一个
+  placeholder:
+    name: 请输入菜单名称
+    code: 请输入菜单标识，此项全局唯一
+    parentMenu: 请选择上级菜单，不选为顶级菜单
+    activeName: 请输入菜单标识，访问页面时高亮指定菜单
+    route: 页面访问地址，以 "/" 开头
+    view: 视图地址，请指向模块下的 views 目录文件
+    link: 请输入第三方URL
+    redirect: 利用 vue-router 跳转其他路由地址，以 "/" 开头
+    i18n: 菜单标题国际化
+    remark: 备注信息
+    btnName: 请输入按钮名称
+    btnCode: 请输入按钮标识
+    btnI18n: 请输入按钮国际化
+baseMenuManage:
+  addError: 此操作已执行过，请点击左侧菜单重新操作。
+  deleteChildren: 当前菜单存在子菜单，请先删除子级。
+  addTopMenu: 新增顶级菜单
+  parentMenu: 上级菜单
+  name: 菜单名称
+  code: 菜单标识
+  url: 菜单路由
+  icon: 菜单图标
+  type: 菜单类型
+  route: 路由地址
+  view: 视图地址
+  link: 链接/iFrame
+  activeName: 高亮菜单
+  redirect: 路由重定向
+  i18n: 国际化
+  sort: 排序
+  useDefaultLayout:
+    help: 不使用页面则可自定义布局
+    label: 使用默认布局
+    true: 是
+    false: 否
+  isEnabled: 是否启用
+  isHidden: 是否隐藏
+  isCache: 是否缓存
+  isCopyright: 版权显示
+  isBreadcrumb: 面包屑显示
+  isAffix: Tab是否固定
+  remark: 备注
+  baseInfo: 基础信息
+  frontAuth: 前端权限验证
+  otherInfo: 其他信息
+  typeItem:
+    M: 菜单
+    B: 按钮
+    L: 外链
+    I: iFrame
+  BtnPermission:
+    label: 按钮权限
+    name: 按钮名称
+    code: 按钮标识
+    i18n: 按钮国际化
+    noBtn: 没有按钮菜单?
+    add: 新增一个
+  placeholder:
+    name: 请输入菜单名称
+    code: 请输入菜单标识，此项全局唯一
+    parentMenu: 请选择上级菜单，不选为顶级菜单
+    activeName: 请输入菜单标识，访问页面时高亮指定菜单
+    route: 页面访问地址，以 "/" 开头
+    view: 视图地址，请指向模块下的 views 目录文件
+    link: 请输入第三方URL
+    redirect: 利用 vue-router 跳转其他路由地址，以 "/" 开头
+    i18n: 菜单标题国际化
+    remark: 备注信息
+    btnName: 请输入按钮名称
+    btnCode: 请输入按钮标识
+    btnI18n: 请输入按钮国际化
+baseRole:
+  name: 角色名称
+  code: 角色标识
+  remark: 备注
+  permission: 权限菜单
+  placeholder:
+    name: 请输入角色名称
+    code: 请输入角色标识，此项全局唯一
+    remark: 备注信息
+basePermission:
+  name: 权限名称
+  code: 权限标识
+  remark: 备注
+  placeholder:
+    name: 请输入权限名称
+    code: 请输入权限标识，此项全局唯一
+    remark: 备注信息
+baseDict:
+  name: 字典名称
+  code: 字典标识
+  remark: 备注
+  placeholder:
+    name: 请输入字典名称
+    code: 请输入字典标识，此项全局唯一
+    remark: 备注信息
+baseDictItem:
+  name: 字典项名称
+  code: 字典项标识
+  remark: 备注
+  placeholder:
+    name: 请输入字典项名称
+    code: 请输入字典项标识，此项全局唯一
+baseLoginLog:
+  title: 用户登录日志
+  username: 用户名
+  ip: 登录IP
+  browser: 浏览器
+  status: 登录状态
+  message: 提示消息
+  login_time: 登录时间
+baseSsoLoginLog:
+  mainTitle: SSO 登录日志
+  subTitle: 追踪单点登录成功、失败与身份源分布。
+  username: 本地用户名
+  providerName: 身份源
+  providerType: 协议
+  ssoUserId: 外部用户 ID
+  ssoEmail: 外部邮箱
+  status: 状态
+  success: 成功
+  failure: 失败
+  failureReason: 失败原因
+  ip: 登录 IP
+  deviceType: 设备
+  loginAt: 登录时间
+  startDate: 开始时间
+  endDate: 结束时间
+  total: 总次数
+  successCount: 成功次数
+  failCount: 失败次数
+  successRate: 成功率
+baseOperationLog:
+  title: 用户操作日志
+  username: 用户名
+  method: 请求方式
+  router: 请求路由
+  service_name: 业务名称
+  ip: 请求IP
+  created_at: 创建时间
+  updated_at: 更新时间
+baseDepartment:
+  name: 部门名称
+  created_at: 创建时间
+  updated_at: 更新时间
+  leaderCount: 负责人数
+  positionsCount: 岗位数
+  usersCount: 人员数
+  parentDepartment: 上级部门
+  page:
+    mainTitle: 部门管理
+    subTitle: 提供公司、机构的人员部门管理、以及部门负责人。
+    setLeader: 设置负责人
+    previewUser: 查看用户
+    managePost: 管理岗位
+  placeholder:
+    name: 请输入部门名称
+    parentDepartment: 请选择上级部门
+  error:
+    selfNotParent: 不可选择自己作为上级部门，已还原默认数据
+basePost:
+  name: 岗位名称
+  belongPost: 所属岗位
+  belongDept: 所属部门
+  created_at: 创建时间
+  updated_at: 更新时间
+  dataScope: 数据权限
+  selectDept: 自选部门
+  callFunc: 调用函数名
+  placeholder:
+    name: 请输入岗位名称
+baseDeptLeader:
+  belongDept: 所属部门
+  username: 用户名
+  nickname: 昵称
+  user_id: 选择用户
+  placeholder:
+    user_id: 请选择要设置为负责人的用户
+baseMenu:
+  platform:
+    index: 平台管理
+    tenantManage: 租户管理
+    system: 系统管理
+    tenant: 租户管理
+    tenantList: 租户列表
+    tenantSave: 租户保存
+    tenantUpdate: 租户更新
+    tenantSuspend: 租户挂起
+    tenantResume: 租户恢复
+    tenantArchive: 租户归档
+    tenantDestroy: 租户销毁
+    tenantGovernance: 租户治理
+    tenantPermissions: 租户权限分配
+    tenantUpdatePlan: 租户套餐变更
+    tenantPlan: 套餐管理
+    tenantPlanList: 套餐列表
+    tenantPlanSave: 套餐保存
+    tenantPlanUpdate: 套餐更新
+    tenantPlanDelete: 套餐删除
+    user: 平台用户
+    userList: 平台用户列表
+    userSave: 平台用户保存
+    userUpdate: 平台用户更新
+    userDelete: 平台用户删除
+    userPassword: 平台用户初始化密码
+    getUserRole: 获取平台用户角色
+    setUserRole: 平台用户赋予角色
+    role: 平台角色
+    roleList: 平台角色列表
+    roleSave: 平台角色保存
+    roleUpdate: 平台角色更新
+    roleDelete: 平台角色删除
+    getRolePermission: 获取平台角色菜单
+    setRolePermission: 平台角色菜单赋予
+    menu: 平台菜单
+    menuList: 平台菜单列表
+    menuSave: 平台菜单保存
+    menuUpdate: 平台菜单更新
+    menuDelete: 平台菜单删除
+    dictionary: 字典管理
+    dictionaryList: 字典列表
+    dictionarySave: 字典保存
+    dictionaryUpdate: 字典更新
+    dictionaryDelete: 字典删除
+    dictionaryDispatch: 字典分发
+    storageConfig: 储存配置
+    storageConfigList: 储存配置列表
+    storageConfigSave: 储存配置保存
+    storageConfigUpdate: 储存配置更新
+    storageConfigDelete: 储存配置删除
+    scheduledTask: 计划任务
+    scheduledTaskList: 计划任务列表
+    scheduledTaskSave: 计划任务保存
+    scheduledTaskUpdate: 计划任务更新
+    scheduledTaskDelete: 计划任务删除
+    scheduledTaskRun: 计划任务执行
+    scheduledTaskLog: 计划任务日志
+    queueFailedJobList: 失败队列列表
+    queueFailedJobRetry: 失败队列重试
+    queueFailedJobDelete: 失败队列丢弃
+    observability: 系统监控
+    observabilityList: 监控面板
+    moduleLifecycle: 模块治理
+    moduleLifecycleList: 模块治理面板
+    moduleLifecycleExecute: 模块生命周期执行
+    moduleLifecycleLog: 模块生命周期日志
+    securityControl: 敏感操作控制
+    referenceCase: 参考模块
+    referenceCaseList: 参考模块列表
+    referenceCaseSave: 参考模块保存
+    referenceCaseUpdate: 参考模块更新
+    referenceCaseDelete: 参考模块删除
+  permission:
+    index: 权限管理
+    user: 用户管理
+    userList: 用户列表
+    userSave: 用户保存
+    userUpdate: 用户更新
+    userDelete: 用户删除
+    userPassword: 初始用户密码
+    getUserRole: 获取用户角色
+    setUserRole: 用户赋予角色
+    role: 角色管理
+    roleList: 角色列表
+    roleSave: 角色保存
+    roleUpdate: 角色更新
+    roleDelete: 角色删除
+    getRolePermission: 获取角色权限
+    setRolePermission: 赋予角色权限
+    menu: 菜单管理
+    menuList: 菜单列表
+    menuSave: 菜单保存
+    menuUpdate: 菜单更新
+    menuDelete: 菜单删除
+    department: 部门管理
+    departmentList: 部门列表
+    departmentCreate: 新增部门
+    departmentSave: 编辑部门
+    departmentDelete: 删除部门
+    positionList: 岗位列表
+    positionCreate: 新增岗位
+    positionSave: 编辑岗位
+    positionDelete: 删除岗位
+    positionDataScope: 设置岗位数据权限
+    leaderList: 部门领导列表
+    leaderCreate: 新增部门领导
+    leaderSave: 编辑部门领导
+    leaderDelete: 删除部门领导
+  security:
+    index: 安全管理
+    sso: 单点登录
+    ssoProvider: 身份源配置
+    ssoProviderList: 身份源配置列表
+    ssoProviderSave: 身份源配置保存
+    ssoProviderUpdate: 身份源配置更新
+    ssoProviderDelete: 身份源配置删除
+    ssoUserBinding: 用户绑定
+    ssoUserBindingList: 用户绑定列表
+    ssoUserBindingDetail: 用户绑定详情
+    ssoUserBindingUser: 用户绑定明细
+    ssoUserBindingUnbind: 用户解绑
+    ssoLoginAudit: 登录审计
+    ssoLoginList: 登录审计列表
+    ssoLoginStats: 登录审计统计
+  log:
+    index: 日志管理
+    userLoginLog: 登录日志
+    operationLog: 操作日志
+    userLoginLogList: 用户登录日志
+    userOperationLog: 用户操作日志
+    userLoginLogDelete: 用户登录日志删除
+    userOperationLogDelete: 用户操作日志删除
+    ssoLoginLog: SSO 登录日志
+    ssoLoginList: SSO 登录日志列表
+    ssoLoginStats: SSO 登录统计
+  dataCenter:
+    index: 数据中心
+    attachment: 附件管理
+    attachmentList: 附件列表
+    attachmentUpload: 上传附件
+    attachmentDelete: 删除附件
+    dictionary: 数据字典
+    dictionaryList: 数据字典列表
+    dictionaryUpdate: 数据字典更新

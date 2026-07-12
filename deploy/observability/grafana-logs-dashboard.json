@@ -1,0 +1,209 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "logs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate({service=\"goravel-mine\", level=~\"error|fatal|panic\"}[$__rate_interval]))",
+          "legendFormat": "error logs",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate({service=\"goravel-mine\"} | json status=\"extra.status\" | status >= 500 [$__rate_interval]))",
+          "legendFormat": "5xx request logs",
+          "refId": "B"
+        }
+      ],
+      "title": "Error log rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "logs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate({service=\"goravel-mine\"} | json event=\"extra.event\", outcome=\"extra.outcome\" | event=\"audit\" | outcome=\"failure\" [$__rate_interval]))",
+          "legendFormat": "audit failure",
+          "refId": "A"
+        }
+      ],
+      "title": "Audit failure log rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "id": 3,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{service=\"goravel-mine\"} | json request_id=\"extra.request_id\" | request_id=~\"$request_id\" |= \"$contains\"",
+          "refId": "A"
+        }
+      ],
+      "title": "Logs by request_id",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 4,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{service=\"goravel-mine\"} | json trace_id=\"extra.trace_id\" | trace_id=~\"$trace_id\" |= \"$contains\"",
+          "refId": "A"
+        }
+      ],
+      "title": "Logs by trace_id",
+      "type": "logs"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": [
+    "goravel-mine",
+    "logs"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "label": "Loki",
+        "name": "loki",
+        "query": "loki",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        },
+        "label": "Request ID",
+        "name": "request_id",
+        "query": ".*",
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        },
+        "label": "Trace ID",
+        "name": "trace_id",
+        "query": ".*",
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "label": "Contains",
+        "name": "contains",
+        "query": "",
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "Goravel Mine Logs",
+  "uid": "goravel-mine-logs",
+  "version": 1,
+  "weekStart": ""
+}

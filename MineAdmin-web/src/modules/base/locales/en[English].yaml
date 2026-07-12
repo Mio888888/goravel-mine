@@ -1,0 +1,697 @@
+baseUserManage:
+  avatar: Avatar
+  username: Username
+  nickname: Nickname
+  phone: Phone
+  email: Email
+  password: Password
+  userType: User type
+  role: Role
+  signed: Signed
+  mainTitle: User Rule
+  subTitle: Provide users with the functions of adding, editing, and deleting
+  dataScope: Data Scope
+  setRole: Set role
+  setDataScope: Set data scope
+  setRoleSuccess: The role was set successfully
+  initPassword: Init password
+  setPassword: Whether to reset the password to 123456?
+  setPasswordSuccess: The password was reset successfully
+baseRoleManage:
+  mainTitle: Role Rule
+  subTitle: Provide user roles and permission settings
+  name: Role name
+  code: Role code
+  permission: Permission Menu
+  setPermission: Set permission
+baseTenantManage:
+  mainTitle: Tenant Management
+  subTitle: Manage platform tenants and initialize isolated databases.
+  basicInfo: Basic Info
+  databaseInfo: Database Isolation
+  billingInfo: Billing
+  quotaInfo: Quotas
+  brandingInfo: Branding
+  otherInfo: Other Info
+  code: Tenant Code
+  name: Tenant Name
+  plan: Plan
+  dbHost: Database Host
+  dbPort: Database Port
+  dbDatabase: Database Name
+  dbUsername: Database User
+  dbPassword: Database Password
+  dbSchema: Schema
+  customDomain: Custom Domain
+  initialize: Create and initialize tenant database
+  subscriptionStatus: Subscription
+  currency: Currency
+  amountCents: Amount Cents
+  expiresAt: Expires At
+  apiRatePerMinute: API / Minute
+  maxUsers: Max Users
+  maxRoles: Max Roles
+  maxStorageMb: Max Storage MB
+  appName: App Name
+  logoUrl: Logo URL
+  primaryColor: Primary Color
+  mailFromName: Mail From Name
+  usage: Usage
+  setPermission: Tenant Permissions
+  allowedPermissions: Allowed Tenant Permissions
+  permissionSuccess: Tenant permissions updated
+  unlimited: Unlimited
+  userUsage: User Usage
+  roleUsage: Role Usage
+  storageUsage: Storage Usage
+  createdAt: Created At
+  suspend: Suspend
+  resume: Resume
+  archive: Archive
+  destroy: Destroy
+  suspendConfirm: Confirm suspending this tenant?
+  resumeConfirm: Confirm resuming this tenant?
+  archiveConfirm: Confirm archiving this tenant?
+  destroyConfirm: Confirm destroying the selected tenant(s)? This hard deletes platform tenant metadata.
+  suspendSuccess: Tenant suspended
+  resumeSuccess: Tenant resumed
+  archiveSuccess: Tenant archived
+  destroySuccess: Tenant destroyed
+baseTenantPlanManage:
+  mainTitle: Tenant Plans
+  subTitle: Manage tenant plans, default quotas, and base feature switches.
+  code: Plan Code
+  name: Plan Name
+baseReferenceCase:
+  mainTitle: Reference Module
+  subTitle: Golden reference module covering migration, permission, menu, OpenAPI, CRUD, and upgrade rollback samples.
+  code: Case Code
+  title: Case Title
+  enabled: Enabled
+  disabled: Disabled
+  payload: Payload JSON
+  remark: Remark
+  codeRequired: Case code is required
+  titleRequired: Case title is required
+  payloadJsonError: Payload must be valid JSON
+baseStorageConfigManage:
+  mainTitle: Storage Config
+  subTitle: Manage platform storage and isolate uploads by platform and tenant path.
+  name: Config Name
+  provider: Provider
+  driver: Driver
+  bucket: Bucket
+  endpoint: Endpoint
+  region: Region
+  accessKey: Access Key
+  secretKey: Secret Key
+  baseUrl: Base URL
+  pathPrefix: Path Prefix
+  default: Default
+  defaultEnabled: Default
+  defaultDisabled: No
+  options: Options JSON
+  secretKeepTip: Leave blank to keep existing secret
+  optionsJsonError: Options must be valid JSON
+baseScheduledTaskManage:
+  mainTitle: Scheduled Tasks
+  subTitle: Manage second-level tasks, target nodes, and execution logs.
+  name: Task Name
+  code: Task Code
+  description: Description
+  cron: Cron Expression
+  timezone: Timezone
+  taskType: Task Type
+  payload: Execution Params
+  urlMethod: Method
+  url: Request URL
+  urlHeaders: Headers JSON
+  urlBody: Body
+  scriptCommand: Script File
+  scriptArgs: Script Args
+  scriptArgsPlaceholder: One argument per line
+  scriptWorkdir: Working Directory
+  scriptWorkdirPlaceholder: Optional
+  backupConnection: Backup Connection
+  backupTarget: Backup Target
+  timeout: Timeout Seconds
+  allowOverlap: Allow Overlap
+  targetIps: Target Node IPs
+  tenants: Tenants
+  allTenants: Leave empty for all active tenants
+  nextRunAt: Next Run
+  lastStatus: Last Status
+  run: Run
+  runSuccess: Task executed
+  enable: Enable
+  disable: Disable
+  logs: Logs
+  triggerMode: Trigger
+  logStatus: Status
+  nodeIp: Node IP
+  startedAt: Started At
+  duration: Duration(ms)
+  exitCode: Exit Code
+  errorMessage: Error
+  payloadJsonError: Payload must be valid JSON
+baseObservability:
+  title: System Monitoring
+  subtitle: Slow requests, slow SQL, and HTTP metric samples.
+  refresh: Refresh
+  totalRequests: Total Requests
+  inflight: In Flight
+  routeCount: Routes
+  slowCount: Slow Requests
+  uptime: Uptime
+  slowRequests: Slow Requests
+  slowSql: Slow SQL
+  slowRoutes: Slow Request Routes
+  retained: Retained {count}
+  routes: '{count} routes'
+  items: '{count} items'
+  method: Method
+  route: Route
+  status: Status
+  duration: Duration
+  requestId: Request ID
+  traceId: Trace ID
+  ip: IP
+  recordedAt: Recorded At
+  rows: Rows
+  sql: SQL
+  count: Count
+  uptimeDays: '{days}d {hours}h'
+  uptimeHours: '{hours}h {minutes}m'
+  uptimeMinutes: '{minutes}m'
+baseSecurityEvidence:
+  title: Sensitive Operation Evidence
+  operation: Operation
+  resource: Resource
+  approvalId: Approval ID
+  loadApproval: Load approval
+  requestApproval: Request approval
+  approveApproval: Approve
+  approvalRequired: Enter an approval ID first.
+  password: Current password
+  passwordRequired: Enter your current password.
+  mfaCode: MFA code or recovery code
+  reauthenticate: Re-authenticate
+  reauthReady: Re-authentication ready
+  reauthMissing: Re-authentication required
+  continue: Continue
+  notReady: An approved request and re-authentication are required.
+  requestFailed: Sensitive operation evidence request failed.
+  status:
+    missing: Not loaded
+    pending: Pending
+    approved: Approved
+    rejected: Rejected
+baseModuleLifecycle:
+  title: Module Governance
+  subtitle: Review module state, lifecycle runs, locks, and execute dry-run or controlled lifecycle actions.
+  refresh: Refresh
+  totalModules: Modules
+  persistedModules: Persisted
+  disabledModules: Disabled
+  failedModules: Failed
+  actionLabel: Lifecycle Action
+  moduleLabel: Module
+  allModules: All Modules
+  executeMode: Mode
+  dryRun: Dry-run
+  execute: Execute
+  owner: Owner
+  reason: Reason
+  stateTab: State
+  runsTab: Runs
+  stepsTab: Steps
+  locksTab: Locks
+  diffTab: State Diff
+  moduleId: Module ID
+  name: Name
+  version: Version
+  enabled: Enabled
+  persistedStatus: Status
+  lastAction: Last Action
+  lastError: Last Error
+  command: Command
+  statusLabel: Status
+  error: Error
+  startedAt: Started At
+  finishedAt: Finished At
+  lockKey: Lock Key
+  runKey: Run Key
+  expiresAt: Expires At
+  updatedAt: Updated At
+  manifestVersion: Manifest Version
+  persistedVersion: Persisted Version
+  drift: Drift
+  dryRunResult: Dry-run Result
+  executeResult: Execute Result
+  destructiveCheck: Destructive Check
+  idempotencyKey: Idempotency Key
+  confirmToken: Confirm Token
+  stepName: Step
+  viewSteps: Steps
+  executeRequirement: Execute requires owner and reason.
+  securityRequirement: Execute requires confirm token {token} and completed sensitive-operation evidence.
+  executeConfirm: Execute real lifecycle action? This may run migrations or write module state.
+  releaseLocks: Release Stale Locks
+  releaseRequirement: Releasing stale locks requires confirm token release-stale-locks and completed sensitive-operation evidence.
+  releaseConfirm: Release stale module lifecycle locks?
+  releaseDryRunSuccess: Stale lock dry-run finished
+  releaseSuccess: Stale locks released
+  dryRunSuccess: Dry-run finished
+  executeSuccess: Execution submitted
+  yes: Yes
+  no: No
+  statusUnknown: Unknown
+  action:
+    install: Install
+    upgrade: Upgrade
+    rollback: Rollback
+    uninstall: Uninstall
+  status:
+    planned: Planned
+    running: Running
+    succeeded: Succeeded
+    failed: Failed
+    skipped: Skipped
+    lock_blocked: Lock Blocked
+    manual_required: Manual Required
+    reconciliation_required: Reconciliation Required
+  actionInstall: Install
+  actionUpgrade: Upgrade
+  actionRollback: Rollback
+  actionUninstall: Uninstall
+baseDictionaryManage:
+  platformMainTitle: Dictionary Management
+  platformSubTitle: Manage platform dictionary templates distributed to tenants.
+  tenantMainTitle: Dictionaries
+  tenantSubTitle: Edit tenant dictionary labels and display settings. Codes and values are locked.
+  code: Dictionary Code
+  name: Dictionary Name
+  items: Items
+  itemLabel: Label
+  itemValue: Value
+  itemCount: Items
+  color: Color
+  version: Version
+  dispatch: Dispatch Defaults
+  dispatchConfirm: Dispatch default dictionaries to all active tenants? Tenant display overrides will be kept.
+  dispatchSuccess: Default dictionaries dispatched
+  deleteTemplateTip: Distributed default dictionaries cannot be deleted. Disable them instead.
+baseSsoProviderManage:
+  mainTitle: SSO Providers
+  subTitle: Tenants can maintain multiple enterprise OIDC, OAuth2, and SAML providers by scene.
+  basicInfo: Basic Info
+  identityInfo: Identity Verification
+  oauthInfo: OAuth / OIDC
+  samlInfo: SAML
+  name: Provider Key
+  displayName: Display Name
+  scene: Scene
+  type: Protocol
+  issuer: Issuer
+  audience: Audience
+  jwtSecret: JWT Secret
+  discoveryUrl: Discovery URL
+  authorizationEndpoint: Authorization Endpoint
+  tokenEndpoint: Token Endpoint
+  userinfoEndpoint: UserInfo Endpoint
+  jwksUri: JWKS URI
+  jwksJson: JWKS JSON
+  clientId: Client ID
+  clientSecret: Client Secret
+  scope: Scope
+  redirectUri: Redirect URI
+  enablePkce: PKCE
+  enableNonce: Nonce
+  autoCreate: Auto Create User
+  icon: Icon
+  buttonColor: Button Color
+  displayOrder: Sort
+  samlEntrypoint: SAML Entrypoint
+  samlEntityId: SAML Entity ID
+  samlCertificate: SAML Certificate
+  roleMapping: Role Mapping
+  dataPermissionMapping: Data Permission Mapping
+  typeOidc: OIDC
+  typeOauth2: OAuth2
+  typeSaml: SAML
+  sceneAdmin: Admin Console
+  sceneMobile: Mobile App
+  scenePortal: Portal
+  enabled: Enabled
+  disabled: Disabled
+baseSsoUserBinding:
+  mainTitle: SSO User Bindings
+  subTitle: Review links between enterprise identities and local users.
+  username: Local Username
+  nickname: Local Nickname
+  providerName: Provider
+  providerType: Protocol
+  providerScene: Scene
+  ssoUserId: External User ID
+  ssoEmail: External Email
+  ssoUsername: External Username
+  loginCount: Login Count
+  firstLoginAt: First Login
+  lastLoginAt: Last Login
+  unbind: Unbind
+  unbindConfirm: Confirm unbinding this SSO account?
+  unbindSuccess: Unbound
+basePlatformUserManage:
+  avatar: 头像
+  username: 用户名
+  nickname: 昵称
+  phone: 手机
+  email: 邮箱
+  password: 密码
+  userType: 用户类型
+  platformUser: 平台用户
+  dashboard: 默认首页
+  role: 平台角色
+  mainTitle: 平台用户
+  subTitle: 管理平台管理员账号，独立于租户内部用户。
+  setRole: 赋予角色
+  setRoleSuccess: 平台用户角色设置成功
+  initPassword: 初始化密码
+  setPassword: 是否将平台用户密码重置为[123456]?
+  setPasswordSuccess: 密码重置成功
+basePlatformRoleManage:
+  mainTitle: 平台角色
+  subTitle: 管理平台级角色与平台菜单权限。
+  name: 角色名称
+  code: 角色标识
+  permission: 平台权限菜单
+  setPermission: 赋予权限
+  setPermissionSuccess: 平台角色权限设置成功
+basePlatformMenuManage:
+  addError: 此操作已执行过，请点击左侧菜单重新操作。
+  deleteChildren: 当前菜单存在子菜单，请先删除子级。
+  addTopMenu: 新增顶级菜单
+  parentMenu: 上级菜单
+  name: 菜单名称
+  code: 菜单标识
+  url: 菜单路由
+  icon: 菜单图标
+  type: 菜单类型
+  route: 路由地址
+  view: 视图地址
+  link: 链接/iFrame
+  activeName: 高亮菜单
+  redirect: 路由重定向
+  i18n: 国际化
+  sort: 排序
+  useDefaultLayout:
+    help: 不使用页面则可自定义布局
+    label: 使用默认布局
+    true: 是
+    false: 否
+  isEnabled: 是否启用
+  isHidden: 是否隐藏
+  isCache: 是否缓存
+  isCopyright: 版权显示
+  isBreadcrumb: 面包屑显示
+  isAffix: Tab是否固定
+  remark: 备注
+  baseInfo: 基础信息
+  frontAuth: 前端权限验证
+  otherInfo: 其他信息
+  typeItem:
+    M: 菜单
+    B: 按钮
+    L: 外链
+    I: iFrame
+  BtnPermission:
+    label: 按钮权限
+    name: 按钮名称
+    code: 按钮标识
+    i18n: 按钮国际化
+    noBtn: 没有按钮菜单?
+    add: 新增一个
+  placeholder:
+    name: 请输入菜单名称
+    code: 请输入菜单标识，此项全局唯一
+    parentMenu: 请选择上级菜单，不选为顶级菜单
+    activeName: 请输入菜单标识，访问页面时高亮指定菜单
+    route: 页面访问地址，以 "/" 开头
+    view: 视图地址，请指向模块下的 views 目录文件
+    link: 请输入第三方URL
+    redirect: 利用 vue-router 跳转其他路由地址，以 "/" 开头
+    i18n: 菜单标题国际化
+    remark: 备注信息
+    btnName: 请输入按钮名称
+    btnCode: 请输入按钮标识
+    btnI18n: 请输入按钮国际化
+baseMenuManage:
+  addError: This operation has already been performed. Please click the left menu to try again.
+  deleteChildren: The current menu has child menus. Please delete the child first.
+  addTopMenu: Add Top Menu
+  parentMenu: Parent Menu
+  name: Menu Name
+  code: Menu Code
+  url: Menu Route
+  icon: Menu Icon
+  type: Menu Type
+  route: Route
+  view: View Address
+  link: Link/iFrame
+  activeName: Active Name
+  redirect: Route Redirect
+  i18n: Internationalization
+  sort: Sort Order
+  useDefaultLayout:
+    help: Custom layout available when not using the page
+    label: Use default layout
+    true: Yes
+    false: No
+  isEnabled: Enabled
+  isHidden: Hidden
+  isCache: Cached
+  isCopyright: Copyright
+  isBreadcrumb: Breadcrumb
+  isAffix: Tab Is Fixed
+  remark: Remarks
+  typeItem:
+    M: Menu
+    B: Button
+    L: External Link
+    I: iFrame
+  BtnPermission:
+    label: Button Permission
+    name: Button Name
+    code: Button Code
+    i18n: Button Internationalization
+    noBtn: No Button Menu?
+    add: Add One
+  placeholder:
+    name: Please enter the menu name
+    code: Please enter the menu code, which must be unique globally
+    parentMenu: Please select the parent menu, or leave it blank for a top-level menu
+    activeName: Please enter the menu code, which is used to highlight the specified menu when the page is accessed
+    route: Page access address, starting with "/"
+    view: View address, please point to a file in the views directory under the module
+    link: Please enter the third-party URL
+    redirect: Use vue-router to redirect to another route address, starting with "/"
+    i18n: Menu title internationalization
+    remark: Remarks/Notes
+    btnName: Please enter the button name
+    btnCode: Please enter the button code
+    btnI18n: Please enter the button i18n
+baseLoginLog:
+  title: User Login log
+  username: Username
+  ip: Login IP
+  browser: Browser
+  status: Status
+  message: Message
+  login_time: Login Time
+baseSsoLoginLog:
+  mainTitle: SSO Login Logs
+  subTitle: Track SSO successes, failures, and provider distribution.
+  username: Local Username
+  providerName: Provider
+  providerType: Protocol
+  ssoUserId: External User ID
+  ssoEmail: External Email
+  status: Status
+  success: Success
+  failure: Failure
+  failureReason: Failure Reason
+  ip: Login IP
+  deviceType: Device
+  loginAt: Login Time
+  startDate: Start Time
+  endDate: End Time
+  total: Total
+  successCount: Successes
+  failCount: Failures
+  successRate: Success Rate
+baseOperationLog:
+  title: User Operation log
+  username: Username
+  method: Request Method
+  router: Router
+  service_name: Service Name
+  ip: Request IP
+  created_at: Creation Time
+  updated_at: Update Time
+baseMenu:
+  platform:
+    index: 平台管理
+    tenantManage: Tenants
+    system: System
+    tenant: 租户管理
+    tenantList: 租户列表
+    tenantSave: 租户保存
+    tenantUpdate: 租户更新
+    tenantSuspend: 租户挂起
+    tenantResume: 租户恢复
+    tenantArchive: 租户归档
+    tenantDestroy: 租户销毁
+    tenantGovernance: Tenant Governance
+    tenantPermissions: Tenant Permissions
+    tenantUpdatePlan: Tenant Plan Change
+    tenantPlan: Tenant Plans
+    tenantPlanList: Tenant Plan List
+    tenantPlanSave: Tenant Plan Save
+    tenantPlanUpdate: Tenant Plan Update
+    tenantPlanDelete: Tenant Plan Delete
+    user: 平台用户
+    userList: 平台用户列表
+    userSave: 平台用户保存
+    userUpdate: 平台用户更新
+    userDelete: 平台用户删除
+    userPassword: 平台用户初始化密码
+    getUserRole: 获取平台用户角色
+    setUserRole: 平台用户赋予角色
+    role: 平台角色
+    roleList: 平台角色列表
+    roleSave: 平台角色保存
+    roleUpdate: 平台角色更新
+    roleDelete: 平台角色删除
+    getRolePermission: 获取平台角色菜单
+    setRolePermission: 平台角色菜单赋予
+    menu: 平台菜单
+    menuList: 平台菜单列表
+    menuSave: 平台菜单保存
+    menuUpdate: 平台菜单更新
+    menuDelete: 平台菜单删除
+    dictionary: Dictionaries
+    dictionaryList: Dictionary List
+    dictionarySave: Dictionary Save
+    dictionaryUpdate: Dictionary Update
+    dictionaryDelete: Dictionary Delete
+    dictionaryDispatch: Dictionary Dispatch
+    storageConfig: Storage Config
+    storageConfigList: Storage Config List
+    storageConfigSave: Storage Config Save
+    storageConfigUpdate: Storage Config Update
+    storageConfigDelete: Storage Config Delete
+    scheduledTask: Scheduled Tasks
+    scheduledTaskList: Scheduled Task List
+    scheduledTaskSave: Scheduled Task Save
+    scheduledTaskUpdate: Scheduled Task Update
+    scheduledTaskDelete: Scheduled Task Delete
+    scheduledTaskRun: Scheduled Task Run
+    scheduledTaskLog: Scheduled Task Logs
+    queueFailedJobList: Failed Queue Job List
+    queueFailedJobRetry: Failed Queue Job Retry
+    queueFailedJobDelete: Failed Queue Job Delete
+    observability: System Monitoring
+    observabilityList: Monitoring Panel
+    moduleLifecycle: Module Governance
+    moduleLifecycleList: Module Governance Panel
+    moduleLifecycleExecute: Module Lifecycle Execute
+    moduleLifecycleLog: Module Lifecycle Logs
+    securityControl: Sensitive Operation Control
+    referenceCase: Reference Module
+    referenceCaseList: Reference Module List
+    referenceCaseSave: Reference Module Save
+    referenceCaseUpdate: Reference Module Update
+    referenceCaseDelete: Reference Module Delete
+  permission:
+    index: Permission
+    user: User
+    userList: User list
+    userSave: User save
+    userUpdate: User updated
+    userDelete: User delete
+    userPassword: Init user password
+    getUserRole: Get user role
+    setUserRole: Set user role
+    role: Role
+    roleList: Role list
+    roleSave: Role save
+    roleUpdate: Role updated
+    roleDelete: Role delete
+    getRolePermission: Get role permission
+    setRolePermission: Set role permission
+    menu: Menu
+    menuList: Menu list
+    menuSave: Menu save
+    menuUpdate: Menu updated
+    menuDelete: Menu delete
+    department: Department
+    departmentList: Department list
+    departmentCreate: Add department
+    departmentSave: Edit department
+    departmentDelete: Delete department
+    positionList: Post list
+    positionCreate: Add post
+    positionSave: Edit post
+    positionDelete: Delete post
+    positionDataScope: Set post data scope
+    leaderList: Leader List
+    leaderCreate: Add Leader
+    leaderSave: Edit Leader
+    leaderDelete: Delete Leader
+  security:
+    index: Security
+    sso: Single Sign-On
+    ssoProvider: Identity Providers
+    ssoProviderList: Identity Provider List
+    ssoProviderSave: Identity Provider Save
+    ssoProviderUpdate: Identity Provider Update
+    ssoProviderDelete: Identity Provider Delete
+    ssoUserBinding: User Bindings
+    ssoUserBindingList: User Binding List
+    ssoUserBindingDetail: User Binding Detail
+    ssoUserBindingUser: User Binding Detail
+    ssoUserBindingUnbind: User Unbind
+    ssoLoginAudit: Login Audit
+    ssoLoginList: Login Audit List
+    ssoLoginStats: Login Audit Stats
+basePost:
+  name: Post Name
+  belongPost: Belongs to Position
+  belongDept: Belongs to Department
+  created_at: Creation Time
+  updated_at: Update Time
+  dataScope: Data Permissions
+  selectDept: Selected Departments
+  callFunc: Function Call Name
+  placeholder:
+    name: Please enter position name
+  log:
+    index: Log Management
+    userLoginLog: Login Log
+    operationLog: Operation Log
+    userLoginLogList: User Login Log List
+    userOperationLog: User Operation Log List
+    userLoginLogDelete: User Login Log Delete
+    userOperationLogDelete: User Operation Log Delete
+    ssoLoginLog: SSO Login Logs
+    ssoLoginList: SSO Login Log List
+    ssoLoginStats: SSO Login Stats
+  dataCenter:
+    index: Data Center
+    attachment: Attachment
+    attachmentList: Attachment List
+    attachmentUpload: Attachment Upload
+    attachmentDelete: Attachment Delete
+    dictionary: Dictionaries
+    dictionaryList: Dictionary List
+    dictionaryUpdate: Dictionary Update

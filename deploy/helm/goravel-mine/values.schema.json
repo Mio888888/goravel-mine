@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "releaseGitSha": { "type": "string", "pattern": "^unknown$|^[0-9a-f]{40}$" },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "pattern": "^$|^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "ha": {
+      "type": "object",
+      "properties": {
+        "hpa": {
+          "type": "object",
+          "properties": {
+            "minReplicas": { "type": "integer", "minimum": 1 },
+            "maxReplicas": { "type": "integer", "minimum": 1 },
+            "targetCPUUtilizationPercentage": { "type": "integer", "minimum": 1, "maximum": 100 },
+            "targetMemoryUtilizationPercentage": { "type": "integer", "minimum": 1, "maximum": 100 },
+            "scaleDownStabilizationWindowSeconds": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "pdb": {
+          "type": "object",
+          "properties": {
+            "minAvailable": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "topology": {
+          "type": "object",
+          "properties": {
+            "maxSkew": { "type": "integer", "minimum": 1 },
+            "webAntiAffinity": { "type": "string", "enum": ["required", "preferred"] },
+            "zoneWhenUnsatisfiable": { "type": "string", "enum": ["DoNotSchedule", "ScheduleAnyway"] },
+            "hostnameWhenUnsatisfiable": { "type": "string", "enum": ["DoNotSchedule", "ScheduleAnyway"] }
+          }
+        },
+        "networkPolicy": {
+          "type": "object",
+          "properties": {
+            "appPort": { "type": "integer", "minimum": 1, "maximum": 65535 },
+            "destinations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+                  "cidrs": {
+                    "type": "array",
+                    "items": { "type": "string", "pattern": "^[0-9a-fA-F:.]+/[0-9]{1,3}$" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "worker": {
+      "type": "object",
+      "properties": {
+        "autoscaling": {
+          "type": "object",
+          "properties": {
+            "minReplicas": { "type": "integer", "minimum": 1 },
+            "maxReplicas": { "type": "integer", "minimum": 1 },
+            "cooldownPeriodSeconds": { "type": "integer", "minimum": 1 },
+            "pollingIntervalSeconds": { "type": "integer", "minimum": 1 },
+            "targetPendingJobs": { "type": "integer", "minimum": 1 },
+            "targetOldestAgeSeconds": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "backup": {
+      "type": "object",
+      "properties": {
+        "startingDeadlineSeconds": { "type": "integer", "minimum": 1 },
+        "activeDeadlineSeconds": { "type": "integer", "minimum": 1 },
+        "retentionDays": { "type": "integer", "minimum": 1 },
+        "releaseGitSha": { "type": "string", "pattern": "^$|^[0-9a-f]{40}$" },
+        "releaseImageDigest": { "type": "string", "pattern": "^$|^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "restoreDrill": {
+      "type": "object",
+      "properties": {
+        "targetNamespace": { "type": "string" },
+        "targetDatabase": { "type": "string", "pattern": "^$|.*(_restore_|_drill_).*" },
+        "targetDatabasePort": { "type": "string", "pattern": "^[0-9]+$" },
+        "activeDeadlineSeconds": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

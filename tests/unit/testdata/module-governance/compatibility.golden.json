@@ -1,0 +1,243 @@
+{
+  "status": "passed",
+  "framework_version": "1.17.2",
+  "generated_at": "0001-01-01T00:00:00Z",
+  "modules": [
+    {
+      "id": "platform-rbac",
+      "name": "Platform RBAC",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/platformrbac",
+        "registry_key": "platform-rbac",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "dependencies": [],
+      "release_track": "internal",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review",
+      "framework_compatible": true,
+      "enabled": true
+    },
+    {
+      "id": "platform-tenant",
+      "name": "Platform Tenant",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/platformtenant",
+        "registry_key": "platform-tenant",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "release_track": "internal",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review",
+      "framework_compatible": true,
+      "enabled": true
+    },
+    {
+      "id": "platform-observability",
+      "name": "Platform Observability",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/platformobservability",
+        "registry_key": "platform-observability",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "release_track": "internal",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review",
+      "framework_compatible": true,
+      "enabled": true
+    },
+    {
+      "id": "reference-case",
+      "name": "Golden Reference Case",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/referencecase",
+        "registry_key": "reference-case",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "release_track": "internal",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "approval required with CRUD/API/E2E evidence",
+      "framework_compatible": true,
+      "enabled": true
+    },
+    {
+      "id": "scheduled-task",
+      "name": "Scheduled Task",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/scheduledtask",
+        "registry_key": "scheduled-task",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "dependencies": [
+        {
+          "id": "platform-tenant",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "release_track": "internal",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review",
+      "framework_compatible": true,
+      "enabled": true
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/security",
+        "registry_key": "security",
+        "version": "1.0.0",
+        "owner": "security-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        },
+        {
+          "id": "tenant-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "release_track": "internal",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review",
+      "framework_compatible": true,
+      "enabled": true
+    },
+    {
+      "id": "data-center",
+      "name": "Data Center",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/datacenter",
+        "registry_key": "data-center",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        },
+        {
+          "id": "tenant-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "release_track": "internal",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review",
+      "framework_compatible": true,
+      "enabled": true
+    },
+    {
+      "id": "tenant-rbac",
+      "name": "Tenant RBAC",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/tenantrbac",
+        "registry_key": "tenant-rbac",
+        "version": "1.0.0",
+        "owner": "tenant-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "dependencies": [
+        {
+          "id": "platform-tenant",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "release_track": "internal",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review",
+      "framework_compatible": true,
+      "enabled": true
+    }
+  ]
+}

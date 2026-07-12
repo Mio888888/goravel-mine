@@ -1,0 +1,227 @@
+groups:
+  - name: goravel-mine.slo
+    interval: 30s
+    rules:
+      - alert: GoravelMineHighErrorRate
+        expr: |
+          sum(rate(goravel_http_requests_total{status=~"5.."}[5m]))
+            /
+          clamp_min(sum(rate(goravel_http_requests_total[5m])), 0.001) > 0.02
+        for: 10m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: availability
+        annotations:
+          summary: Goravel Mine 5xx error rate above 2%
+          description: Check recent deploys, panic logs, DB/cache readiness, and upstream errors. Start with runbook docs/observability/on-call-runbook.md#5xx-error-rate.
+
+      - alert: GoravelMineHighErrorBudgetBurn
+        expr: |
+          sum(rate(goravel_http_requests_total{status=~"5.."}[1h]))
+            /
+          clamp_min(sum(rate(goravel_http_requests_total[1h])), 0.001) > 0.005
+        for: 30m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: error-budget
+        annotations:
+          summary: Goravel Mine error budget burn above monthly target
+          description: Error ratio is above 0.5% for 1h. Review SLO policy before non-critical releases.
+
+      - alert: GoravelMineSlowRequestsSpike
+        expr: increase(goravel_http_slow_requests_observed_total[10m]) > 20
+        for: 5m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: latency
+        annotations:
+          summary: Goravel Mine slow request spike
+          description: Slow request samples exceed threshold. Query /admin/platform/observability/slow-requests and correlate request_id or trace_id.
+
+      - alert: GoravelMineHighP95Latency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le, route) (rate(goravel_http_request_duration_milliseconds_bucket[5m]))
+          ) > 1000
+        for: 10m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: latency
+        annotations:
+          summary: Goravel Mine p95 latency above 1s
+          description: HTTP p95 latency is above 1s for 10m. Check slow routes, slow SQL, DB pool, and recent deploys.
+
+      - alert: GoravelMineHighP99Latency
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum by (le, route) (rate(goravel_http_request_duration_milliseconds_bucket[5m]))
+          ) > 2500
+        for: 10m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: latency
+        annotations:
+          summary: Goravel Mine p99 latency above 2.5s
+          description: HTTP p99 latency is above 2.5s for 10m. Triage high-latency route and saturation first.
+
+      - alert: GoravelMineSlowSQLSpike
+        expr: increase(goravel_sql_slow_queries_observed_total[10m]) > 10
+        for: 5m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: database
+        annotations:
+          summary: Goravel Mine slow SQL spike
+          description: Slow SQL samples increased. Inspect admin observability API, request_id, trace_id, and PostgreSQL query plan.
+
+      - alert: GoravelMineDBPoolWait
+        expr: increase(goravel_db_pool_wait_count_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: database
+        annotations:
+          summary: Goravel Mine DB pool wait detected
+          description: Requests waited for DB connections. Check open/in-use connections, DB max connections, slow SQL, and request concurrency.
+
+      - alert: GoravelMineHighGoroutines
+        expr: goravel_go_goroutines > 1000
+        for: 15m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: saturation
+        annotations:
+          summary: Goravel Mine goroutine count high
+          description: Goroutine count is above 1000 for 15m. Check blocked IO, runaway jobs, and recent code changes.
+
+      - alert: GoravelMineNoMetricsScrape
+        expr: |
+          (up{job=~"goravel-mine.*"} == 0)
+            or
+          absent(up{job=~"goravel-mine.*"})
+        for: 5m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: monitoring
+        annotations:
+          summary: Goravel Mine metrics scrape down
+          description: Prometheus cannot scrape /metrics. Check OBS_METRICS_ENABLED, bearer token, ServiceMonitor or scrape config, and pod readiness.
+
+      - alert: GoravelMineSchedulerNodeDown
+        expr: |
+          (goravel_scheduler_node_alive == 0)
+            or
+          absent(goravel_scheduler_node_alive)
+        for: 5m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: scheduler
+        annotations:
+          summary: Goravel Mine scheduler node heartbeat missing
+          description: Scheduled task node heartbeat is stale. Check scheduled task runner, DB connectivity, and pod restarts.
+
+      - alert: GoravelMineQueueFailedJobsBacklog
+        expr: goravel_queue_failed_jobs > 0
+        for: 10m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: queue
+        annotations:
+          summary: Goravel Mine failed queue jobs backlog
+          description: failed_jobs retained rows for 10m. Check queue worker logs, group by signature, and retry or discard through the admin/API runbook.
+
+      - alert: GoravelMineQueueOutboxBacklog
+        expr: |
+          goravel_queue_outbox_events{status="failed"} > 0
+            or
+          goravel_queue_outbox_events{status="pending"} > 100
+        for: 10m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: queue
+        annotations:
+          summary: Goravel Mine queue outbox backlog
+          description: Outbox failed rows exist or pending rows exceed 100 for 10m. Check queue_outbox runner, Redis queue, downstream handlers, and idempotency locks.
+
+      - alert: GoravelMineQueueBacklogGrowing
+        expr: |
+          deriv(goravel_queue_pending_jobs[10m]) > 0
+            and
+          goravel_queue_pending_jobs > 0
+        for: 10m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: queue
+        annotations:
+          summary: Goravel Mine queue backlog is growing
+          description: Pending jobs have a positive 10-minute slope. Check producer rate, worker capacity, downstream saturation, and autoscaler events before increasing the replica budget.
+
+      - alert: GoravelMineCriticalQueueAgeHigh
+        expr: goravel_queue_oldest_backlog_age_seconds{queue_class="critical"} > 60
+        for: 2m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: queue
+        annotations:
+          summary: Goravel Mine critical queue age exceeds 60 seconds
+          description: Critical queue work has waited too long. Check worker availability, Redis health, failed jobs, and the critical autoscaler target.
+
+      - alert: GoravelMineDefaultQueueAgeHigh
+        expr: goravel_queue_oldest_backlog_age_seconds{queue_class="default"} > 300
+        for: 5m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: queue
+        annotations:
+          summary: Goravel Mine default queue age exceeds five minutes
+          description: Default queue work has waited over five minutes. Check worker throughput, producer rate, and downstream dependencies.
+
+      - alert: GoravelMineTenantGovernanceEvidenceExpired
+        expr: goravel_tenant_governance_evidence_expired > 0
+        for: 5m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: tenant-governance
+        annotations:
+          summary: Tenant governance evidence expired
+          description: One or more tenant governance proofs expired. Follow docs/operations/tenant-governance-runbook.md and rerun isolation verification.
+
+      - alert: GoravelMineTenantGovernanceVerificationFailed
+        expr: goravel_tenant_governance_verification_failed > 0
+        for: 5m
+        labels:
+          severity: page
+          service: goravel-mine
+          slo: tenant-governance
+        annotations:
+          summary: Tenant isolation verification failed
+          description: A tenant isolation verification run failed. Inspect run error and immutable artifact storage before retrying.
+
+      - alert: GoravelMineTenantGovernanceRunStuck
+        expr: goravel_tenant_governance_run_age_seconds > 1800
+        for: 5m
+        labels:
+          severity: ticket
+          service: goravel-mine
+          slo: tenant-governance
+        annotations:
+          summary: Tenant governance run is stuck
+          description: A pending or running governance run is older than 30 minutes. Mark stale only after checking worker ownership and immutable artifact state.

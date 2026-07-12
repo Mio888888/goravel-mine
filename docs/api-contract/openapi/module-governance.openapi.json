@@ -1,0 +1,143 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Module Governance API Contract",
+    "version": "2026-07-10",
+    "description": "Dedicated OpenAPI subset for platform module governance. Exactly seven current endpoints are documented here."
+  },
+  "servers": [{ "url": "/" }],
+  "security": [{ "bearerAuth": [] }],
+  "tags": [{ "name": "Module Governance" }],
+  "paths": {
+    "/admin/platform/module-lifecycle/state": {
+      "get": {
+        "tags": ["Module Governance"],
+        "operationId": "adminPlatformModuleLifecycleState",
+        "security": [{ "bearerAuth": [] }],
+        "x-permission": "platform:moduleLifecycle:list",
+        "responses": { "200": { "$ref": "#/components/responses/ModuleLifecycleStateResponse" } }
+      }
+    },
+    "/admin/platform/module-lifecycle/runs": {
+      "get": {
+        "tags": ["Module Governance"],
+        "operationId": "adminPlatformModuleLifecycleRuns",
+        "security": [{ "bearerAuth": [] }],
+        "x-permission": "platform:moduleLifecycle:list",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunKey" },
+          { "$ref": "#/components/parameters/ModuleID" },
+          { "$ref": "#/components/parameters/Action" },
+          { "$ref": "#/components/parameters/Status" },
+          { "$ref": "#/components/parameters/Owner" },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PageSize" }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/ModuleLifecycleRunsResponse" } }
+      }
+    },
+    "/admin/platform/module-lifecycle/steps": {
+      "get": {
+        "tags": ["Module Governance"],
+        "operationId": "adminPlatformModuleLifecycleSteps",
+        "security": [{ "bearerAuth": [] }],
+        "x-permission": "platform:moduleLifecycle:log",
+        "parameters": [
+          { "$ref": "#/components/parameters/RunKey" },
+          { "$ref": "#/components/parameters/ModuleID" },
+          { "$ref": "#/components/parameters/Action" },
+          { "$ref": "#/components/parameters/Status" },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PageSize" }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/ModuleLifecycleStepsResponse" } }
+      }
+    },
+    "/admin/platform/module-lifecycle/locks": {
+      "get": {
+        "tags": ["Module Governance"],
+        "operationId": "adminPlatformModuleLifecycleLocks",
+        "security": [{ "bearerAuth": [] }],
+        "x-permission": "platform:moduleLifecycle:list",
+        "responses": { "200": { "$ref": "#/components/responses/ModuleLifecycleLocksResponse" } }
+      }
+    },
+    "/admin/platform/module-lifecycle/diff": {
+      "get": {
+        "tags": ["Module Governance"],
+        "operationId": "adminPlatformModuleLifecycleDiff",
+        "security": [{ "bearerAuth": [] }],
+        "x-permission": "platform:moduleLifecycle:list",
+        "responses": { "200": { "$ref": "#/components/responses/ModuleLifecycleDiffResponse" } }
+      }
+    },
+    "/admin/platform/module-lifecycle/locks/release-stale": {
+      "post": {
+        "tags": ["Module Governance"],
+        "operationId": "adminPlatformModuleLifecycleReleaseStaleLocks",
+        "security": [{ "bearerAuth": [] }],
+        "x-permission": "platform:moduleLifecycle:execute",
+        "requestBody": { "$ref": "#/components/requestBodies/ModuleLifecycleLockReleaseRequest" },
+        "responses": { "200": { "$ref": "#/components/responses/ModuleLifecycleLockReleaseResponse" } }
+      }
+    },
+    "/admin/platform/module-lifecycle/execute": {
+      "post": {
+        "tags": ["Module Governance"],
+        "operationId": "adminPlatformModuleLifecycleExecute",
+        "security": [{ "bearerAuth": [] }],
+        "x-permission": "platform:moduleLifecycle:execute",
+        "requestBody": { "$ref": "#/components/requestBodies/ModuleLifecycleExecuteRequest" },
+        "responses": { "200": { "$ref": "#/components/responses/ModuleLifecycleExecuteResponse" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    },
+    "parameters": {
+      "RunKey": { "name": "run_key", "in": "query", "schema": { "type": "string" } },
+      "ModuleID": { "name": "module_id", "in": "query", "schema": { "type": "string" } },
+      "Action": { "name": "action", "in": "query", "schema": { "type": "string", "enum": ["install", "upgrade", "rollback", "uninstall"] } },
+      "Status": { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["planned", "running", "succeeded", "failed", "skipped", "lock_blocked", "manual_required", "reconciliation_required"] } },
+      "Owner": { "name": "owner", "in": "query", "schema": { "type": "string" } },
+      "Page": { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+      "PageSize": { "name": "page_size", "in": "query", "schema": { "type": "integer", "minimum": 1, "default": 15 } }
+    },
+    "responses": {
+      "ModuleLifecycleStateResponse": { "description": "HTTP 200；业务状态由 JSON code 表示。", "content": { "application/json": { "schema": { "oneOf": [{ "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageData" }, { "type": "object", "required": ["list"], "properties": { "list": { "type": "array", "items": { "$ref": "#/components/schemas/ModuleLifecycleState" } } } }] } } }] }, { "$ref": "#/components/schemas/ErrorResponse" }] } } } },
+      "ModuleLifecycleRunsResponse": { "description": "HTTP 200；业务状态由 JSON code 表示。", "content": { "application/json": { "schema": { "oneOf": [{ "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageData" }, { "type": "object", "required": ["list"], "properties": { "list": { "type": "array", "items": { "$ref": "#/components/schemas/ModuleLifecycleRun" } } } }] } } }] }, { "$ref": "#/components/schemas/ErrorResponse" }] } } } },
+      "ModuleLifecycleStepsResponse": { "description": "HTTP 200；业务状态由 JSON code 表示。", "content": { "application/json": { "schema": { "oneOf": [{ "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageData" }, { "type": "object", "required": ["list"], "properties": { "list": { "type": "array", "items": { "$ref": "#/components/schemas/ModuleLifecycleStep" } } } }] } } }] }, { "$ref": "#/components/schemas/ErrorResponse" }] } } } },
+      "ModuleLifecycleLocksResponse": { "description": "HTTP 200；业务状态由 JSON code 表示。", "content": { "application/json": { "schema": { "oneOf": [{ "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageData" }, { "type": "object", "required": ["list"], "properties": { "list": { "type": "array", "items": { "$ref": "#/components/schemas/ModuleLifecycleLock" } } } }] } } }] }, { "$ref": "#/components/schemas/ErrorResponse" }] } } } },
+      "ModuleLifecycleDiffResponse": { "description": "HTTP 200；业务状态由 JSON code 表示。", "content": { "application/json": { "schema": { "oneOf": [{ "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "allOf": [{ "$ref": "#/components/schemas/PageData" }, { "type": "object", "required": ["list"], "properties": { "list": { "type": "array", "items": { "$ref": "#/components/schemas/ModuleLifecycleDiff" } } } }] } } }] }, { "$ref": "#/components/schemas/ErrorResponse" }] } } } },
+      "ModuleLifecycleLockReleaseResponse": { "description": "HTTP 200；业务状态由 JSON code 表示。", "content": { "application/json": { "schema": { "oneOf": [{ "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "$ref": "#/components/schemas/ModuleLifecycleLockReleaseResult" } } }] }, { "$ref": "#/components/schemas/ErrorResponse" }] } } } },
+      "ModuleLifecycleExecuteResponse": { "description": "HTTP 200；业务状态由 JSON code 表示。", "content": { "application/json": { "schema": { "oneOf": [{ "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "$ref": "#/components/schemas/ModuleLifecycleResult" } } }] }, { "$ref": "#/components/schemas/ErrorResponse" }] } } } }
+    },
+    "requestBodies": {
+      "ModuleLifecycleLockReleaseRequest": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ModuleLifecycleLockReleaseRequest" } } } },
+      "ModuleLifecycleExecuteRequest": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ModuleLifecycleExecuteRequest" } } } }
+    },
+    "schemas": {
+      "ApiResponse": { "type": "object", "required": ["code", "message", "data"], "properties": { "code": { "type": "integer", "enum": [200] }, "message": { "type": "string" }, "data": {} } },
+      "ErrorResponse": { "type": "object", "required": ["code", "message", "data"], "properties": { "code": { "type": "integer", "enum": [401, 403, 404, 405, 406, 422, 423, 429, 500] }, "message": { "type": "string" }, "data": { "type": "array", "maxItems": 0, "items": { "type": "object", "additionalProperties": true } } } },
+      "PageData": { "type": "object", "required": ["list", "total"], "properties": { "list": { "type": "array", "items": { "type": "object", "additionalProperties": true } }, "total": { "type": "integer", "format": "int64" } } },
+      "ModuleLifecycleDependency": { "type": "object", "required": ["id", "required"], "properties": { "id": { "type": "string" }, "version_constraint": { "type": "string" }, "required": { "type": "boolean" } } },
+      "ModuleLifecycleLifecycle": { "type": "object", "required": ["install", "uninstall", "upgrade", "rollback", "destructive_check", "supports_hot_disable", "requires_restart", "breaking_change_policy"], "properties": { "install": { "type": "string" }, "uninstall": { "type": "string" }, "upgrade": { "type": "string" }, "rollback": { "type": "string" }, "destructive_check": { "type": "string" }, "supports_hot_disable": { "type": "boolean" }, "requires_restart": { "type": "boolean" }, "breaking_change_policy": { "type": "string" } } },
+      "ModuleLifecycleFrontend": { "type": "object", "properties": { "module_path": { "type": "string" }, "api_files": { "type": "array", "items": { "type": "string" } }, "route_files": { "type": "array", "items": { "type": "string" } }, "locale_files": { "type": "array", "items": { "type": "string" } }, "type_files": { "type": "array", "items": { "type": "string" } }, "test_files": { "type": "array", "items": { "type": "string" } } } },
+      "ModuleLifecycleSeedStrategy": { "type": "object", "required": ["mode", "idempotent"], "properties": { "mode": { "type": "string" }, "idempotent": { "type": "boolean" }, "command": { "type": "string" }, "notes": { "type": "string" } } },
+      "ModuleLifecycleMetadata": { "type": "object", "required": ["name", "version", "compatible", "enabled", "lifecycle", "frontend", "seed_strategy"], "properties": { "name": { "type": "string" }, "version": { "type": "string" }, "compatible": { "type": "string" }, "enabled": { "type": "boolean" }, "reason": { "type": "string" }, "lifecycle": { "$ref": "#/components/schemas/ModuleLifecycleLifecycle" }, "frontend": { "$ref": "#/components/schemas/ModuleLifecycleFrontend" }, "seed_strategy": { "$ref": "#/components/schemas/ModuleLifecycleSeedStrategy" } } },
+      "ModuleLifecyclePersistedState": { "type": "object", "required": ["status", "enabled"], "properties": { "status": { "type": "string" }, "enabled": { "type": "boolean" }, "owner": { "type": "string" }, "target_version": { "type": "string" }, "last_action": { "type": "string" }, "last_run_key": { "type": "string" }, "last_error": { "type": "string" }, "installed_at": { "type": "string", "format": "date-time" }, "upgraded_at": { "type": "string", "format": "date-time" }, "disabled_at": { "type": "string", "format": "date-time" }, "last_run_at": { "type": "string", "format": "date-time" }, "disabled_reason": { "type": "string" } } },
+      "ModuleLifecycleState": { "allOf": [{ "$ref": "#/components/schemas/ModuleLifecycleMetadata" }, { "type": "object", "required": ["id"], "properties": { "id": { "type": "string" }, "depends_on": { "type": "array", "items": { "$ref": "#/components/schemas/ModuleLifecycleDependency" } }, "persisted": { "$ref": "#/components/schemas/ModuleLifecyclePersistedState" } } }] },
+      "ModuleLifecycleRun": { "type": "object", "required": ["id", "idempotency_key", "module_id", "action", "status", "dry_run"], "properties": { "id": { "type": "integer", "format": "uint64", "minimum": 1 }, "idempotency_key": { "type": "string" }, "module_id": { "type": "string" }, "action": { "type": "string", "enum": ["install", "upgrade", "rollback", "uninstall"] }, "from_version": { "type": "string" }, "to_version": { "type": "string" }, "status": { "type": "string", "enum": ["planned", "running", "succeeded", "failed", "skipped", "lock_blocked", "manual_required", "reconciliation_required"] }, "dry_run": { "type": "boolean" }, "owner": { "type": "string" }, "reason": { "type": "string" }, "command": { "type": "string" }, "error": { "type": "string" }, "started_at": { "type": "string", "format": "date-time" }, "finished_at": { "type": "string", "format": "date-time" }, "created_at": { "type": "string", "format": "date-time" } } },
+      "ModuleLifecycleStep": { "type": "object", "required": ["id", "attempt_key", "run_key", "module_id", "action", "step_name", "status"], "properties": { "id": { "type": "integer", "format": "uint64", "minimum": 1 }, "attempt_key": { "type": "string" }, "run_key": { "type": "string" }, "module_id": { "type": "string" }, "action": { "type": "string", "enum": ["install", "upgrade", "rollback", "uninstall"] }, "step_name": { "type": "string" }, "command": { "type": "string" }, "status": { "type": "string", "enum": ["planned", "running", "succeeded", "failed", "skipped", "lock_blocked", "manual_required", "reconciliation_required"] }, "stdout": { "type": "string" }, "stderr": { "type": "string" }, "error": { "type": "string" }, "started_at": { "type": "string", "format": "date-time" }, "finished_at": { "type": "string", "format": "date-time" }, "created_at": { "type": "string", "format": "date-time" } } },
+      "ModuleLifecycleLock": { "type": "object", "required": ["id", "key", "owner", "run_key"], "properties": { "id": { "type": "integer", "format": "uint64", "minimum": 1 }, "key": { "type": "string" }, "owner": { "type": "string" }, "run_key": { "type": "string" }, "expires_at": { "type": "string", "format": "date-time" }, "created_at": { "type": "string", "format": "date-time" }, "updated_at": { "type": "string", "format": "date-time" } } },
+      "ModuleLifecycleDiff": { "type": "object", "required": ["module_id", "name", "manifest_version", "manifest_enabled", "persisted_enabled", "drift"], "properties": { "module_id": { "type": "string" }, "name": { "type": "string" }, "manifest_version": { "type": "string" }, "persisted_version": { "type": "string" }, "manifest_enabled": { "type": "boolean" }, "persisted_enabled": { "type": "boolean" }, "persisted_status": { "type": "string" }, "last_action": { "type": "string" }, "drift": { "type": "string" } } },
+      "ModuleLifecycleExecuteRequest": { "type": "object", "required": ["action"], "properties": { "action": { "type": "string", "enum": ["install", "upgrade", "rollback", "uninstall"] }, "module_id": { "type": "string" }, "execute": { "type": "boolean" }, "owner": { "type": "string" }, "reason": { "type": "string" }, "confirm_token": { "type": "string" }, "reauth_token": { "type": "string" }, "approval_id": { "type": "string" } } },
+      "ModuleLifecycleResultItem": { "type": "object", "required": ["module_id", "name", "action", "status", "idempotency_key"], "properties": { "module_id": { "type": "string" }, "name": { "type": "string" }, "action": { "type": "string", "enum": ["install", "upgrade", "rollback", "uninstall"] }, "status": { "type": "string", "enum": ["planned", "running", "succeeded", "failed", "skipped", "lock_blocked", "manual_required", "reconciliation_required"] }, "skipped": { "type": "boolean" }, "command": { "type": "string" }, "destructive_check": { "type": "string" }, "idempotency_key": { "type": "string" }, "error": { "type": "string" } } },
+      "ModuleLifecycleResult": { "type": "object", "required": ["action", "dry_run", "items"], "properties": { "action": { "type": "string", "enum": ["install", "upgrade", "rollback", "uninstall"] }, "dry_run": { "type": "boolean" }, "owner": { "type": "string" }, "reason": { "type": "string" }, "items": { "type": "array", "items": { "$ref": "#/components/schemas/ModuleLifecycleResultItem" } } } },
+      "ModuleLifecycleLockReleaseRequest": { "type": "object", "properties": { "key": { "type": "string" }, "dry_run": { "type": "boolean" }, "confirm_token": { "type": "string" }, "reauth_token": { "type": "string" }, "approval_id": { "type": "string" } } },
+      "ModuleLifecycleLockReleaseResult": { "type": "object", "required": ["dry_run", "released"], "properties": { "dry_run": { "type": "boolean" }, "released": { "type": "array", "items": { "$ref": "#/components/schemas/ModuleLifecycleLock" } } } }
+    }
+  }
+}

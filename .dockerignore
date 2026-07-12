@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea
+.vscode
+backups
+tmp
+storage
+MineAdmin
+MineAdmin-web
+node_modules
+docs/superpowers

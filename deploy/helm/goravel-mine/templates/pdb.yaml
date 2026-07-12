@@ -1,0 +1,15 @@
+{{- if and .Values.ha.enabled .Values.ha.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  minAvailable: {{ .Values.ha.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "goravel-mine.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
+{{- end }}

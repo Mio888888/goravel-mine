@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: goravel-mine
+    orgId: 1
+    folder: Goravel Mine
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards/goravel-mine

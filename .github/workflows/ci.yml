@@ -1,0 +1,376 @@
+name: CI
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - "**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.24.0"
+  NODE_VERSION: "20"
+  APP_NAME: Goravel
+  APP_ENV: testing
+  APP_KEY: 12345678901234567890123456789012
+  APP_DEBUG: false
+  APP_URL: http://localhost
+  APP_HOST: 127.0.0.1
+  APP_PORT: 3000
+  JWT_SECRET: 12345678901234567890123456789012
+  SESSION_DRIVER: file
+  CACHE_STORE: redis
+  QUEUE_CONNECTION: sync
+  DB_CONNECTION: postgres
+  DB_HOST: 127.0.0.1
+  DB_PORT: 5432
+  DB_DATABASE: goravel_mine_test
+  DB_USERNAME: goravel
+  DB_PASSWORD: goravel
+  DB_SCHEMA: public
+  REDIS_HOST: 127.0.0.1
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+  OBS_AUDIT_ENABLED: false
+
+jobs:
+  backend:
+    name: Backend test and migration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: goravel_mine_test
+          POSTGRES_USER: goravel
+          POSTGRES_PASSWORD: goravel
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U goravel -d goravel_mine_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Verify Go modules
+        run: go mod download
+
+      - name: Run backend tests
+        run: go test -p 1 ./...
+
+      - name: Validate module manifest
+        run: scripts/verify-module-manifest.sh
+
+      - name: Validate migrations and seeders
+        run: go run . artisan migrate:fresh --seed
+
+  contract:
+    name: API contract drift checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+          cache-dependency-path: MineAdmin-web/yarn.lock
+
+      - name: Verify Go modules
+        run: go mod download
+
+      - name: Install frontend dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: MineAdmin-web
+
+      - name: Check OpenAPI against docs and routes
+        run: go test ./tests/unit -run AdminOpenAPI
+
+      - name: Check module manifest
+        run: scripts/verify-module-manifest.sh
+
+      - name: Check OpenAPI generated SDK types
+        run: yarn contract:openapi
+        working-directory: MineAdmin-web
+
+  frontend:
+    name: Frontend typecheck and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: MineAdmin-web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+          cache-dependency-path: MineAdmin-web/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run TypeScript checks
+        run: yarn lint:tsc
+
+      - name: Build frontend
+        run: yarn build
+
+  frontend-e2e-mock:
+    name: Frontend mock E2E stability
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: MineAdmin-web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+          cache-dependency-path: MineAdmin-web/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: yarn playwright install --with-deps chromium firefox webkit
+
+      - name: Run mock E2E stability gate
+        run: yarn test:e2e:stable:ci
+
+      - name: Run cross-browser route and enterprise matrix gate
+        run: yarn test:e2e:stable:matrix
+
+      - name: Upload mock E2E artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-e2e-mock-artifacts
+          path: |
+            MineAdmin-web/tests/e2e/.output/test-results
+            MineAdmin-web/tests/e2e/.output/html-report
+            MineAdmin-web/tests/e2e/.output/repeat
+            MineAdmin-web/tests/e2e/.output/stability-report.*.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  docker:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          tags: goravel-mine-backend:ci
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: MineAdmin-web
+          file: MineAdmin-web/Dockerfile
+          push: false
+          tags: goravel-mine-frontend:ci
+          build-args: |
+            MINE_NODE_ENV=production
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+
+  deployment-manifests:
+    name: Helm HA and recovery contract checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.17.3
+
+      - name: Verify Helm HA, backup, restore, and worker autoscaling renders
+        run: bash scripts/ci-verify-deployments.sh
+
+      - name: Verify immutable backup contract
+        run: bash tests/release/backup_contract_test.sh
+
+      - name: Upload deployment render artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-render-contracts
+          path: artifacts/ci-deployments
+          if-no-files-found: warn
+          retention-days: 7
+
+  oidc-integration:
+    name: Controlled OIDC integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: goravel_mine_test
+          POSTGRES_USER: goravel
+          POSTGRES_PASSWORD: goravel
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U goravel -d goravel_mine_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+          cache-dependency-path: MineAdmin-web/yarn.lock
+
+      - name: Verify Go modules
+        run: go mod download
+
+      - name: Install frontend dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: MineAdmin-web
+
+      - name: Install Chromium
+        run: yarn playwright install --with-deps chromium
+        working-directory: MineAdmin-web
+
+      - name: Create OIDC artifact directory
+        run: mkdir -p artifacts/oidc-integration
+
+      - name: Prepare OIDC database
+        run: go run . artisan migrate:fresh --seed
+
+      - name: Start Goravel
+        run: |
+          APP_ENV=testing SSO_TEST_ALLOW_LOOPBACK=true go run . > artifacts/oidc-integration/goravel.log 2>&1 &
+          echo $! > artifacts/oidc-integration/goravel.pid
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat artifacts/oidc-integration/goravel.log
+          exit 1
+
+      - name: Run controlled OIDC integration gate
+        run: bash scripts/run-oidc-e2e.sh
+
+      - name: Upload OIDC integration artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oidc-integration-artifacts
+          path: artifacts/oidc-integration
+          if-no-files-found: warn
+          retention-days: 7
+
+  security:
+    name: Security scans
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Scan repository vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+          skip-dirs: MineAdmin
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        with:
+          sarif_file: trivy-results.sarif

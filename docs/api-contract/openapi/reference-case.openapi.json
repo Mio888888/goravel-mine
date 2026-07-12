@@ -1,0 +1,57 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Golden Reference Case API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/admin/platform/reference-case/list": {
+      "get": {
+        "summary": "List reference cases",
+        "responses": {
+          "200": {
+            "description": "Reference case page"
+          }
+        }
+      }
+    },
+    "/admin/platform/reference-case": {
+      "post": {
+        "summary": "Create reference case",
+        "responses": {
+          "200": {
+            "description": "Created reference case"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete reference cases",
+        "responses": {
+          "200": {
+            "description": "Deleted reference cases"
+          }
+        }
+      }
+    },
+    "/admin/platform/reference-case/{id}": {
+      "put": {
+        "summary": "Update reference case",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated reference case"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+version: 1
+owner: platform-security
+first_party_purls:
+  - pkg:golang/goravel
+  - pkg:npm/mineadmin-ui@3.2.1
+allow:
+  - 0BSD
+  - Apache-2.0
+  - BlueOak-1.0.0
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - FTL
+  - ISC
+  - MIT
+  - MPL-2.0
+  - Python-2.0
+deny:
+  - AGPL-1.0
+  - AGPL-1.0-only
+  - AGPL-1.0-or-later
+  - AGPL-3.0
+  - AGPL-3.0-only
+  - AGPL-3.0-or-later
+  - GPL-1.0
+  - GPL-1.0-only
+  - GPL-1.0-or-later
+  - GPL-2.0
+  - GPL-2.0-only
+  - GPL-2.0-or-later
+  - GPL-3.0
+  - GPL-3.0-only
+  - GPL-3.0-or-later
+  - LGPL-2.0
+  - LGPL-2.0-only
+  - LGPL-2.0-or-later
+  - LGPL-2.1
+  - LGPL-2.1-only
+  - LGPL-2.1-or-later
+  - LGPL-3.0
+  - LGPL-3.0-only
+  - LGPL-3.0-or-later
+review_required:
+  - BUSL-1.1
+  - CC-BY-4.0
+  - CC-BY-SA-4.0
+  - Elastic-2.0
+  - SSPL-1.0
+vulnerability:
+  max_cvss_without_exception: 7.0
+  exception_sla_days: 30
+  allowed_exception_status:
+    - accepted-risk
+    - false-positive
+    - compensating-control
+artifact_contract:
+  license_report: artifacts/compliance/license-policy.json
+  vulnerability_exceptions_input: protected production environment secret VULNERABILITY_EXCEPTIONS_JSON
+  license_reviews_input: protected production environment secret LICENSE_REVIEWS_JSON
+  third_party_owners: docs/compliance/dependency-governance.md

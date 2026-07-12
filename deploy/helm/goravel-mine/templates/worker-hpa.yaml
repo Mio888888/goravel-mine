@@ -1,0 +1,43 @@
+{{- if and .Values.worker.enabled .Values.worker.autoscaling.enabled (not .Values.worker.autoscaling.keda.enabled) }}
+{{- if gt (int .Values.worker.autoscaling.minReplicas) (int .Values.worker.autoscaling.maxReplicas) }}
+{{- fail "worker.autoscaling.minReplicas must not exceed worker.autoscaling.maxReplicas" }}
+{{- end }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}-queue-worker
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+    app.kubernetes.io/component: queue-worker
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "goravel-mine.fullname" . }}-queue-worker
+  minReplicas: {{ .Values.worker.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.worker.autoscaling.maxReplicas }}
+  metrics:
+    - type: External
+      external:
+        metric:
+          name: {{ .Values.worker.autoscaling.prometheusAdapter.pendingMetricName }}
+          selector:
+            matchLabels:
+              queue_class: {{ .Values.worker.autoscaling.prometheusAdapter.queueClass | quote }}
+        target:
+          type: Value
+          value: {{ .Values.worker.autoscaling.targetPendingJobs | quote }}
+    - type: External
+      external:
+        metric:
+          name: {{ .Values.worker.autoscaling.prometheusAdapter.oldestAgeMetricName }}
+          selector:
+            matchLabels:
+              queue_class: {{ .Values.worker.autoscaling.prometheusAdapter.queueClass | quote }}
+        target:
+          type: Value
+          value: {{ .Values.worker.autoscaling.targetOldestAgeSeconds | quote }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.worker.autoscaling.cooldownPeriodSeconds }}
+{{- end }}

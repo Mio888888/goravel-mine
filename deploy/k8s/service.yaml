@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: goravel-mine
+  namespace: goravel-mine
+  labels:
+    app.kubernetes.io/name: goravel-mine
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: goravel-mine
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

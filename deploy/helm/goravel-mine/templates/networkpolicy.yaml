@@ -1,0 +1,170 @@
+{{- if and .Values.ha.enabled .Values.ha.networkPolicy.enabled }}
+{{- $selectorLabels := include "goravel-mine.selectorLabels" . }}
+{{- $destinations := .Values.ha.networkPolicy.destinations }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}-default-deny
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- $selectorLabels | nindent 6 }}
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: In
+        values:
+          - web
+          - queue-worker
+          - migration
+          - backup
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+---
+{{- if .Values.ha.networkPolicy.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}-allow-web-ingress
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- $selectorLabels | nindent 6 }}
+      app.kubernetes.io/component: web
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            {{- toYaml .Values.ha.networkPolicy.ingress.namespaceSelector | nindent 12 }}
+          podSelector:
+            {{- toYaml .Values.ha.networkPolicy.ingress.podSelector | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.ha.networkPolicy.appPort }}
+---
+{{- end }}
+{{- if .Values.ha.networkPolicy.metrics.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}-allow-web-metrics
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- $selectorLabels | nindent 6 }}
+      app.kubernetes.io/component: web
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            {{- toYaml .Values.ha.networkPolicy.metrics.namespaceSelector | nindent 12 }}
+          podSelector:
+            {{- toYaml .Values.ha.networkPolicy.metrics.podSelector | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.ha.networkPolicy.appPort }}
+---
+{{- end }}
+{{- range $component := list "web" "queue-worker" "migration" "backup" }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "goravel-mine.fullname" $ }}-allow-{{ $component }}-egress
+  labels:
+    {{- include "goravel-mine.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- $selectorLabels | nindent 6 }}
+      app.kubernetes.io/component: {{ $component }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            {{- toYaml $destinations.dns.namespaceSelector | nindent 12 }}
+          podSelector:
+            {{- toYaml $destinations.dns.podSelector | nindent 12 }}
+      ports:
+        - protocol: UDP
+          port: {{ $destinations.dns.port }}
+        - protocol: TCP
+          port: {{ $destinations.dns.port }}
+    - to:
+        - namespaceSelector:
+            {{- toYaml $destinations.postgresql.namespaceSelector | nindent 12 }}
+          podSelector:
+            {{- toYaml $destinations.postgresql.podSelector | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ $destinations.postgresql.port }}
+    {{- if gt (len $destinations.postgresql.cidrs) 0 }}
+    - to:
+        {{- range $cidr := $destinations.postgresql.cidrs }}
+        - ipBlock:
+            cidr: {{ $cidr | quote }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ $destinations.postgresql.port }}
+    {{- end }}
+    - to:
+        - namespaceSelector:
+            {{- toYaml $destinations.redis.namespaceSelector | nindent 12 }}
+          podSelector:
+            {{- toYaml $destinations.redis.podSelector | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ $destinations.redis.port }}
+    {{- if gt (len $destinations.redis.cidrs) 0 }}
+    - to:
+        {{- range $cidr := $destinations.redis.cidrs }}
+        - ipBlock:
+            cidr: {{ $cidr | quote }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ $destinations.redis.port }}
+    {{- end }}
+    - to:
+        - namespaceSelector:
+            {{- toYaml $destinations.otel.namespaceSelector | nindent 12 }}
+          podSelector:
+            {{- toYaml $destinations.otel.podSelector | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ $destinations.otel.port }}
+    {{- if and $destinations.objectStorage.enabled (gt (len $destinations.objectStorage.cidrs) 0) }}
+    - to:
+        {{- range $cidr := $destinations.objectStorage.cidrs }}
+        - ipBlock:
+            cidr: {{ $cidr | quote }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ $destinations.objectStorage.port }}
+    {{- end }}
+    {{- if and $destinations.sso.enabled (gt (len $destinations.sso.cidrs) 0) }}
+    - to:
+        {{- range $cidr := $destinations.sso.cidrs }}
+        - ipBlock:
+            cidr: {{ $cidr | quote }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ $destinations.sso.port }}
+    {{- end }}
+---
+{{- end }}
+{{- end }}

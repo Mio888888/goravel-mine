@@ -1,0 +1,204 @@
+services:
+  goravel:
+    image: ${APP_IMAGE:-goravel-mine:0.1.0}
+    build:
+      context: .
+    environment: &goravel-environment
+      APP_NAME: ${APP_NAME:-GoravelMine}
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY:?APP_KEY is required}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:?APP_URL is required}
+      APP_HOST: ${APP_HOST:-0.0.0.0}
+      APP_PORT: ${APP_PORT:-3000}
+      APP_VERSION: ${APP_VERSION:-}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_TTL: ${JWT_TTL:-120}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-20160}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-${APP_URL}}
+      CORS_SUPPORTS_CREDENTIALS: ${CORS_SUPPORTS_CREDENTIALS:-true}
+      CACHE_STORE: ${CACHE_STORE:-redis}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-redis}
+      QUEUE_WORKER_ENABLED: ${QUEUE_WORKER_ENABLED:-false}
+      QUEUE_CONCURRENT: ${QUEUE_CONCURRENT:-2}
+      QUEUE_OUTBOX_ENABLED: ${QUEUE_OUTBOX_ENABLED:-true}
+      QUEUE_OUTBOX_INTERVAL_SECONDS: ${QUEUE_OUTBOX_INTERVAL_SECONDS:-5}
+      QUEUE_OUTBOX_BATCH: ${QUEUE_OUTBOX_BATCH:-20}
+      QUEUE_OUTBOX_OWNER: ${QUEUE_OUTBOX_OWNER:-queue-outbox-runner}
+      DB_CONNECTION: ${DB_CONNECTION:-postgres}
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-goravel-mine}
+      DB_USERNAME: ${DB_USERNAME:-goravel}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_SCHEMA: ${DB_SCHEMA:-public}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_USERNAME: ${REDIS_USERNAME:-}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      REDIS_DB: ${REDIS_DB:-0}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stack}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMATTER: ${LOG_FORMATTER:-json}
+      LOG_PRINT: ${LOG_PRINT:-true}
+      OBS_METRICS_ENABLED: ${OBS_METRICS_ENABLED:-false}
+      OBS_METRICS_PATH: ${OBS_METRICS_PATH:-/metrics}
+      OBS_METRICS_TOKEN: ${OBS_METRICS_TOKEN:-}
+      OBS_REQUEST_ID_HEADER: ${OBS_REQUEST_ID_HEADER:-X-Request-Id}
+      OBS_TRACE_ID_HEADER: ${OBS_TRACE_ID_HEADER:-X-Trace-Id}
+      OBS_SLOW_REQUEST_THRESHOLD_MS: ${OBS_SLOW_REQUEST_THRESHOLD_MS:-1000}
+      OBS_SLOW_REQUEST_MAX_ENTRIES: ${OBS_SLOW_REQUEST_MAX_ENTRIES:-100}
+      OBS_SLOW_SQL_MAX_ENTRIES: ${OBS_SLOW_SQL_MAX_ENTRIES:-100}
+      OBS_AUDIT_ENABLED: ${OBS_AUDIT_ENABLED:-true}
+      SECURITY_ENTERPRISE: ${SECURITY_ENTERPRISE:-true}
+      SECURITY_MFA_TOTP_ENABLED: ${SECURITY_MFA_TOTP_ENABLED:-}
+      SECURITY_MFA_TOTP_ISSUER: ${SECURITY_MFA_TOTP_ISSUER:-GoravelMine}
+      SECURITY_MFA_CHALLENGE_MINUTES: ${SECURITY_MFA_CHALLENGE_MINUTES:-5}
+      SECURITY_MFA_REMEMBER_MINUTES: ${SECURITY_MFA_REMEMBER_MINUTES:-720}
+      SECURITY_MFA_RECOVERY_CODES: ${SECURITY_MFA_RECOVERY_CODES:-8}
+      SECURITY_PASSWORD_MIN_LENGTH: ${SECURITY_PASSWORD_MIN_LENGTH:-}
+      SECURITY_PASSWORD_REQUIRE_UPPERCASE: ${SECURITY_PASSWORD_REQUIRE_UPPERCASE:-}
+      SECURITY_PASSWORD_REQUIRE_LOWERCASE: ${SECURITY_PASSWORD_REQUIRE_LOWERCASE:-}
+      SECURITY_PASSWORD_REQUIRE_NUMBER: ${SECURITY_PASSWORD_REQUIRE_NUMBER:-}
+      SECURITY_PASSWORD_REQUIRE_SYMBOL: ${SECURITY_PASSWORD_REQUIRE_SYMBOL:-}
+      SECURITY_PASSWORD_HISTORY_LIMIT: ${SECURITY_PASSWORD_HISTORY_LIMIT:-}
+      SECURITY_PASSWORD_MAX_AGE_DAYS: ${SECURITY_PASSWORD_MAX_AGE_DAYS:-}
+      SECURITY_PASSWORD_CHANGE_CHALLENGE_MINUTES: ${SECURITY_PASSWORD_CHANGE_CHALLENGE_MINUTES:-5}
+      SECURITY_ACCOUNT_LOCKOUT_ENABLED: ${SECURITY_ACCOUNT_LOCKOUT_ENABLED:-true}
+      SECURITY_ACCOUNT_LOCKOUT_MAX_FAILURES: ${SECURITY_ACCOUNT_LOCKOUT_MAX_FAILURES:-5}
+      SECURITY_ACCOUNT_LOCKOUT_WINDOW_MINUTES: ${SECURITY_ACCOUNT_LOCKOUT_WINDOW_MINUTES:-15}
+      SECURITY_ACCOUNT_LOCKOUT_LOCK_MINUTES: ${SECURITY_ACCOUNT_LOCKOUT_LOCK_MINUTES:-15}
+      SECURITY_LOGIN_RISK_ENABLED: ${SECURITY_LOGIN_RISK_ENABLED:-true}
+      SECURITY_LOGIN_RISK_IP_WINDOW_MINUTES: ${SECURITY_LOGIN_RISK_IP_WINDOW_MINUTES:-15}
+      SECURITY_LOGIN_RISK_IP_MAX_FAILURES: ${SECURITY_LOGIN_RISK_IP_MAX_FAILURES:-30}
+      SECURITY_LOGIN_RISK_USER_AGENT_ENABLED: ${SECURITY_LOGIN_RISK_USER_AGENT_ENABLED:-true}
+      SECURITY_CSRF_ENABLED: ${SECURITY_CSRF_ENABLED:-}
+      SECURITY_CSRF_TRUSTED_ORIGINS: ${SECURITY_CSRF_TRUSTED_ORIGINS:-${APP_URL}}
+      SECURITY_CSRF_SAME_SITE: ${SECURITY_CSRF_SAME_SITE:-lax}
+      SECURITY_CSRF_COOKIE_SECURE: ${SECURITY_CSRF_COOKIE_SECURE:-true}
+      SECURITY_SENSITIVE_FIELDS: ${SECURITY_SENSITIVE_FIELDS:-password,old_password,new_password,new_password_confirmation,access_token,refresh_token,password_change_token,token,id_token,jwt_secret,client_secret,secret_key,db_password}
+      SECURITY_KEY_ROTATION_DAYS: ${SECURITY_KEY_ROTATION_DAYS:-90}
+      SECURITY_AUDIT_RETENTION_DAYS: ${SECURITY_AUDIT_RETENTION_DAYS:-180}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${APP_PUBLISHED_PORT:-3000}:3000"
+    volumes:
+      - app-storage:/www/storage
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health/ready >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+    restart: unless-stopped
+
+  goravel-queue-worker:
+    image: ${APP_IMAGE:-goravel-mine:0.1.0}
+    build:
+      context: .
+    environment:
+      <<: *goravel-environment
+      APP_AUTO_RUN: ${QUEUE_APP_AUTO_RUN:-false}
+      SCHEDULER_ENABLED: ${QUEUE_SCHEDULER_ENABLED:-false}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-redis}
+      QUEUE_WORKER_ENABLED: ${QUEUE_SERVICE_WORKER_ENABLED:-true}
+      QUEUE_CONCURRENT: ${QUEUE_SERVICE_CONCURRENT:-4}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - app-storage:/www/storage
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-goravel-mine}
+      POSTGRES_USER: ${DB_USERNAME:-goravel}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./backups/postgres:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-goravel} -d ${DB_DATABASE:-goravel-mine}"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+    deploy:
+      resources:
+        limits:
+          cpus: "2.00"
+          memory: 1G
+        reservations:
+          cpus: "0.50"
+          memory: 256M
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+        reservations:
+          cpus: "0.10"
+          memory: 64M
+    restart: unless-stopped
+
+volumes:
+  app-storage:
+  postgres-data:
+  redis-data:

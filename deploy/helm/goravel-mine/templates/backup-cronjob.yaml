@@ -1,0 +1,79 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}-postgres-backup
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  timeZone: {{ .Values.backup.timeZone | quote }}
+  startingDeadlineSeconds: {{ .Values.backup.startingDeadlineSeconds }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: {{ .Values.backup.activeDeadlineSeconds }}
+      template:
+        {{- if .Values.ha.enabled }}
+        metadata:
+          labels:
+            {{- include "goravel-mine.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: backup
+        {{- end }}
+        spec:
+          restartPolicy: Never
+          {{- if and .Values.ha.enabled .Values.ha.serviceAccountName }}
+          serviceAccountName: {{ .Values.ha.serviceAccountName }}
+          {{- end }}
+          {{- if and .Values.ha.enabled .Values.ha.priorityClassName }}
+          priorityClassName: {{ .Values.ha.priorityClassName }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: immutable-backup
+              image: {{ .Values.backup.image | quote }}
+              command: ["/usr/local/bin/backup-to-object-storage"]
+              envFrom:
+                - configMapRef:
+                    name: {{ include "goravel-mine.fullname" . }}-config
+                - secretRef:
+                    name: {{ include "goravel-mine.secretName" . }}
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "goravel-mine.secretName" . }}
+                      key: DB_PASSWORD
+                - name: BACKUP_S3_BUCKET
+                  value: {{ required "backup.s3Bucket is required when backup.enabled=true" .Values.backup.s3Bucket | quote }}
+                - name: BACKUP_S3_PREFIX
+                  value: {{ .Values.backup.s3Prefix | quote }}
+                - name: BACKUP_KMS_KEY_ID
+                  value: {{ required "backup.kmsKeyId is required when backup.enabled=true" .Values.backup.kmsKeyId | quote }}
+                - name: BACKUP_RETENTION_DAYS
+                  value: {{ .Values.backup.retentionDays | quote }}
+                - name: RELEASE_GIT_SHA
+                  value: {{ required "backup.releaseGitSha is required when backup.enabled=true" .Values.backup.releaseGitSha | quote }}
+                - name: RELEASE_IMAGE_DIGEST
+                  value: {{ required "backup.releaseImageDigest is required when backup.enabled=true" .Values.backup.releaseImageDigest | quote }}
+                - name: BACKUP_MANIFEST_OUTPUT
+                  value: /tmp/manifest.json
+              resources:
+                {{- toYaml .Values.backup.resources | nindent 16 }}
+              securityContext:
+                {{- toYaml .Values.securityContext | nindent 16 }}
+                {{- if .Values.ha.enabled }}
+                privileged: false
+                {{- end }}
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: tmp
+              emptyDir: {}
+{{- end }}

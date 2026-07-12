@@ -1,0 +1,49 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: goravel-mine
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - goravel-mine
+    pipeline_stages:
+      - cri: {}
+      - json:
+          expressions:
+            level: level
+            msg: msg
+            message: message
+            request_id: extra.request_id
+            trace_id: extra.trace_id
+            method: extra.method
+            path: extra.path
+            status: extra.status
+            duration_ms: extra.duration_ms
+            error: extra.error
+            event: extra.event
+            outcome: extra.outcome
+            action: extra.action
+      - labels:
+          level:
+          method:
+          status:
+          event:
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: goravel-mine
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - target_label: service
+        replacement: goravel-mine

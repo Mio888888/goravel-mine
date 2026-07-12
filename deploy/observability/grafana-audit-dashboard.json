@@ -1,0 +1,168 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "logs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate({service=\"goravel-mine\"} | json event=\"extra.event\" | event=\"audit\" [$__rate_interval]))",
+          "legendFormat": "audit events",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate({service=\"goravel-mine\"} | json event=\"extra.event\", outcome=\"extra.outcome\" | event=\"audit\" | outcome=\"failure\" [$__rate_interval]))",
+          "legendFormat": "audit failures",
+          "refId": "B"
+        }
+      ],
+      "title": "Audit event rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "logs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (action) (count_over_time({service=\"goravel-mine\"} | json event=\"extra.event\", action=\"extra.action\" | event=\"audit\" [10m]))",
+          "legendFormat": "{{action}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Audit action count / 10m",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{service=\"goravel-mine\"} | json event=\"extra.event\", outcome=\"extra.outcome\", action=\"extra.action\" | event=\"audit\" | outcome=~\"$outcome\" | action=~\"$action\"",
+          "refId": "A"
+        }
+      ],
+      "title": "Audit event details",
+      "type": "logs"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": [
+    "goravel-mine",
+    "audit"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "label": "Loki",
+        "name": "loki",
+        "query": "loki",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        },
+        "label": "Outcome",
+        "name": "outcome",
+        "query": ".*",
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "text": ".*",
+          "value": ".*"
+        },
+        "label": "Action",
+        "name": "action",
+        "query": ".*",
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "Goravel Mine Audit",
+  "uid": "goravel-mine-audit",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,0 +1,84 @@
+{{- if .Values.migration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "goravel-mine.fullname" . }}-migrate
+  labels:
+    {{- include "goravel-mine.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+  {{- if .Values.migration.hook }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "-5"
+  {{- end }}
+spec:
+  backoffLimit: {{ .Values.migration.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.migration.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ .Values.migration.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "goravel-mine.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: Never
+      {{- if and .Values.ha.enabled .Values.ha.serviceAccountName }}
+      serviceAccountName: {{ .Values.ha.serviceAccountName }}
+      {{- end }}
+      {{- if and .Values.ha.enabled .Values.ha.priorityClassName }}
+      priorityClassName: {{ .Values.ha.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: init-storage
+          image: {{ .Values.storageInit.image | quote }}
+          command:
+            {{- toYaml .Values.storageInit.command | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- if .Values.ha.enabled }}
+            privileged: false
+            {{- end }}
+          {{- if .Values.ha.enabled }}
+          resources:
+            {{- toYaml .Values.storageInit.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: storage
+              mountPath: /storage
+      containers:
+        - name: migrate
+          image: {{ include "goravel-mine.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.migration.command | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "goravel-mine.fullname" . }}-config
+            - secretRef:
+                name: {{ include "goravel-mine.secretName" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+            {{- if .Values.ha.enabled }}
+            privileged: false
+            {{- end }}
+          resources:
+            {{- toYaml .Values.migration.resources | nindent 12 }}
+          volumeMounts:
+            - name: storage
+              mountPath: /www/storage
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: storage
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "goravel-mine.storageClaimName" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: tmp
+          emptyDir: {}
+{{- end }}

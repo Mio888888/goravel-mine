@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: goravel-mine-postgres-backup
+  namespace: goravel-mine
+  labels:
+    app.kubernetes.io/name: goravel-mine
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "30 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+          containers:
+            - name: pg-dump
+              image: postgres:16-alpine
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  mkdir -p /backups
+                  pg_dump -h "$DB_HOST" -U "$DB_USERNAME" -d "$DB_DATABASE" -Fc > "/backups/${DB_DATABASE}-$(date +%Y%m%d%H%M%S).dump"
+                  find /backups -name "${DB_DATABASE}-*.dump" -mtime +7 -delete
+              envFrom:
+                - configMapRef:
+                    name: goravel-mine-config
+                - secretRef:
+                    name: goravel-mine-secret
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: goravel-mine-secret
+                      key: DB_PASSWORD
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - name: backup
+                  mountPath: /backups
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: backup
+              persistentVolumeClaim:
+                claimName: goravel-mine-backups
+            - name: tmp
+              emptyDir: {}

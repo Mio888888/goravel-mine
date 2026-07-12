@@ -1,0 +1,83 @@
+[
+  {
+    "signature": "module:compatibility:export",
+    "description": "Export module compatibility matrix as JSON",
+    "category": "module",
+    "flags": [
+      {
+        "name": "framework-version",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "target",
+        "type": "string",
+        "required": false
+      }
+    ]
+  },
+  {
+    "signature": "module:lifecycle",
+    "description": "Dry-run module lifecycle orchestration",
+    "category": "module",
+    "flags": [
+      {
+        "name": "action",
+        "type": "string",
+        "required": false,
+        "default": "upgrade"
+      },
+      {
+        "name": "module",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "execute",
+        "type": "bool",
+        "required": false
+      },
+      {
+        "name": "owner",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "required": false
+      }
+    ]
+  },
+  {
+    "signature": "module:manifest:export",
+    "description": "Export backend module manifest as JSON",
+    "category": "module",
+    "flags": [
+      {
+        "name": "target",
+        "type": "string",
+        "required": false
+      }
+    ]
+  },
+  {
+    "signature": "module:plan",
+    "description": "Export a dry-run module lifecycle plan as JSON",
+    "category": "module",
+    "flags": [
+      {
+        "name": "action",
+        "type": "string",
+        "required": false,
+        "default": "upgrade"
+      }
+    ]
+  },
+  {
+    "signature": "module:state",
+    "description": "Export module enabled states as JSON",
+    "category": "module",
+    "flags": []
+  }
+]

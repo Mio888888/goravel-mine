@@ -1,0 +1,382 @@
+[
+  {
+    "ID": "platform-rbac",
+    "Enabled": true,
+    "Reason": "",
+    "Metadata": {
+      "Name": "Platform RBAC",
+      "Version": "1.0.0",
+      "Compatible": "\u003e=1.17.0",
+      "Dependencies": null,
+      "Lifecycle": {
+        "Install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "Uninstall": "manual data review required",
+        "Upgrade": "go run . artisan migrate",
+        "Rollback": "go run . artisan migrate:rollback",
+        "DestructiveCheck": "go run . artisan module:manifest:check",
+        "SupportsHotDisable": false,
+        "RequiresRestart": true,
+        "BreakingChangePolicy": "document in release notes and block without review"
+      },
+      "SeedStrategy": {
+        "Mode": "idempotent",
+        "Idempotent": true,
+        "Command": "go run . artisan db:seed",
+        "Notes": ""
+      },
+      "Frontend": {
+        "ModulePath": "",
+        "ApiFiles": null,
+        "RouteFiles": null,
+        "LocaleFiles": null,
+        "TypeFiles": null,
+        "TestFiles": null
+      },
+      "DestructiveNote": "",
+      "Overrides": {
+        "RequiresRestart": true,
+        "SupportsHotDisable": null,
+        "SeedIdempotent": true
+      }
+    }
+  },
+  {
+    "ID": "platform-tenant",
+    "Enabled": true,
+    "Reason": "",
+    "Metadata": {
+      "Name": "Platform Tenant",
+      "Version": "1.0.0",
+      "Compatible": "\u003e=1.17.0",
+      "Dependencies": [
+        {
+          "ID": "platform-rbac",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        }
+      ],
+      "Lifecycle": {
+        "Install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "Uninstall": "manual data review required",
+        "Upgrade": "go run . artisan migrate",
+        "Rollback": "go run . artisan migrate:rollback",
+        "DestructiveCheck": "go run . artisan module:manifest:check",
+        "SupportsHotDisable": false,
+        "RequiresRestart": true,
+        "BreakingChangePolicy": "document in release notes and block without review"
+      },
+      "SeedStrategy": {
+        "Mode": "idempotent",
+        "Idempotent": true,
+        "Command": "go run . artisan db:seed",
+        "Notes": ""
+      },
+      "Frontend": {
+        "ModulePath": "",
+        "ApiFiles": null,
+        "RouteFiles": null,
+        "LocaleFiles": null,
+        "TypeFiles": null,
+        "TestFiles": null
+      },
+      "DestructiveNote": "",
+      "Overrides": {
+        "RequiresRestart": true,
+        "SupportsHotDisable": null,
+        "SeedIdempotent": true
+      }
+    }
+  },
+  {
+    "ID": "platform-observability",
+    "Enabled": true,
+    "Reason": "",
+    "Metadata": {
+      "Name": "Platform Observability",
+      "Version": "1.0.0",
+      "Compatible": "\u003e=1.17.0",
+      "Dependencies": [
+        {
+          "ID": "platform-rbac",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        }
+      ],
+      "Lifecycle": {
+        "Install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "Uninstall": "manual data review required",
+        "Upgrade": "go run . artisan migrate",
+        "Rollback": "go run . artisan migrate:rollback",
+        "DestructiveCheck": "go run . artisan module:manifest:check",
+        "SupportsHotDisable": false,
+        "RequiresRestart": true,
+        "BreakingChangePolicy": "document in release notes and block without review"
+      },
+      "SeedStrategy": {
+        "Mode": "idempotent",
+        "Idempotent": true,
+        "Command": "go run . artisan db:seed",
+        "Notes": ""
+      },
+      "Frontend": {
+        "ModulePath": "",
+        "ApiFiles": null,
+        "RouteFiles": null,
+        "LocaleFiles": null,
+        "TypeFiles": null,
+        "TestFiles": null
+      },
+      "DestructiveNote": "",
+      "Overrides": {
+        "RequiresRestart": true,
+        "SupportsHotDisable": null,
+        "SeedIdempotent": true
+      }
+    }
+  },
+  {
+    "ID": "reference-case",
+    "Enabled": true,
+    "Reason": "",
+    "Metadata": {
+      "Name": "Golden Reference Case",
+      "Version": "1.0.0",
+      "Compatible": "\u003e=1.17.0",
+      "Dependencies": [
+        {
+          "ID": "platform-rbac",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        }
+      ],
+      "Lifecycle": {
+        "Install": "go run . artisan migrate",
+        "Uninstall": "manual data review required",
+        "Upgrade": "go run . artisan reference-case:upgrade",
+        "Rollback": "go run . artisan reference-case:rollback",
+        "DestructiveCheck": "go run . artisan module:manifest:check",
+        "SupportsHotDisable": false,
+        "RequiresRestart": true,
+        "BreakingChangePolicy": "approval required with CRUD/API/E2E evidence"
+      },
+      "SeedStrategy": {
+        "Mode": "idempotent",
+        "Idempotent": true,
+        "Command": "go run . artisan db:seed",
+        "Notes": "idempotently seeds golden-case baseline"
+      },
+      "Frontend": {
+        "ModulePath": "",
+        "ApiFiles": null,
+        "RouteFiles": null,
+        "LocaleFiles": null,
+        "TypeFiles": null,
+        "TestFiles": null
+      },
+      "DestructiveNote": "",
+      "Overrides": {
+        "RequiresRestart": true,
+        "SupportsHotDisable": null,
+        "SeedIdempotent": true
+      }
+    }
+  },
+  {
+    "ID": "scheduled-task",
+    "Enabled": true,
+    "Reason": "",
+    "Metadata": {
+      "Name": "Scheduled Task",
+      "Version": "1.0.0",
+      "Compatible": "\u003e=1.17.0",
+      "Dependencies": [
+        {
+          "ID": "platform-tenant",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        }
+      ],
+      "Lifecycle": {
+        "Install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "Uninstall": "manual data review required",
+        "Upgrade": "go run . artisan migrate",
+        "Rollback": "go run . artisan migrate:rollback",
+        "DestructiveCheck": "go run . artisan module:manifest:check",
+        "SupportsHotDisable": false,
+        "RequiresRestart": true,
+        "BreakingChangePolicy": "document in release notes and block without review"
+      },
+      "SeedStrategy": {
+        "Mode": "idempotent",
+        "Idempotent": true,
+        "Command": "go run . artisan db:seed",
+        "Notes": ""
+      },
+      "Frontend": {
+        "ModulePath": "",
+        "ApiFiles": null,
+        "RouteFiles": null,
+        "LocaleFiles": null,
+        "TypeFiles": null,
+        "TestFiles": null
+      },
+      "DestructiveNote": "",
+      "Overrides": {
+        "RequiresRestart": true,
+        "SupportsHotDisable": null,
+        "SeedIdempotent": true
+      }
+    }
+  },
+  {
+    "ID": "security",
+    "Enabled": true,
+    "Reason": "",
+    "Metadata": {
+      "Name": "Security",
+      "Version": "1.0.0",
+      "Compatible": "\u003e=1.17.0",
+      "Dependencies": [
+        {
+          "ID": "platform-rbac",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        },
+        {
+          "ID": "tenant-rbac",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        }
+      ],
+      "Lifecycle": {
+        "Install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "Uninstall": "manual data review required",
+        "Upgrade": "go run . artisan migrate",
+        "Rollback": "go run . artisan migrate:rollback",
+        "DestructiveCheck": "go run . artisan module:manifest:check",
+        "SupportsHotDisable": false,
+        "RequiresRestart": true,
+        "BreakingChangePolicy": "document in release notes and block without review"
+      },
+      "SeedStrategy": {
+        "Mode": "idempotent",
+        "Idempotent": true,
+        "Command": "go run . artisan db:seed",
+        "Notes": ""
+      },
+      "Frontend": {
+        "ModulePath": "",
+        "ApiFiles": null,
+        "RouteFiles": null,
+        "LocaleFiles": null,
+        "TypeFiles": null,
+        "TestFiles": null
+      },
+      "DestructiveNote": "",
+      "Overrides": {
+        "RequiresRestart": true,
+        "SupportsHotDisable": null,
+        "SeedIdempotent": true
+      }
+    }
+  },
+  {
+    "ID": "data-center",
+    "Enabled": true,
+    "Reason": "",
+    "Metadata": {
+      "Name": "Data Center",
+      "Version": "1.0.0",
+      "Compatible": "\u003e=1.17.0",
+      "Dependencies": [
+        {
+          "ID": "platform-rbac",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        },
+        {
+          "ID": "tenant-rbac",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        }
+      ],
+      "Lifecycle": {
+        "Install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "Uninstall": "manual data review required",
+        "Upgrade": "go run . artisan migrate",
+        "Rollback": "go run . artisan migrate:rollback",
+        "DestructiveCheck": "go run . artisan module:manifest:check",
+        "SupportsHotDisable": false,
+        "RequiresRestart": true,
+        "BreakingChangePolicy": "document in release notes and block without review"
+      },
+      "SeedStrategy": {
+        "Mode": "idempotent",
+        "Idempotent": true,
+        "Command": "go run . artisan db:seed",
+        "Notes": ""
+      },
+      "Frontend": {
+        "ModulePath": "",
+        "ApiFiles": null,
+        "RouteFiles": null,
+        "LocaleFiles": null,
+        "TypeFiles": null,
+        "TestFiles": null
+      },
+      "DestructiveNote": "",
+      "Overrides": {
+        "RequiresRestart": true,
+        "SupportsHotDisable": null,
+        "SeedIdempotent": true
+      }
+    }
+  },
+  {
+    "ID": "tenant-rbac",
+    "Enabled": true,
+    "Reason": "",
+    "Metadata": {
+      "Name": "Tenant RBAC",
+      "Version": "1.0.0",
+      "Compatible": "\u003e=1.17.0",
+      "Dependencies": [
+        {
+          "ID": "platform-tenant",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        }
+      ],
+      "Lifecycle": {
+        "Install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "Uninstall": "manual data review required",
+        "Upgrade": "go run . artisan migrate",
+        "Rollback": "go run . artisan migrate:rollback",
+        "DestructiveCheck": "go run . artisan module:manifest:check",
+        "SupportsHotDisable": false,
+        "RequiresRestart": true,
+        "BreakingChangePolicy": "document in release notes and block without review"
+      },
+      "SeedStrategy": {
+        "Mode": "idempotent",
+        "Idempotent": true,
+        "Command": "go run . artisan db:seed",
+        "Notes": ""
+      },
+      "Frontend": {
+        "ModulePath": "",
+        "ApiFiles": null,
+        "RouteFiles": null,
+        "LocaleFiles": null,
+        "TypeFiles": null,
+        "TestFiles": null
+      },
+      "DestructiveNote": "",
+      "Overrides": {
+        "RequiresRestart": true,
+        "SupportsHotDisable": null,
+        "SeedIdempotent": true
+      }
+    }
+  }
+]
