@@ -14,7 +14,7 @@ export default function createCompression(env: any, isBuild: boolean) {
   const plugin: (PluginOption | PluginOption[])[] = []
   if (isBuild) {
     const { VITE_BUILD_COMPRESS } = env
-    const compressList = VITE_BUILD_COMPRESS.split(',')
+    const compressList = (VITE_BUILD_COMPRESS ?? '').split(',')
     if (compressList.includes('gzip')) {
       plugin.push(
         compression(),

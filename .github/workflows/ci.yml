@@ -148,6 +148,20 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build frontend
+        env:
+          VITE_APP_TITLE: MineAdmin
+          VITE_APP_PORT: "2888"
+          VITE_APP_ROOT_BASE: /
+          VITE_APP_API_BASEURL: /dev
+          VITE_APP_ROUTE_MODE: hash
+          VITE_APP_STORAGE_PREFIX: mine_
+          VITE_OPEN_PROXY: "false"
+          VITE_PROXY_PREFIX: /dev
+          VITE_SECURITY_CSRF: "true"
+          VITE_OPEN_DEVTOOLS: "false"
+          VITE_BUILD_SOURCEMAP: "false"
+          VITE_BUILD_COMPRESS: ""
+          VITE_BUILD_ARCHIVE: ""
         run: yarn build
 
       - name: Run TypeScript checks
