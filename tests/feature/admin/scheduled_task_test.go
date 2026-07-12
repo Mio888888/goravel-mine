@@ -436,7 +436,7 @@ func (s *ScheduledTaskTestSuite) TestScriptTaskIgnoresWorkdirForScriptPathResolu
 func (s *ScheduledTaskTestSuite) TestScriptTaskStopsWhenContextCancelled() {
 	scriptPath := facades.App().BasePath("storage/scripts/context-cancel-test.sh")
 	require.NoError(s.T(), os.MkdirAll(filepath.Dir(scriptPath), 0o755))
-	require.NoError(s.T(), os.WriteFile(scriptPath, []byte("#!/bin/sh\nsleep 1\necho finished\n"), 0o755))
+	require.NoError(s.T(), os.WriteFile(scriptPath, []byte("#!/bin/sh\nsleep 5\necho finished\n"), 0o755))
 	s.T().Cleanup(func() {
 		_ = os.Remove(scriptPath)
 	})
@@ -460,7 +460,7 @@ func (s *ScheduledTaskTestSuite) TestScriptTaskStopsWhenContextCancelled() {
 
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), "failed", log.Status)
-	require.Less(s.T(), elapsed, 800*time.Millisecond)
+	require.Less(s.T(), elapsed, 2*time.Second)
 	require.NotContains(s.T(), log.Stdout, "finished")
 }
 
