@@ -82,7 +82,23 @@ jobs:
         run: go mod download
 
       - name: Run backend tests
-        run: go test -p 1 -timeout 30m ./...
+        run: |
+          mkdir -p artifacts/backend-tests
+          set +e
+          go test -json -p 1 -timeout 30m ./... > artifacts/backend-tests/go-test.json
+          test_exit=$?
+          set -e
+          ruby scripts/report-go-test-failures.rb artifacts/backend-tests/go-test.json
+          exit "$test_exit"
+
+      - name: Upload backend test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-log
+          path: artifacts/backend-tests/go-test.json
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Validate module manifest
         run: scripts/verify-module-manifest.sh

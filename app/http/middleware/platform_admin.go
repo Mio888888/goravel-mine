@@ -6,6 +6,7 @@ import (
 
 	contractshttp "github.com/goravel/framework/contracts/http"
 
+	"goravel/app/facades"
 	"goravel/app/http/response"
 	"goravel/app/services"
 )
@@ -21,6 +22,10 @@ func PlatformAdmin() contractshttp.Middleware {
 		}
 		allowed, err := casbinService.Authorize(user, ctx.Request().Method(), ctx.Request().OriginPath())
 		if err != nil {
+			facades.Log().Error("platform authorization failed", map[string]any{
+				"error": err.Error(), "user_id": user.ID,
+				"method": ctx.Request().Method(), "route": ctx.Request().OriginPath(),
+			})
 			_ = ctx.Response().Json(http.StatusOK, response.Error(response.CodeFail, "服务器错误", []any{})).Abort()
 			return
 		}

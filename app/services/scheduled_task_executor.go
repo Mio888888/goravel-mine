@@ -136,11 +136,22 @@ func executeScriptTask(ctx context.Context, task models.ScheduledTask, scope sch
 	}
 	command = scriptCommandPath(command)
 
-	process := facades.Process().WithContext(ctx).Timeout(scheduledTaskTimeout(task)).Quietly().Env(scope.Env(task))
+	runCtx, cancel := context.WithTimeout(ctx, scheduledTaskTimeout(task))
+	defer cancel()
+	process := facades.Process().WithContext(context.Background()).Quietly().Env(scope.Env(task))
 	if workdir := strings.TrimSpace(jsonString(task.Payload, "workdir")); workdir != "" {
 		process = process.Path(workdir)
 	}
-	result := process.Run(command, jsonStringSlice(task.Payload, "args")...)
+	running, err := process.Start(command, jsonStringSlice(task.Payload, "args")...)
+	if err != nil {
+		return taskFailure(err.Error())
+	}
+	select {
+	case <-running.Done():
+	case <-runCtx.Done():
+		_ = running.Stop(100 * time.Millisecond)
+	}
+	result := running.Wait()
 	status := ScheduledTaskLogStatusSuccess
 	errorMessage := ""
 	if result.Failed() || result.Error() != nil {
@@ -148,6 +159,10 @@ func executeScriptTask(ctx context.Context, task models.ScheduledTask, scope sch
 		if result.Error() != nil {
 			errorMessage = result.Error().Error()
 		}
+	}
+	if runCtx.Err() != nil {
+		status = ScheduledTaskLogStatusFailed
+		errorMessage = runCtx.Err().Error()
 	}
 	return ScheduledTaskExecutionResult{
 		Status:       status,

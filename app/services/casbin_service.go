@@ -6,12 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/model"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
-	goravelgorm "github.com/goravel/framework/database/gorm"
-	"gorm.io/gorm"
 
 	"goravel/app/facades"
 	"goravel/app/models"
@@ -21,10 +17,6 @@ type CasbinService struct {
 	ctx        context.Context
 	passport   *PassportService
 	connection string
-}
-
-type gormProvider interface {
-	Instance() *gorm.DB
 }
 
 func NewCasbinService() *CasbinService {
@@ -89,34 +81,7 @@ func (s *CasbinService) enforcer() (casbinAuthorizer, error) {
 }
 
 func (s *CasbinService) loadEnforcer() (casbinAuthorizer, error) {
-	query, ok := s.orm().Query().(*goravelgorm.Query)
-	if !ok {
-		return nil, fmt.Errorf("unsupported orm query type")
-	}
-
-	db := query.Instance().Session(&gorm.Session{})
-	gormadapter.TurnOffAutoMigrate(db)
-	adapter, err := gormadapter.NewAdapterByDBUseTableName(db, "", "casbin_rule")
-	if err != nil {
-		return nil, err
-	}
-
-	m, err := casbinModel()
-	if err != nil {
-		return nil, err
-	}
-
-	enforcer, err := casbin.NewSyncedEnforcer(m, adapter)
-	if err != nil {
-		return nil, err
-	}
-	enforcer.EnableAutoSave(false)
-
-	if err := enforcer.LoadPolicy(); err != nil {
-		return nil, err
-	}
-
-	return enforcer, nil
+	return loadCasbinEnforcer(s.orm().Query(), "casbin_rule")
 }
 
 func casbinModel() (model.Model, error) {

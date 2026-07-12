@@ -5,11 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/casbin/casbin/v3"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
-	goravelgorm "github.com/goravel/framework/database/gorm"
-	"gorm.io/gorm"
-
 	"goravel/app/models"
 )
 
@@ -84,34 +79,8 @@ func (s *PlatformCasbinService) enforcer() (casbinAuthorizer, error) {
 }
 
 func (s *PlatformCasbinService) loadEnforcer() (casbinAuthorizer, error) {
-	query, ok := OrmForConnectionWithContext(s.ctx, PlatformConnection()).Query().(*goravelgorm.Query)
-	if !ok {
-		return nil, fmt.Errorf("unsupported orm query type")
-	}
-
-	db := query.Instance().Session(&gorm.Session{})
-	gormadapter.TurnOffAutoMigrate(db)
-	adapter, err := gormadapter.NewAdapterByDBUseTableName(db, "", "platform_casbin_rule")
-	if err != nil {
-		return nil, err
-	}
-
-	m, err := casbinModel()
-	if err != nil {
-		return nil, err
-	}
-
-	enforcer, err := casbin.NewSyncedEnforcer(m, adapter)
-	if err != nil {
-		return nil, err
-	}
-	enforcer.EnableAutoSave(false)
-
-	if err := enforcer.LoadPolicy(); err != nil {
-		return nil, err
-	}
-
-	return enforcer, nil
+	query := OrmForConnectionWithContext(s.ctx, PlatformConnection()).Query()
+	return loadCasbinEnforcer(query, "platform_casbin_rule")
 }
 
 func PlatformPermissionForRoute(method, path string) string {
