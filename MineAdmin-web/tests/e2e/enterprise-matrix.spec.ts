@@ -42,6 +42,7 @@ test('token refresh failure rejects pending requests and forces relogin', async 
   await mockAdminApi(page, {
     expireTenantListRequests: 3,
     expireTenantListDelayMs: [0, 20, 700],
+    expireTenantListProbeOnly: true,
     failRefreshOnce: true,
     refreshFailureDelayMs: 100,
     logoutDelayMs: 100,
@@ -76,6 +77,7 @@ test('late unauthorized response retries current token without a second refresh'
   await mockAdminApi(page, {
     expireTenantListRequests: 3,
     expireTenantListDelayMs: [0, 20, 700],
+    expireTenantListProbeOnly: true,
     onRefreshRequest: () => refreshRequests++,
   })
   await loginAsAdmin(page)
@@ -100,6 +102,7 @@ test('anonymous unauthorized responses remain rejected', async ({ page }) => {
   let tenantListRequests = 0
   await mockAdminApi(page, {
     expireTenantListRequests: 1,
+    expireTenantListProbeOnly: true,
     onTenantListRequest: () => tenantListRequests++,
   })
   await loginAsAdmin(page)
@@ -180,7 +183,7 @@ test('mock auth isolates token identity and logout revokes only caller', async (
 })
 
 test('missing refresh token does not poison later refresh attempts', async ({ page }) => {
-  await mockAdminApi(page, { expireTenantListRequests: 2 })
+  await mockAdminApi(page, { expireTenantListRequests: 2, expireTenantListProbeOnly: true })
   await loginAsAdmin(page)
 
   await page.evaluate(() => window.localStorage.removeItem('mine_refresh_token'))

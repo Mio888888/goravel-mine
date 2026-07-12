@@ -7,6 +7,7 @@ export interface MockAdminOptions {
   expireTenantListOnce?: boolean
   expireTenantListRequests?: number
   expireTenantListDelayMs?: number[]
+  expireTenantListProbeOnly?: boolean
   failRefreshOnce?: boolean
   refreshFailureDelayMs?: number
   logoutDelayMs?: number

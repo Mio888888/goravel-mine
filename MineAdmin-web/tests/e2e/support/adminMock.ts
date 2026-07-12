@@ -336,7 +336,9 @@ export async function mockAdminApi(page: Page, options: MockAdminOptions = {}) {
     }
 
     if (path === '/admin/platform/tenant/list') {
-      if (expiredTenantListRequests > 0) {
+      const isExpiryTarget = !options.expireTenantListProbeOnly
+        || new URL(route.request().url()).searchParams.has('probe')
+      if (isExpiryTarget && expiredTenantListRequests > 0) {
         expiredTenantListRequests--
         const delay = options.expireTenantListDelayMs?.[expiredTenantListRequestIndex++] ?? 0
         if (delay > 0) {
