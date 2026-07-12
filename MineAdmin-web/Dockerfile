@@ -2,7 +2,7 @@ FROM node:20-alpine3.20 AS build
 
 WORKDIR /opt/www
 
-RUN npm install -g yarn@1.22.22
+RUN test "$(yarn --version)" = "1.22.22"
 
 COPY package.json yarn.lock .npmrc ./
 RUN yarn install --frozen-lockfile
