@@ -39,7 +39,6 @@ func TestSensitiveOperationGateSuite(t *testing.T) {
 
 func (s *SensitiveOperationGateSuite) SetupTest() {
 	s.RefreshDatabase()
-	facades.Orm().Fresh()
 	_ = facades.Cache().Flush()
 	services.ResetEnterpriseSecurityControlForTest()
 	services.ResetCasbinEnforcerCacheForTest()

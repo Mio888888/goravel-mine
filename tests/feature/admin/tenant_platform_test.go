@@ -30,7 +30,6 @@ func TestTenantPlatformTestSuite(t *testing.T) {
 
 func (s *TenantPlatformTestSuite) SetupTest() {
 	s.RefreshDatabase()
-	facades.Orm().Fresh()
 	_ = facades.Cache().Flush()
 	services.ResetEnterpriseSecurityControlForTest()
 	services.ResetCasbinEnforcerCacheForTest()
@@ -857,7 +856,10 @@ func (s *TenantPlatformTestSuite) TestDictionaryTemplateDeleteFailsWhenTenantLoo
 		Query().
 		Table("tenant").
 		Where("code", "default").
-		Update(map[string]any{"db_database": "missing_tenant_database"})
+		Update(map[string]any{
+			"code":        "tenant_lookup_failure",
+			"db_database": "missing_tenant_database",
+		})
 	require.NoError(s.T(), err)
 
 	deleteRes, err := s.Http(s.T()).
