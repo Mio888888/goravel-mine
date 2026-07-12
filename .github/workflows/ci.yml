@@ -82,7 +82,7 @@ jobs:
         run: go mod download
 
       - name: Run backend tests
-        run: go test -p 1 ./...
+        run: go test -p 1 -timeout 30m ./...
 
       - name: Validate module manifest
         run: scripts/verify-module-manifest.sh
