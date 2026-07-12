@@ -2,8 +2,9 @@
   "name": "mineadmin-ui",
   "type": "module",
   "version": "3.2.1",
+  "packageManager": "yarn@1.22.22",
   "engines": {
-    "node": "^20.0.0 || >=21.1.0"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "vite",
