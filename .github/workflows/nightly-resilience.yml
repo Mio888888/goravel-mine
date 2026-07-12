@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
-        with: { go-version: "1.24.0" }
+        with: { go-version: "1.25.0" }
       - name: Run measured scenarios
         run: |
           profile="${{ inputs.profile || (github.event.schedule == '30 17 * * 0' && 'soak') || 'quick' }}"

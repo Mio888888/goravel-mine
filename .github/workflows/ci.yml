@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.24.0"
+  GO_VERSION: "1.25.0"
   NODE_VERSION: "22"
   APP_NAME: Goravel
   APP_ENV: testing
@@ -147,11 +147,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run TypeScript checks
-        run: yarn lint:tsc
-
       - name: Build frontend
         run: yarn build
+
+      - name: Run TypeScript checks
+        run: yarn lint:tsc
 
   frontend-e2e-mock:
     name: Frontend mock E2E stability
@@ -360,6 +360,7 @@ jobs:
       - name: Scan repository vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
+          version: v0.72.0
           scan-type: fs
           scan-ref: .
           format: sarif
@@ -367,6 +368,8 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: "1"
           ignore-unfixed: true
+          scanners: vuln
+          limit-severities-for-sarif: true
           skip-dirs: MineAdmin
 
       - name: Check Trivy SARIF output

@@ -284,6 +284,7 @@ jobs:
       - name: Generate backend dependency SBOM
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
+          version: v0.72.0
           scan-type: fs
           scan-ref: .
           format: cyclonedx
@@ -294,6 +295,7 @@ jobs:
       - name: Generate frontend dependency SBOM
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
+          version: v0.72.0
           scan-type: fs
           scan-ref: MineAdmin-web
           format: cyclonedx
@@ -412,6 +414,7 @@ jobs:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         with:
+          version: v0.72.0
           scan-type: image
           image-ref: ${{ steps.meta.outputs.backend_image }}@${{ steps.build_backend.outputs.digest }}
           format: cyclonedx
@@ -423,6 +426,7 @@ jobs:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         with:
+          version: v0.72.0
           scan-type: image
           image-ref: ${{ steps.meta.outputs.frontend_image }}@${{ steps.build_frontend.outputs.digest }}
           format: cyclonedx
@@ -434,6 +438,7 @@ jobs:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         with:
+          version: v0.72.0
           scan-type: image
           image-ref: ${{ steps.meta.outputs.backup_image }}@${{ steps.build_backup.outputs.digest }}
           format: cyclonedx

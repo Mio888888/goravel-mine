@@ -14,6 +14,10 @@ import { permissionCatalog, platformMenuTree, tenantMenuTree } from './adminMenu
 import { assertMockAdminClean, fail, forbidden, installMockAdminDiagnostics, json, ok, parseJSON, routePath, tokenFor, unauthorized, userInfo } from './adminMockHelpers'
 import type { LoginOptions, LoginUser, MockAdminOptions } from './adminMockHelpers'
 
+test.beforeEach(async ({ page }) => {
+  installMockAdminDiagnostics(page)
+})
+
 test.afterEach(async ({ page }) => {
   assertMockAdminClean(page)
 })

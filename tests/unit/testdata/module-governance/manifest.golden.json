@@ -1320,7 +1320,8 @@
         }
       ],
       "migrations": [
-        "202607040001_create_scheduled_task_tables"
+        "202607040001_create_scheduled_task_tables",
+        "202607110010_upsert_tenant_governance_tasks"
       ],
       "openapi_files": [
         "docs/api-contract/openapi/admin-base-apis.openapi.json"
