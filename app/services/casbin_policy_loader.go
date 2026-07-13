@@ -6,13 +6,31 @@ import (
 	"github.com/casbin/casbin/v3"
 	"github.com/casbin/casbin/v3/persist"
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
-
-	"goravel/app/models"
 )
 
+type casbinPolicyRow struct {
+	ID    uint64 `gorm:"column:id"`
+	Ptype string `gorm:"column:ptype"`
+	V0    string `gorm:"column:v0"`
+	V1    string `gorm:"column:v1"`
+	V2    string `gorm:"column:v2"`
+	V3    string `gorm:"column:v3"`
+	V4    string `gorm:"column:v4"`
+	V5    string `gorm:"column:v5"`
+}
+
 func loadCasbinEnforcer(query contractsorm.Query, table string) (casbinAuthorizer, error) {
-	var rules []models.CasbinRule
-	if err := query.Table(table).OrderBy("id").Get(&rules); err != nil {
+	var rules []casbinPolicyRow
+	if err := query.Table(table).
+		SelectRaw(`id,
+			COALESCE(ptype, '') AS ptype,
+			COALESCE(v0, '') AS v0,
+			COALESCE(v1, '') AS v1,
+			COALESCE(v2, '') AS v2,
+			COALESCE(v3, '') AS v3,
+			COALESCE(v4, '') AS v4,
+			COALESCE(v5, '') AS v5`).
+		OrderBy("id").Get(&rules); err != nil {
 		return nil, err
 	}
 
@@ -42,7 +60,7 @@ func loadCasbinEnforcer(query contractsorm.Query, table string) (casbinAuthorize
 	return enforcer, nil
 }
 
-func casbinPolicyLine(rule models.CasbinRule) ([]string, error) {
+func casbinPolicyLine(rule casbinPolicyRow) ([]string, error) {
 	if rule.Ptype == "" {
 		return nil, fmt.Errorf("ptype is empty")
 	}
