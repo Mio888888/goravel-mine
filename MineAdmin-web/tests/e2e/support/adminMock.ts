@@ -834,10 +834,13 @@ export async function loginAsAdmin(page: Page, options: LoginOptions = {}) {
 
   await page.goto('/#/login?auth_scope=platform')
   await expect(page.getByText('账户')).toBeVisible()
+  await expect(page.getByRole('button', { name: '验证码' }).locator('img')).toBeVisible()
   await page.locator('input[name="username"]').fill(username)
   await page.locator('input[name="password"]').fill(password)
   await page.locator('input[name="code"]').fill('1234')
-  await page.getByRole('button', { name: /登录/ }).click()
+  const loginButton = page.getByRole('button', { name: /登录/ })
+  await expect(loginButton).toHaveAttribute('aria-disabled', 'false')
+  await loginButton.click()
 
   if (waitForShell) {
     await expect(page).not.toHaveURL(/\/login/)
