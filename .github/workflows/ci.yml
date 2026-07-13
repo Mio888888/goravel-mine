@@ -40,6 +40,10 @@ env:
   REDIS_PORT: 6379
   REDIS_DB: 0
   OBS_AUDIT_ENABLED: false
+  LOG_CHANNEL: single
+  LOG_LEVEL: error
+  LOG_PRINT: true
+  LOG_FORMATTER: text
 
 jobs:
   backend:
