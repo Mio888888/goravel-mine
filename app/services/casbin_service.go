@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -87,10 +88,34 @@ func (s *CasbinService) loadEnforcer() (casbinAuthorizer, error) {
 func casbinModel() (model.Model, error) {
 	path := facades.Config().GetString("casbin.model")
 	if !filepath.IsAbs(path) {
-		path = facades.App().BasePath(path)
+		path = resolveCasbinModelPath(facades.App().BasePath(path), path)
 	}
 
 	return model.NewModelFromFile(path)
+}
+
+func resolveCasbinModelPath(basePath, configuredPath string) string {
+	if _, err := os.Stat(basePath); err == nil {
+		return basePath
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return basePath
+	}
+	for {
+		candidate := filepath.Join(cwd, configuredPath)
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
+		}
+		if _, err := os.Stat(filepath.Join(cwd, "go.mod")); err == nil {
+			return candidate
+		}
+		parent := filepath.Dir(cwd)
+		if parent == cwd {
+			return basePath
+		}
+		cwd = parent
+	}
 }
 
 func PermissionForRoute(method, path string) string {
