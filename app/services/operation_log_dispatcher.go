@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -45,6 +46,10 @@ func (j *OperationLogJob) ShouldRetry(err error, attempt int) (bool, time.Durati
 }
 
 func DispatchOperationLog(payload OperationLogPayload) {
+	if isTestingEnvironment(facades.Config().GetString("app.env")) {
+		_ = NewLogAdminServiceForConnection(payload.Connection).WriteOperationLog(payload)
+		return
+	}
 	if shouldUseConfiguredQueue() {
 		if err := dispatchOperationLogJob(payload); err == nil {
 			return
@@ -62,7 +67,7 @@ func (r *OperationLogRunner) Signature() string {
 }
 
 func (r *OperationLogRunner) ShouldRun() bool {
-	return !shouldUseConfiguredQueue()
+	return !isTestingEnvironment(facades.Config().GetString("app.env")) && !shouldUseConfiguredQueue()
 }
 
 func (r *OperationLogRunner) Run() error {
@@ -91,6 +96,10 @@ func dispatchOperationLogJob(payload OperationLogPayload) error {
 
 func shouldUseConfiguredQueue() bool {
 	return facades.Config().GetString("queue.default") != "sync"
+}
+
+func isTestingEnvironment(environment string) bool {
+	return strings.EqualFold(strings.TrimSpace(environment), "testing")
 }
 
 func operationLogPayloadFromArgs(args []any) OperationLogPayload {
