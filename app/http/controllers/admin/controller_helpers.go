@@ -1,9 +1,7 @@
 package admin
 
 import (
-	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 
 	contractshttp "github.com/goravel/framework/contracts/http"
@@ -78,14 +76,7 @@ func bindIDsObject(ctx contractshttp.Context) ([]uint64, error) {
 }
 
 func bindJSONBody(ctx contractshttp.Context, dest any) error {
-	body, err := io.ReadAll(ctx.Request().Origin().Body)
-	if err != nil {
-		return err
-	}
-	if len(body) == 0 {
-		return nil
-	}
-	return json.Unmarshal(body, dest)
+	return httprequest.BindJSONBody(ctx.Request().Origin(), dest)
 }
 
 func queryFilters(ctx contractshttp.Context) map[string]string {

@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -252,13 +251,12 @@ func (s *EnterpriseSecurityControlService) IssueReAuthToken(claims ReAuthTokenCl
 	if _, err := rand.Read(nonce); err != nil {
 		return "", err
 	}
-	digest := sha256.Sum256([]byte(strings.Join([]string{
+	token := sha256Hex([]byte(strings.Join([]string{
 		hex.EncodeToString(nonce),
 		claims.Operation,
 		claims.Resource,
 		claims.ExpiresAt.UTC().Format(time.RFC3339Nano),
 	}, ":")))
-	token := hex.EncodeToString(digest[:])
 	ttl := time.Until(claims.ExpiresAt)
 	if ttl <= 0 {
 		return "", ErrReAuthRequired
@@ -575,8 +573,7 @@ func reAuthClaimsMatch(claims ReAuthTokenClaims, req SensitiveOperationRequest) 
 }
 
 func enterpriseReAuthTokenKey(token string) string {
-	digest := sha256.Sum256([]byte(token))
-	return enterpriseReAuthTokenPrefix + hex.EncodeToString(digest[:])
+	return enterpriseReAuthTokenPrefix + sha256Hex([]byte(token))
 }
 
 func enterpriseReAuthLockKey(token string) string {

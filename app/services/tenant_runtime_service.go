@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -514,8 +512,7 @@ func normalizeSSOUsername(value string) string {
 }
 
 func ssoUsernameHash(provider SSOProvider, claims ssoClaims) string {
-	sum := sha256.Sum256([]byte(fmt.Sprintf("%d:%s:%s", provider.ID, provider.Name, claims.Subject)))
-	return hex.EncodeToString(sum[:])[:8]
+	return sha256Hex([]byte(fmt.Sprintf("%d:%s:%s", provider.ID, provider.Name, claims.Subject)))[:8]
 }
 
 func (s *TenantRuntimeService) ssoUsernameAvailable(connection, username string) (bool, error) {

@@ -30,6 +30,8 @@ func TestVerifyTOTPAllowsAdjacentWindow(t *testing.T) {
 }
 
 func TestGenerateRecoveryCodesReturnsUniqueHashes(t *testing.T) {
+	useTestPasswordHasher(t)
+
 	codes, hashes, err := GenerateMFARecoveryCodes(4)
 
 	require.NoError(t, err)
@@ -50,6 +52,8 @@ func TestValidateMFADisableCodeRequiresCode(t *testing.T) {
 }
 
 func TestPrepareMFAVerificationDefersRecoveryCodeMutation(t *testing.T) {
+	useTestPasswordHasher(t)
+
 	hash, err := bcrypt.GenerateFromPassword([]byte("abcd-efgh"), bcrypt.MinCost)
 	require.NoError(t, err)
 	row := models.UserMFA{

@@ -1,8 +1,6 @@
 package services
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"time"
 
 	contractscache "github.com/goravel/framework/contracts/cache"
@@ -34,6 +32,5 @@ func tokenBlacklisted(token string) bool {
 }
 
 func blacklistedTokenKey(token string) string {
-	sum := sha256.Sum256([]byte(token))
-	return tokenBlacklistPrefix + hex.EncodeToString(sum[:])
+	return tokenBlacklistPrefix + sha256Hex([]byte(token))
 }

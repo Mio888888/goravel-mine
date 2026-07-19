@@ -16,7 +16,6 @@ import (
 	"time"
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
-	"golang.org/x/crypto/bcrypt"
 
 	"goravel/app/facades"
 	"goravel/app/models"
@@ -331,7 +330,7 @@ func prepareMFAVerification(row models.UserMFA, code string, markUsed func() err
 	trimmedCode := strings.TrimSpace(code)
 	hashes := jsonSliceStrings(row.RecoveryCodes)
 	for i, hash := range hashes {
-		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(trimmedCode)) == nil {
+		if secretHashMatches(hash, trimmedCode) {
 			remaining := make([]string, 0, len(hashes)-1)
 			remaining = append(remaining, hashes[:i]...)
 			remaining = append(remaining, hashes[i+1:]...)
@@ -393,13 +392,13 @@ func GenerateMFARecoveryCodes(count int) ([]string, []string, error) {
 		if _, ok := seen[code]; ok {
 			continue
 		}
-		hash, err := bcrypt.GenerateFromPassword([]byte(code), bcrypt.DefaultCost)
+		hash, err := makeSecretHash(code)
 		if err != nil {
 			return nil, nil, err
 		}
 		seen[code] = struct{}{}
 		codes = append(codes, code)
-		hashes = append(hashes, string(hash))
+		hashes = append(hashes, hash)
 	}
 	return codes, hashes, nil
 }

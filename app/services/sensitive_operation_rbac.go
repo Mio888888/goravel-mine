@@ -2,9 +2,7 @@ package services
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"strconv"
 	"strings"
@@ -115,9 +113,8 @@ func parseRBACSelector(selector, subject, operation string) (string, uint64, []s
 	if json.Unmarshal(payload, &desired) != nil || !sameRBACValues(desired, canonicalRBACValues(desired)) {
 		return "", 0, nil, ErrSensitiveOperationPolicy
 	}
-	digest := sha256.Sum256(payload)
 	resource := strings.Join([]string{
-		"rbac", subject, strconv.FormatUint(id, 10), operation, hex.EncodeToString(digest[:]),
+		"rbac", subject, strconv.FormatUint(id, 10), operation, sha256Hex(payload),
 	}, ":")
 	return resource, id, desired, nil
 }

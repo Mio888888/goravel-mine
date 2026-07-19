@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -304,8 +303,7 @@ func auditPruneTargetDigest(targets []models.SecurityAuditPruneTarget) string {
 			target.Cutoff.UTC().Format(time.RFC3339Nano), strconv.Itoa(target.RetentionDays),
 		}, "\x00"))
 	}
-	digest := sha256.Sum256([]byte(strings.Join(payload, "\n")))
-	return "sha256:" + hex.EncodeToString(digest[:])
+	return digestBytes([]byte(strings.Join(payload, "\n")))
 }
 
 func tenantDatabaseDigest(tenant Tenant) string {
@@ -313,8 +311,7 @@ func tenantDatabaseDigest(tenant Tenant) string {
 		strings.TrimSpace(tenant.DBHost), strconv.Itoa(tenant.DBPort), strings.TrimSpace(tenant.DBDatabase),
 		strings.TrimSpace(tenant.DBUsername), strings.TrimSpace(tenant.DBSchema),
 	}, "\x00")
-	digest := sha256.Sum256([]byte(payload))
-	return "sha256:" + hex.EncodeToString(digest[:])
+	return digestBytes([]byte(payload))
 }
 
 func sortAuditPruneTargets(items []models.SecurityAuditPruneTarget) {

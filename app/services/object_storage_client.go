@@ -179,11 +179,6 @@ func hmacSHA256(key []byte, data string) []byte {
 	return mac.Sum(nil)
 }
 
-func sha256Hex(data []byte) string {
-	hash := sha256.Sum256(data)
-	return hex.EncodeToString(hash[:])
-}
-
 func uriEncode(value string) string {
 	escaped := strings.ReplaceAll(value, "%2F", "/")
 	if escaped == "" {

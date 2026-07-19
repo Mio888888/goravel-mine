@@ -2,9 +2,7 @@ package services
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -52,8 +50,7 @@ func parseTenantSensitiveResource(resource, kind string, desired any) (uint64, s
 	if err != nil {
 		return 0, "", err
 	}
-	digest := sha256.Sum256(canonicalPayload)
-	return selector.TenantID, fmt.Sprintf("tenant:%d:%s:%s", selector.TenantID, kind, hex.EncodeToString(digest[:])), nil
+	return selector.TenantID, fmt.Sprintf("tenant:%d:%s:%s", selector.TenantID, kind, sha256Hex(canonicalPayload)), nil
 }
 
 func resolveTenantSensitivePlan(ctx context.Context, policyKey, selector string) (string, []string, []string, error) {

@@ -104,8 +104,7 @@ func ReadAuditPruneProofFile(path string) (AuditPruneWORMProof, error) {
 
 func AuditPruneProofDigest(proof AuditPruneWORMProof) string {
 	payload, _ := json.Marshal(proof)
-	digest := sha256.Sum256(payload)
-	return "sha256:" + hex.EncodeToString(digest[:])
+	return digestBytes(payload)
 }
 
 func auditPruneManifestJSON(plan AuditPrunePlan, proof AuditPruneWORMProof) []byte {
@@ -159,11 +158,6 @@ func auditPruneArchiveMatchesPlan(plan AuditPrunePlan, records []AuditPruneArchi
 
 func auditPruneArchiveKey(scope, table string, targetID uint64) string {
 	return scope + "\x00" + table + "\x00" + strconv.FormatUint(targetID, 10)
-}
-
-func digestBytes(payload []byte) string {
-	digest := sha256.Sum256(payload)
-	return "sha256:" + hex.EncodeToString(digest[:])
 }
 
 func isSHA256(value string) bool {

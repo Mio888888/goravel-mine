@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"sort"
@@ -333,8 +331,7 @@ func sensitiveOperationBindingDigest(policyKey, scope, resource string, tenantID
 	if err != nil {
 		return "", err
 	}
-	digest := sha256.Sum256(payload)
-	return hex.EncodeToString(digest[:]), nil
+	return sha256Hex(payload), nil
 }
 
 func newSensitiveOperationPolicy(policyKey, platformPermission, tenantPermission, action string) SensitiveOperationPolicy {
