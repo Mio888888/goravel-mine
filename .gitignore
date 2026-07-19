@@ -24,5 +24,9 @@ MineAdmin-web/types/auto-imports.d.ts
 MineAdmin-web/types/components.d.ts
 MineAdmin-web/tests/e2e/.output/*
 docs/docs-master
-.agents
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/goravel-backend-development/
+!.agents/skills/goravel-backend-development/**
 .codex
