@@ -12,6 +12,7 @@ import (
 
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 )
 
 const (
@@ -151,11 +152,9 @@ func (p DictItemPayload) platformItem(typeID uint64, typeCode string, operatorID
 
 func (s *PlatformDictionaryService) List(filters map[string]string, page, pageSize int) (request.PageResult[PlatformDictType], error) {
 	query := s.orm().Query().Table("platform_dict_type")
-	query = applyStringFilter(query, "code", filters["code"])
-	query = applyStringFilter(query, "name", filters["name"])
-	if filters["status"] != "" {
-		query = query.Where("status", filters["status"])
-	}
+	query = query.Scopes(scopes.Contains("code", filters["code"]))
+	query = query.Scopes(scopes.Contains("name", filters["name"]))
+	query = query.Scopes(scopes.EqualIfPresent("status", filters["status"]))
 	result, err := request.Paginate[PlatformDictType](query.OrderBy("sort").OrderByDesc("id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[PlatformDictType]{}, err
@@ -446,11 +445,9 @@ func (s *PlatformDictionaryService) distributedTypeCount(ids []uint64) (int64, e
 
 func (s *TenantDictionaryService) List(filters map[string]string, page, pageSize int) (request.PageResult[DictType], error) {
 	query := s.orm().Query().Table("dict_type")
-	query = applyStringFilter(query, "code", filters["code"])
-	query = applyStringFilter(query, "name", filters["name"])
-	if filters["status"] != "" {
-		query = query.Where("status", filters["status"])
-	}
+	query = query.Scopes(scopes.Contains("code", filters["code"]))
+	query = query.Scopes(scopes.Contains("name", filters["name"]))
+	query = query.Scopes(scopes.EqualIfPresent("status", filters["status"]))
 	return request.Paginate[DictType](query.OrderBy("sort").OrderByDesc("id"), page, pageSize)
 }
 

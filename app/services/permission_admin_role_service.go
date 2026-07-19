@@ -3,18 +3,18 @@ package services
 import (
 	"time"
 
-	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
+
+	contractsorm "github.com/goravel/framework/contracts/database/orm"
 )
 
 func (s *PermissionAdminService) ListRoles(filters map[string]string, page, pageSize int) (request.PageResult[models.Role], error) {
 	query := s.orm().Query().Table("role")
-	query = applyStringFilter(query, "name", filters["name"])
-	query = applyStringFilter(query, "code", filters["code"])
-	if filters["status"] != "" {
-		query = query.Where("status", filters["status"])
-	}
+	query = query.Scopes(scopes.Contains("name", filters["name"]))
+	query = query.Scopes(scopes.Contains("code", filters["code"]))
+	query = query.Scopes(scopes.EqualIfPresent("status", filters["status"]))
 
 	return request.Paginate[models.Role](query.OrderBy("sort").OrderBy("id"), page, pageSize)
 }

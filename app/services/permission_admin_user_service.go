@@ -8,6 +8,7 @@ import (
 
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 )
 
 func (s *PermissionAdminService) ListUsers(filters map[string]string, page, pageSize int, currentUserID uint64) (request.PageResult[UserRow], error) {
@@ -17,13 +18,11 @@ func (s *PermissionAdminService) ListUsers(filters map[string]string, page, page
 	if err != nil {
 		return request.PageResult[UserRow]{}, err
 	}
-	query = applyStringFilter(query, "username", filters["username"])
-	query = applyStringFilter(query, "nickname", filters["nickname"])
-	query = applyStringFilter(query, "phone", filters["phone"])
-	query = applyStringFilter(query, "email", filters["email"])
-	if filters["status"] != "" {
-		query = query.Where("status", filters["status"])
-	}
+	query = query.Scopes(scopes.Contains("username", filters["username"]))
+	query = query.Scopes(scopes.Contains("nickname", filters["nickname"]))
+	query = query.Scopes(scopes.Contains("phone", filters["phone"]))
+	query = query.Scopes(scopes.Contains("email", filters["email"]))
+	query = query.Scopes(scopes.EqualIfPresent("status", filters["status"]))
 
 	result, err := request.Paginate[UserRow](query.OrderByDesc("id"), page, pageSize)
 	if err != nil {

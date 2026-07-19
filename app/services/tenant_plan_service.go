@@ -10,6 +10,7 @@ import (
 
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 )
 
 const TenantPlanStatusEnabled int8 = 1
@@ -64,11 +65,9 @@ func (p TenantPlanPayload) TenantPlan() TenantPlan {
 
 func (s *TenantPlanService) List(filters map[string]string, page, pageSize int) (request.PageResult[TenantPlan], error) {
 	query := s.orm().Query().Table("tenant_plan")
-	query = applyStringFilter(query, "code", filters["code"])
-	query = applyStringFilter(query, "name", filters["name"])
-	if filters["status"] != "" {
-		query = query.Where("status", filters["status"])
-	}
+	query = query.Scopes(scopes.Contains("code", filters["code"]))
+	query = query.Scopes(scopes.Contains("name", filters["name"]))
+	query = query.Scopes(scopes.EqualIfPresent("status", filters["status"]))
 	return request.Paginate[TenantPlan](query.OrderBy("sort").OrderByDesc("id"), page, pageSize)
 }
 

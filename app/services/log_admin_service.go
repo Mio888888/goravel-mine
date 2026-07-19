@@ -5,9 +5,11 @@ import (
 	"strings"
 	"time"
 
-	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
+
+	contractsorm "github.com/goravel/framework/contracts/database/orm"
 )
 
 const logTimeLayout = "2006-01-02 15:04:05"
@@ -103,21 +105,21 @@ func (s *LogAdminService) WriteOperationLog(payload OperationLogPayload) error {
 }
 
 func loginLogFilters(query contractsorm.Query, filters map[string]string) contractsorm.Query {
-	query = equalFilter(query, "username", filters["username"])
-	query = equalFilter(query, "ip", filters["ip"])
-	query = equalFilter(query, "os", filters["os"])
-	query = equalFilter(query, "browser", filters["browser"])
-	query = equalFilter(query, "status", filters["status"])
-	query = equalFilter(query, "message", filters["message"])
-	return equalFilter(query, "remark", filters["remark"])
+	query = query.Scopes(scopes.Equal("username", filters["username"]))
+	query = query.Scopes(scopes.Equal("ip", filters["ip"]))
+	query = query.Scopes(scopes.Equal("os", filters["os"]))
+	query = query.Scopes(scopes.Equal("browser", filters["browser"]))
+	query = query.Scopes(scopes.Equal("status", filters["status"]))
+	query = query.Scopes(scopes.Equal("message", filters["message"]))
+	return query.Scopes(scopes.Equal("remark", filters["remark"]))
 }
 
 func operationLogFilters(query contractsorm.Query, filters map[string]string) contractsorm.Query {
-	query = equalFilter(query, "username", filters["username"])
-	query = equalFilter(query, "method", strings.ToUpper(filters["method"]))
-	query = equalFilter(query, "router", filters["router"])
-	query = equalFilter(query, "service_name", filters["service_name"])
-	return equalFilter(query, "ip", filters["ip"])
+	query = query.Scopes(scopes.Equal("username", filters["username"]))
+	query = query.Scopes(scopes.Equal("method", strings.ToUpper(filters["method"])))
+	query = query.Scopes(scopes.Equal("router", filters["router"]))
+	query = query.Scopes(scopes.Equal("service_name", filters["service_name"]))
+	return query.Scopes(scopes.Equal("ip", filters["ip"]))
 }
 
 func loginLogRows(logs []models.UserLoginLog) []LoginLogRow {

@@ -3,15 +3,17 @@ package services
 import (
 	"time"
 
-	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
+
+	contractsorm "github.com/goravel/framework/contracts/database/orm"
 )
 
 func (s *OrgAdminService) ListDepartments(filters map[string]string) (request.PageResult[DepartmentRow], error) {
 	rows := make([]DepartmentRow, 0)
 	query := s.orm().Query().Table("department").WhereNull("deleted_at")
-	query = applyStringFilter(query, "name", filters["name"])
+	query = query.Scopes(scopes.Contains("name", filters["name"]))
 	if filters["level"] == "1" {
 		query = query.Where("parent_id", 0)
 	}

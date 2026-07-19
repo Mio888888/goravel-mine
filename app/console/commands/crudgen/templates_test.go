@@ -21,6 +21,8 @@ func TestTemplatesReuseSharedRequestAndIDHelpers(t *testing.T) {
 		`sharedRequest.Page(ctx.Request())`,
 		`sharedRequest.PageSize(ctx.Request())`,
 		`collect.Map(ids, func(id uint64, _ int) any`,
+		`scopes.ContainsFoldIfPresent("{{ .Name }}", filters["{{ .Name }}"])`,
+		`scopes.EqualIfPresent("{{ .Name }}", filters["{{ .Name }}"])`,
 	} {
 		if !strings.Contains(controllerTemplate+repositoryTemplate, expected) {
 			t.Fatalf("templates should reuse %q", expected)
@@ -29,6 +31,7 @@ func TestTemplatesReuseSharedRequestAndIDHelpers(t *testing.T) {
 	for _, duplicated := range []string{
 		`func page(ctx contractshttp.Context) int`,
 		`func pageSize(ctx contractshttp.Context) int`,
+		`func applyStringFilter(`,
 		`values := make([]any, 0, len(ids))`,
 	} {
 		if strings.Contains(controllerTemplate+repositoryTemplate, duplicated) {

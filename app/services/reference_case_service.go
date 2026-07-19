@@ -10,6 +10,7 @@ import (
 
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 )
 
 const ReferenceCaseStatusEnabled int8 = 1
@@ -69,12 +70,10 @@ func (p ReferenceCasePayload) ReferenceCase() ReferenceCase {
 
 func (s *ReferenceCaseService) List(filters map[string]string, page, pageSize int) (request.PageResult[ReferenceCase], error) {
 	query := s.orm().Query().Table("reference_case")
-	query = applyStringFilter(query, "code", filters["code"])
-	query = applyStringFilter(query, "title", filters["title"])
-	query = applyStringFilter(query, "version", filters["version"])
-	if filters["status"] != "" {
-		query = query.Where("status", filters["status"])
-	}
+	query = query.Scopes(scopes.Contains("code", filters["code"]))
+	query = query.Scopes(scopes.Contains("title", filters["title"]))
+	query = query.Scopes(scopes.Contains("version", filters["version"]))
+	query = query.Scopes(scopes.EqualIfPresent("status", filters["status"]))
 
 	return request.Paginate[ReferenceCase](query.OrderByDesc("id"), page, pageSize)
 }

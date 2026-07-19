@@ -23,6 +23,7 @@ import (
 	"goravel/app/facades"
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 	"goravel/database/migrations"
 	"goravel/database/seeders"
 )
@@ -170,12 +171,10 @@ func (s *TenantService) List(filters map[string]string, page, pageSize int) (req
 	query := s.orm().
 		Query().
 		Table("tenant")
-	query = applyStringFilter(query, "code", filters["code"])
-	query = applyStringFilter(query, "name", filters["name"])
-	query = applyStringFilter(query, "plan", filters["plan"])
-	if filters["status"] != "" {
-		query = query.Where("status", filters["status"])
-	}
+	query = query.Scopes(scopes.Contains("code", filters["code"]))
+	query = query.Scopes(scopes.Contains("name", filters["name"]))
+	query = query.Scopes(scopes.Contains("plan", filters["plan"]))
+	query = query.Scopes(scopes.EqualIfPresent("status", filters["status"]))
 	return request.Paginate[Tenant](query.OrderByDesc("id"), page, pageSize)
 }
 

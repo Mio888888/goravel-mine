@@ -1,7 +1,7 @@
 package services
 
 import (
-	"strings"
+	"goravel/app/scopes"
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
 )
@@ -61,32 +61,25 @@ func (s *SSOAuditService) loginRowsQuery() contractsorm.Query {
 }
 
 func ssoBindingFilters(query contractsorm.Query, filters map[string]string) contractsorm.Query {
-	query = equalFilter(query, "sso_user_binding.user_id", filters["user_id"])
-	query = equalFilter(query, "sso_user_binding.provider_id", filters["provider_id"])
-	query = applyStringFilter(query, "sso_user_binding.sso_user_id", filters["sso_user_id"])
-	query = applyStringFilter(query, "sso_user_binding.sso_email", filters["sso_email"])
-	query = applyStringFilter(query, "sso_user_binding.sso_username", filters["sso_username"])
-	query = applyStringFilter(query, "sso_provider.name", filters["provider_name"])
-	return applyStringFilter(query, `"user".username`, filters["username"])
+	query = query.Scopes(scopes.Equal("sso_user_binding.user_id", filters["user_id"]))
+	query = query.Scopes(scopes.Equal("sso_user_binding.provider_id", filters["provider_id"]))
+	query = query.Scopes(scopes.Contains("sso_user_binding.sso_user_id", filters["sso_user_id"]))
+	query = query.Scopes(scopes.Contains("sso_user_binding.sso_email", filters["sso_email"]))
+	query = query.Scopes(scopes.Contains("sso_user_binding.sso_username", filters["sso_username"]))
+	query = query.Scopes(scopes.Contains("sso_provider.name", filters["provider_name"]))
+	return query.Scopes(scopes.Contains(`"user".username`, filters["username"]))
 }
 
 func ssoLoginLogFilters(query contractsorm.Query, filters map[string]string) contractsorm.Query {
-	query = equalFilter(query, "sso_login_log.user_id", filters["user_id"])
-	query = equalFilter(query, "sso_login_log.provider_id", filters["provider_id"])
-	query = equalFilter(query, "sso_login_log.status", filters["status"])
-	query = applyStringFilter(query, "sso_login_log.sso_user_id", filters["sso_user_id"])
-	query = applyStringFilter(query, "sso_login_log.sso_email", filters["sso_email"])
-	query = applyStringFilter(query, "sso_provider.name", filters["provider_name"])
-	query = applyStringFilter(query, `"user".username`, filters["username"])
-	return dateRangeFilter(query, "sso_login_log.login_at", filters["start_date"], filters["end_date"])
-}
-
-func dateRangeFilter(query contractsorm.Query, column, start, end string) contractsorm.Query {
-	if strings.TrimSpace(start) != "" {
-		query = query.Where(column+" >= ?", start)
-	}
-	if strings.TrimSpace(end) != "" {
-		query = query.Where(column+" <= ?", end)
-	}
-	return query
+	query = query.Scopes(scopes.Equal("sso_login_log.user_id", filters["user_id"]))
+	query = query.Scopes(scopes.Equal("sso_login_log.provider_id", filters["provider_id"]))
+	query = query.Scopes(scopes.Equal("sso_login_log.status", filters["status"]))
+	query = query.Scopes(scopes.Contains("sso_login_log.sso_user_id", filters["sso_user_id"]))
+	query = query.Scopes(scopes.Contains("sso_login_log.sso_email", filters["sso_email"]))
+	query = query.Scopes(scopes.Contains("sso_provider.name", filters["provider_name"]))
+	query = query.Scopes(scopes.Contains(`"user".username`, filters["username"]))
+	return query.Scopes(
+		scopes.GreaterThanOrEqual("sso_login_log.login_at", filters["start_date"]),
+		scopes.LessThanOrEqual("sso_login_log.login_at", filters["end_date"]),
+	)
 }

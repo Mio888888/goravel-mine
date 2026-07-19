@@ -7,6 +7,7 @@ import (
 
 	"goravel/app/facades"
 	"goravel/app/http/request"
+	"goravel/app/scopes"
 )
 
 type adminPageRequest struct {
@@ -53,14 +54,7 @@ func (q adminListQuery[TRecord, TDTO]) applyFilters(
 	filters map[string]string,
 ) contractsorm.Query {
 	for _, item := range q.spec.filters {
-		dbQuery = adminEqualFilter(dbQuery, item.column, filters[item.filter])
+		dbQuery = dbQuery.Scopes(scopes.EqualIfPresent(item.column, filters[item.filter]))
 	}
 	return dbQuery
-}
-
-func adminEqualFilter(query contractsorm.Query, column string, value string) contractsorm.Query {
-	if value == "" {
-		return query
-	}
-	return query.Where(column, value)
 }

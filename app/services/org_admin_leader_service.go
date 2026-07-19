@@ -4,6 +4,7 @@ import (
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 )
 
 func (s *OrgAdminService) ListLeaders(filters map[string]string, page, pageSize int) (request.PageResult[LeaderRow], error) {
@@ -12,12 +13,8 @@ func (s *OrgAdminService) ListLeaders(filters map[string]string, page, pageSize 
 		Join("LEFT JOIN department ON department.id = dept_leader.dept_id").
 		Join(`LEFT JOIN "user" ON "user".id = dept_leader.user_id`).
 		WhereNull("dept_leader.deleted_at")
-	if filters["dept_id"] != "" {
-		query = query.Where("dept_leader.dept_id", filters["dept_id"])
-	}
-	if filters["user_id"] != "" {
-		query = query.Where("dept_leader.user_id", filters["user_id"])
-	}
+	query = query.Scopes(scopes.EqualIfPresent("dept_leader.dept_id", filters["dept_id"]))
+	query = query.Scopes(scopes.EqualIfPresent("dept_leader.user_id", filters["user_id"]))
 	result, err := request.Paginate[LeaderRow](query.OrderBy("dept_leader.dept_id").OrderBy("dept_leader.user_id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[LeaderRow]{}, err

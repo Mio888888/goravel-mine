@@ -12,27 +12,45 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestServiceQueryHelpersHaveSingleDefinition(t *testing.T) {
-	definitions := map[string][]string{
+func TestApplicationUsesSharedORMScopes(t *testing.T) {
+	legacyDefinitions := map[string][]string{
 		"applyStringFilter": nil,
 		"equalFilter":       nil,
+		"adminEqualFilter":  nil,
 	}
 
-	forEachServiceFile(t, func(path string, file *ast.File) {
+	forEachApplicationFile(t, func(path string, file *ast.File) {
 		for _, declaration := range file.Decls {
 			function, ok := declaration.(*ast.FuncDecl)
 			if !ok {
 				continue
 			}
-			if _, tracked := definitions[function.Name.Name]; tracked {
-				definitions[function.Name.Name] = append(definitions[function.Name.Name], path)
+			if _, tracked := legacyDefinitions[function.Name.Name]; tracked {
+				legacyDefinitions[function.Name.Name] = append(legacyDefinitions[function.Name.Name], path)
 			}
 		}
 	})
 
-	for name, paths := range definitions {
-		require.Equalf(t, []string{filepath.Join("..", "..", "app", "services", "query_filters.go")}, paths,
-			"%s must be defined only in query_filters.go", name)
+	for name, paths := range legacyDefinitions {
+		require.Emptyf(t, paths, "%s must use shared ORM scopes instead", name)
+	}
+}
+
+func TestServiceFiltersDoNotUseManualNonEmptyConditions(t *testing.T) {
+	for _, root := range []string{
+		filepath.Join("..", "..", "app", "services"),
+		filepath.Join("..", "..", "app", "modulecatalog"),
+	} {
+		forEachGoFile(t, root, func(path string, file *ast.File) {
+			ast.Inspect(file, func(node ast.Node) bool {
+				condition, ok := node.(*ast.IfStmt)
+				if !ok || !containsManualFilterCondition(condition.Cond) {
+					return true
+				}
+				t.Errorf("%s must use app/scopes instead of a manual filters value check", path)
+				return true
+			})
+		})
 	}
 }
 
@@ -52,6 +70,17 @@ func TestServicesUseORMConnectionFactory(t *testing.T) {
 func forEachServiceFile(t *testing.T, inspect func(string, *ast.File)) {
 	t.Helper()
 	root := filepath.Join("..", "..", "app", "services")
+	forEachGoFile(t, root, inspect)
+}
+
+func forEachApplicationFile(t *testing.T, inspect func(string, *ast.File)) {
+	t.Helper()
+	root := filepath.Join("..", "..", "app")
+	forEachGoFile(t, root, inspect)
+}
+
+func forEachGoFile(t *testing.T, root string, inspect func(string, *ast.File)) {
+	t.Helper()
 	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
@@ -91,4 +120,43 @@ func containsFacadeORMCall(expression ast.Expr) bool {
 		return containsFacadeORMCall(value.X)
 	}
 	return false
+}
+
+func containsManualFilterCondition(expression ast.Expr) bool {
+	found := false
+	ast.Inspect(expression, func(node ast.Node) bool {
+		binary, ok := node.(*ast.BinaryExpr)
+		if !ok || binary.Op != token.NEQ {
+			return true
+		}
+		if (isEmptyString(binary.X) && containsFiltersIndex(binary.Y)) ||
+			(isEmptyString(binary.Y) && containsFiltersIndex(binary.X)) {
+			found = true
+			return false
+		}
+		return true
+	})
+	return found
+}
+
+func isEmptyString(expression ast.Expr) bool {
+	literal, ok := expression.(*ast.BasicLit)
+	return ok && literal.Kind == token.STRING && literal.Value == `""`
+}
+
+func containsFiltersIndex(expression ast.Expr) bool {
+	found := false
+	ast.Inspect(expression, func(node ast.Node) bool {
+		index, ok := node.(*ast.IndexExpr)
+		if !ok {
+			return true
+		}
+		identifier, ok := index.X.(*ast.Ident)
+		if ok && identifier.Name == "filters" {
+			found = true
+			return false
+		}
+		return true
+	})
+	return found
 }

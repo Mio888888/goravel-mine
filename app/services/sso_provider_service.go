@@ -10,6 +10,7 @@ import (
 
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 )
 
 const DefaultSSOScene = "admin"
@@ -90,15 +91,11 @@ func (s *SSOProviderService) orm() contractsorm.Orm {
 
 func (s *SSOProviderService) List(filters map[string]string, page, pageSize int) (request.PageResult[SSOProvider], error) {
 	query := s.orm().Query().Table("sso_provider")
-	query = applyStringFilter(query, "name", filters["name"])
-	query = applyStringFilter(query, "display_name", filters["display_name"])
-	query = applyStringFilter(query, "scene", filters["scene"])
-	if filters["type"] != "" {
-		query = query.Where("type", filters["type"])
-	}
-	if filters["enabled"] != "" {
-		query = query.Where("enabled", filters["enabled"])
-	}
+	query = query.Scopes(scopes.Contains("name", filters["name"]))
+	query = query.Scopes(scopes.Contains("display_name", filters["display_name"]))
+	query = query.Scopes(scopes.Contains("scene", filters["scene"]))
+	query = query.Scopes(scopes.EqualIfPresent("type", filters["type"]))
+	query = query.Scopes(scopes.EqualIfPresent("enabled", filters["enabled"]))
 	return request.Paginate[SSOProvider](query.OrderBy("display_order").OrderByDesc("id"), page, pageSize)
 }
 

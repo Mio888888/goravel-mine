@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"time"
 
-	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
+
+	contractsorm "github.com/goravel/framework/contracts/database/orm"
 )
 
 func (s *OrgAdminService) ListPositions(filters map[string]string, page, pageSize int) (request.PageResult[PositionRow], error) {
@@ -15,10 +17,8 @@ func (s *OrgAdminService) ListPositions(filters map[string]string, page, pageSiz
 		Join("LEFT JOIN department ON department.id = position.dept_id").
 		Join("LEFT JOIN data_permission_policy policy ON policy.position_id = position.id AND policy.deleted_at IS NULL").
 		WhereNull("position.deleted_at")
-	query = applyStringFilter(query, "position.name", filters["name"])
-	if filters["dept_id"] != "" {
-		query = query.Where("position.dept_id", filters["dept_id"])
-	}
+	query = query.Scopes(scopes.Contains("position.name", filters["name"]))
+	query = query.Scopes(scopes.EqualIfPresent("position.dept_id", filters["dept_id"]))
 	result, err := request.Paginate[PositionRow](query.OrderBy("position.id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[PositionRow]{}, err

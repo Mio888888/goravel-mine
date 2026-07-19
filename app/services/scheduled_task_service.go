@@ -9,6 +9,7 @@ import (
 
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 )
 
 const (
@@ -74,23 +75,19 @@ func (s *ScheduledTaskService) WithContext(ctx context.Context) *ScheduledTaskSe
 
 func (s *ScheduledTaskService) List(filters map[string]string, page, pageSize int) (request.PageResult[ScheduledTask], error) {
 	query := s.query().Table("scheduled_task")
-	query = applyStringFilter(query, "name", filters["name"])
-	query = applyStringFilter(query, "code", filters["code"])
-	query = equalFilter(query, "task_type", filters["task_type"])
-	if filters["status"] != "" {
-		query = query.Where("status", filters["status"])
-	}
+	query = query.Scopes(scopes.Contains("name", filters["name"]))
+	query = query.Scopes(scopes.Contains("code", filters["code"]))
+	query = query.Scopes(scopes.Equal("task_type", filters["task_type"]))
+	query = query.Scopes(scopes.EqualIfPresent("status", filters["status"]))
 	return request.Paginate[ScheduledTask](query.OrderByDesc("id"), page, pageSize)
 }
 
 func (s *ScheduledTaskService) Logs(filters map[string]string, page, pageSize int) (request.PageResult[ScheduledTaskLog], error) {
 	query := s.query().Table("scheduled_task_log")
-	query = equalFilter(query, "task_code", filters["task_code"])
-	query = equalFilter(query, "status", filters["status"])
-	query = equalFilter(query, "trigger_mode", filters["trigger_mode"])
-	if filters["task_id"] != "" {
-		query = query.Where("task_id", filters["task_id"])
-	}
+	query = query.Scopes(scopes.Equal("task_code", filters["task_code"]))
+	query = query.Scopes(scopes.Equal("status", filters["status"]))
+	query = query.Scopes(scopes.Equal("trigger_mode", filters["trigger_mode"]))
+	query = query.Scopes(scopes.EqualIfPresent("task_id", filters["task_id"]))
 	return request.Paginate[ScheduledTaskLog](query.OrderByDesc("id"), page, pageSize)
 }
 

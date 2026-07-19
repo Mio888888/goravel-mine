@@ -13,6 +13,7 @@ import (
 	"goravel/app/facades"
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 )
 
 const (
@@ -66,12 +67,10 @@ func (s *StorageConfigService) WithContext(ctx context.Context) *StorageConfigSe
 
 func (s *StorageConfigService) List(filters map[string]string, page, pageSize int) (request.PageResult[StorageConfig], error) {
 	query := s.query().Table("storage_config")
-	query = applyStringFilter(query, "name", filters["name"])
-	query = equalFilter(query, "provider", filters["provider"])
-	query = equalFilter(query, "driver", filters["driver"])
-	if filters["status"] != "" {
-		query = query.Where("status", filters["status"])
-	}
+	query = query.Scopes(scopes.Contains("name", filters["name"]))
+	query = query.Scopes(scopes.Equal("provider", filters["provider"]))
+	query = query.Scopes(scopes.Equal("driver", filters["driver"]))
+	query = query.Scopes(scopes.EqualIfPresent("status", filters["status"]))
 	result, err := request.Paginate[StorageConfig](query.OrderByDesc("is_default").OrderByDesc("id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[StorageConfig]{}, err

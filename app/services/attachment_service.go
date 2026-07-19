@@ -14,12 +14,14 @@ import (
 	"strings"
 	"time"
 
+	"goravel/app/http/request"
+	"goravel/app/models"
+	"goravel/app/scopes"
+
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	contractsfilesystem "github.com/goravel/framework/contracts/filesystem"
 	frameworkerrors "github.com/goravel/framework/errors"
 	"github.com/goravel/framework/support/path"
-	"goravel/app/http/request"
-	"goravel/app/models"
 )
 
 type AttachmentService struct {
@@ -274,12 +276,12 @@ func (s *AttachmentService) findByHash(hash string) (models.Attachment, bool, er
 }
 
 func attachmentFilters(query contractsorm.Query, filters map[string]string) contractsorm.Query {
-	query = equalFilter(query, "origin_name", filters["origin_name"])
-	query = equalFilter(query, "hash", filters["hash"])
-	query = equalFilter(query, "object_name", filters["object_name"])
-	query = equalFilter(query, "storage_path", filters["storage_path"])
-	query = equalFilter(query, "storage_mode", filters["storage_mode"])
-	query = equalFilter(query, "mime_type", filters["mime_type"])
+	query = query.Scopes(scopes.Equal("origin_name", filters["origin_name"]))
+	query = query.Scopes(scopes.Equal("hash", filters["hash"]))
+	query = query.Scopes(scopes.Equal("object_name", filters["object_name"]))
+	query = query.Scopes(scopes.Equal("storage_path", filters["storage_path"]))
+	query = query.Scopes(scopes.Equal("storage_mode", filters["storage_mode"]))
+	query = query.Scopes(scopes.Equal("mime_type", filters["mime_type"]))
 	if suffixes := splitCSV(filters["suffix"]); len(suffixes) > 0 {
 		query = query.WhereIn("suffix", stringAny(suffixes))
 	}

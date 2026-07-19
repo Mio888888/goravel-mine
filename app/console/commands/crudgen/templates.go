@@ -24,12 +24,12 @@ const repositoryTemplate = `package {{ .Module }}
 import (
 	"time"
 
-	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	"github.com/goravel/framework/support/collect"
 
 	"goravel/app/facades"
 	"goravel/app/http/request"
 	"goravel/app/models"
+	"goravel/app/scopes"
 )
 
 type {{ .StructName }}Repository struct{}
@@ -42,11 +42,9 @@ func (r *{{ .StructName }}Repository) List(filters map[string]string, page, page
 	query := facades.Orm().Query().Table("{{ .Name }}")
 {{- range .Columns }}
 {{- if .IsStringSearch }}
-	query = applyStringFilter(query, "{{ .Name }}", filters["{{ .Name }}"])
+	query = query.Scopes(scopes.ContainsFoldIfPresent("{{ .Name }}", filters["{{ .Name }}"]))
 {{- else if .IsExactSearch }}
-	if filters["{{ .Name }}"] != "" {
-		query = query.Where("{{ .Name }}", filters["{{ .Name }}"])
-	}
+	query = query.Scopes(scopes.EqualIfPresent("{{ .Name }}", filters["{{ .Name }}"]))
 {{- end }}
 {{- end }}
 
@@ -71,13 +69,6 @@ func (r *{{ .StructName }}Repository) Delete(ids []uint64) error {
 		return id
 	})).Delete()
 	return err
-}
-
-func applyStringFilter(query contractsorm.Query, column, value string) contractsorm.Query {
-	if value == "" {
-		return query
-	}
-	return query.Where(column+" ILIKE ?", "%"+value+"%")
 }
 `
 

@@ -54,9 +54,10 @@ func (s *CrudGeneratorTestSuite) TestGenerateCrudFilesFromPostgreSQLMetadata() {
 
 	repository := s.read(outputDir, "app/repositories/demo/crud_demo_item_repository.go")
 	require.Contains(s.T(), repository, "func (r *CrudDemoItemRepository) List")
-	require.Contains(s.T(), repository, "applyStringFilter(query, \"name\", filters[\"name\"])")
-	require.Contains(s.T(), repository, "if filters[\"status\"] != \"\"")
-	require.Contains(s.T(), repository, "OrderBy(\"id\", \"desc\")")
+	require.Contains(s.T(), repository, "query.Scopes(scopes.ContainsFoldIfPresent(\"name\", filters[\"name\"]))")
+	require.Contains(s.T(), repository, "query.Scopes(scopes.EqualIfPresent(\"status\", filters[\"status\"]))")
+	require.NotContains(s.T(), repository, "func applyStringFilter")
+	require.Contains(s.T(), repository, "OrderByDesc(\"id\")")
 
 	requestFile := s.read(outputDir, "app/http/request/demo/crud_demo_item_request.go")
 	require.Contains(s.T(), requestFile, "type CrudDemoItemPayload struct")
