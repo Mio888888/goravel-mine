@@ -10,7 +10,6 @@ backups
 storage
 tmp
 artifacts/
-MineAdmin
 MineAdmin-web/node_modules
 MineAdmin-web/dist*
 MineAdmin-web/dist-ssr
@@ -24,6 +23,6 @@ pnpm-lock.yaml
 MineAdmin-web/types/auto-imports.d.ts
 MineAdmin-web/types/components.d.ts
 MineAdmin-web/tests/e2e/.output/*
-docs/zh_CN
-docs/front
-docs/superpowers/
+docs/docs-master
+.agents
+.codex
