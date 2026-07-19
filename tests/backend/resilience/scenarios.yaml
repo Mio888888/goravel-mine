@@ -1,0 +1,74 @@
+schema: resilience-scenarios/v1
+scenarios:
+  - name: multi-tenant-connection-scale
+    profiles: [quick, soak]
+    setup: tests/backend/resilience/scripts/require-ephemeral.sh
+    action: tests/backend/resilience/scripts/multi-tenant-load.sh
+    assertions: tests/backend/resilience/scripts/assert-slo.sh multi-tenant
+    cleanup: tests/backend/resilience/scripts/cleanup.sh multi-tenant
+    timeout: 30m
+    thresholds: { http_5xx_ratio: 0.005, p95_seconds: 1, p99_seconds: 2.5, db_in_use_ratio: 0.8 }
+    evidence: [artifacts/resilience/multi-tenant.json]
+  - name: casbin-large-policy
+    profiles: [quick, soak]
+    setup: tests/backend/resilience/scripts/require-ephemeral.sh
+    action: tests/backend/resilience/scripts/casbin-large-policy.sh
+    assertions: tests/backend/resilience/scripts/assert-slo.sh casbin
+    cleanup: tests/backend/resilience/scripts/cleanup.sh casbin
+    timeout: 30m
+    thresholds: { http_5xx_ratio: 0.005, p95_seconds: 1, p99_seconds: 2.5 }
+    evidence: [artifacts/resilience/casbin.json]
+  - name: redis-short-outage
+    profiles: [quick, soak]
+    setup: tests/backend/resilience/scripts/require-ephemeral.sh
+    action: tests/backend/resilience/scripts/redis-failure.sh
+    assertions: tests/backend/resilience/scripts/assert-slo.sh redis
+    cleanup: tests/backend/resilience/scripts/cleanup.sh redis
+    timeout: 20m
+    thresholds: { recovery_seconds: 120, duplicate_side_effects: 0, failed_jobs: 0 }
+    evidence: [artifacts/resilience/redis.json]
+  - name: queue-backlog
+    profiles: [quick, soak]
+    setup: tests/backend/resilience/scripts/require-ephemeral.sh
+    action: tests/backend/resilience/scripts/queue-backlog.sh
+    assertions: tests/backend/resilience/scripts/assert-slo.sh queue
+    cleanup: tests/backend/resilience/scripts/cleanup.sh queue
+    timeout: 30m
+    thresholds: { critical_age_seconds: 60, default_age_seconds: 300, failed_jobs: 0 }
+    evidence: [artifacts/resilience/queue.json]
+  - name: db-pool-exhaustion
+    profiles: [quick, soak]
+    setup: tests/backend/resilience/scripts/require-ephemeral.sh
+    action: tests/backend/resilience/scripts/db-pool-exhaustion.sh
+    assertions: tests/backend/resilience/scripts/assert-slo.sh db-pool
+    cleanup: tests/backend/resilience/scripts/cleanup.sh db-pool
+    timeout: 20m
+    thresholds: { db_in_use_ratio: 0.8, wait_alert_fired: 1, recovery_seconds: 120 }
+    evidence: [artifacts/resilience/db-pool.json]
+  - name: concurrent-migration
+    profiles: [quick, soak]
+    setup: tests/backend/resilience/scripts/require-ephemeral.sh
+    action: tests/backend/resilience/scripts/migration-contention.sh
+    assertions: tests/backend/resilience/scripts/assert-slo.sh migration
+    cleanup: tests/backend/resilience/scripts/cleanup.sh migration
+    timeout: 20m
+    thresholds: { lock_winners: 1, migration_errors: 0 }
+    evidence: [artifacts/resilience/migration.json]
+  - name: eight-hour-soak
+    profiles: [soak]
+    setup: tests/backend/resilience/scripts/require-ephemeral.sh
+    action: tests/backend/resilience/scripts/soak.sh
+    assertions: tests/backend/resilience/scripts/assert-slo.sh soak
+    cleanup: tests/backend/resilience/scripts/cleanup.sh soak
+    timeout: 9h
+    thresholds: { duration_seconds: 28800, goroutine_growth_ratio: 0.1, heap_growth_ratio: 0.1, connection_growth_ratio: 0.1 }
+    evidence: [artifacts/resilience/soak.json]
+  - name: restore-rto-rpo
+    profiles: [quick, soak]
+    setup: tests/backend/resilience/scripts/require-ephemeral.sh
+    action: tests/backend/resilience/scripts/restore-rto-rpo.sh
+    assertions: tests/backend/resilience/scripts/assert-slo.sh restore
+    cleanup: tests/backend/resilience/scripts/cleanup.sh restore
+    timeout: 60m
+    thresholds: { rto_seconds: 1800, rpo_seconds: 86400 }
+    evidence: [artifacts/resilience/restore.json]

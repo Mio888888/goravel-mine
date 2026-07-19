@@ -63,7 +63,7 @@
 
 ### 防回退约束
 
-`tests/unit/framework_reuse_contract_test.go` 增加静态架构测试：
+`tests/backend/unit/framework_reuse_contract_test.go` 增加静态架构测试：
 
 - 查询过滤器统一使用 `app/scopes`。
 - 服务层不得直接调用 `facades.Orm().Connection()`。
@@ -73,6 +73,10 @@
 - 可复用模块必须归入 `access`、`platform`、`runtime`、`tenancy` 能力组，
   能力组根目录不得直接堆放实现文件。
 - 跨模块应用编排只能放在固定的七个领域文件中。
+
+`tests/backend/unit/test_layout_contract_test.go` 约束所有后端测试、夹具与工具只能
+位于 `tests/backend`，前端测试只能位于 `MineAdmin-web/tests`，并检查 CI 必须
+通过集中测试入口加载白盒测试 overlay。
 
 ### JWT 公共内核
 

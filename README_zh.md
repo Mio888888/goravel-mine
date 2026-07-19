@@ -68,7 +68,7 @@ docker compose --env-file .env.production -f docker-compose.prod.yml up -d --bui
 ### 常用验证
 
 ```bash
-go test ./...
+tests/backend/test.sh ./...
 go run . artisan migrate
 go run . artisan db:seed
 go run . artisan make:module audit-log

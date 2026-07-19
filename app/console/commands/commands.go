@@ -8,14 +8,12 @@ import (
 	modulecommands "goravel/app/console/commands/module"
 	securitycommands "goravel/app/console/commands/security"
 	tenantcommands "goravel/app/console/commands/tenant"
-	"goravel/app/console/commands/testsupport"
 )
 
 func All() []console.Command {
 	groups := [][]console.Command{
 		generator.Commands(),
 		migration.Commands(),
-		testsupport.Commands(),
 		tenantcommands.Commands(),
 		securitycommands.Commands(),
 		modulecommands.Commands(),

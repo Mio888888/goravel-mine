@@ -103,8 +103,8 @@ func (m Module) OpenAPIFiles() []string {
 
 func (m Module) TestTemplates() []string {
 	return []string{
-		"tests/feature/admin/scheduled_task_test.go",
-		"tests/unit/scheduled_task_cron_test.go",
-		"tests/unit/scheduled_task_runner_test.go",
+		"tests/backend/feature/admin/scheduled_task_test.go",
+		"tests/backend/unit/scheduled_task_cron_test.go",
+		"tests/backend/unit/scheduled_task_runner_test.go",
 	}
 }

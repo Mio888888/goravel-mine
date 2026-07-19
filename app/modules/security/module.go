@@ -186,7 +186,7 @@ func (m Module) OpenAPIFiles() []string {
 
 func (m Module) TestTemplates() []string {
 	return []string{
-		"tests/feature/admin/sso_provider_test.go",
-		"tests/feature/admin/passport_test.go",
+		"tests/backend/feature/admin/sso_provider_test.go",
+		"tests/backend/feature/admin/passport_test.go",
 	}
 }

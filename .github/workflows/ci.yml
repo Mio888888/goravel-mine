@@ -89,10 +89,10 @@ jobs:
         run: |
           mkdir -p artifacts/backend-tests
           set +e
-          go test -json -p 1 -timeout 30m ./... > artifacts/backend-tests/go-test.json
+          tests/backend/test.sh -json -p 1 -timeout 30m ./... > artifacts/backend-tests/go-test.json
           test_exit=$?
           set -e
-          ruby scripts/report-go-test-failures.rb artifacts/backend-tests/go-test.json
+          ruby tests/backend/tools/report-go-test-failures.rb artifacts/backend-tests/go-test.json
           exit "$test_exit"
 
       - name: Upload backend test log
@@ -140,7 +140,7 @@ jobs:
         working-directory: MineAdmin-web
 
       - name: Check OpenAPI against docs and routes
-        run: go test ./tests/unit -run AdminOpenAPI
+        run: tests/backend/test.sh ./tests/backend/unit -run AdminOpenAPI
 
       - name: Check module manifest
         run: scripts/verify-module-manifest.sh
@@ -279,7 +279,7 @@ jobs:
         run: bash scripts/ci-verify-deployments.sh
 
       - name: Verify immutable backup contract
-        run: bash tests/release/backup_contract_test.sh
+        run: bash tests/backend/release/backup_contract_test.sh
 
       - name: Upload deployment render artifacts
         if: always()
@@ -364,7 +364,7 @@ jobs:
           exit 1
 
       - name: Run controlled OIDC integration gate
-        run: bash scripts/run-oidc-e2e.sh
+        run: bash MineAdmin-web/tests/run-oidc-e2e.sh
 
       - name: Upload OIDC integration artifacts
         if: always()

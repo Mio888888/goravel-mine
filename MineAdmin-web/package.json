@@ -18,10 +18,10 @@
     "lint:tsc": "vue-tsc --noEmit",
     "lint:eslint": "eslint . --cache --fix",
     "lint:stylelint": "stylelint \"src/**/*.{css,scss,vue}\" --cache --fix",
-    "test:e2e": "playwright test --config=playwright.config.ts",
-    "test:e2e:stable:local": "esno scripts/repeat-e2e.mts --gate=local --iterations=20 --project=chromium --workers=4",
-    "test:e2e:stable:ci": "esno scripts/repeat-e2e.mts --gate=ci --iterations=10 --project=chromium --workers=1",
-    "test:e2e:stable:matrix": "esno scripts/repeat-e2e.mts --gate=matrix --iterations=10 --project=firefox-enterprise --project=webkit-enterprise --project=mobile-chromium-enterprise --workers=1 --spec=tests/e2e/enterprise-matrix.spec.ts"
+    "test:e2e": "playwright test --config=tests/config/playwright.config.ts",
+    "test:e2e:stable:local": "esno tests/tools/repeat-e2e.mts --gate=local --iterations=20 --project=chromium --workers=4",
+    "test:e2e:stable:ci": "esno tests/tools/repeat-e2e.mts --gate=ci --iterations=10 --project=chromium --workers=1",
+    "test:e2e:stable:matrix": "esno tests/tools/repeat-e2e.mts --gate=matrix --iterations=10 --project=firefox-enterprise --project=webkit-enterprise --project=mobile-chromium-enterprise --workers=1 --spec=tests/e2e/enterprise-matrix.spec.ts"
   },
   "dependencies": {
     "@imengyu/vue3-context-menu": "^1.5.4",

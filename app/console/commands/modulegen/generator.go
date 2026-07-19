@@ -92,7 +92,7 @@ func renderFiles(data moduleData) ([]generatedFile, error) {
 		{path: "app/modules/" + data.PackageName + "/service.go", content: serviceTemplate, goFile: true},
 		{path: "docs/api-contract/openapi/" + data.Slug + ".openapi.json", content: openAPITemplate},
 		{path: "docs/framework/modules/" + data.Slug + "/README.md", content: moduleReadmeTemplate},
-		{path: "tests/feature/admin/" + data.Snake + "_test.go", content: testTemplate, goFile: true},
+		{path: "tests/backend/feature/admin/" + data.Snake + "_test.go", content: testTemplate, goFile: true},
 		{path: "MineAdmin-web/src/modules/" + data.Slug + "/api/index.ts", content: frontendAPITemplate},
 		{path: "MineAdmin-web/src/modules/" + data.Slug + "/manifest.ts", content: frontendManifestTemplate},
 		{path: "MineAdmin-web/src/modules/" + data.Slug + "/locales/zh_CN.yaml", content: frontendLocaleTemplate},
@@ -218,7 +218,7 @@ func (m Module) Metadata() modules.Metadata {
 			"MineAdmin-web/src/modules/{{.Slug}}/types/index.ts",
 		},
 		TestFiles: []string{
-			"tests/feature/admin/{{.Snake}}_test.go",
+			"tests/backend/feature/admin/{{.Snake}}_test.go",
 			"MineAdmin-web/tests/e2e/{{.Slug}}.spec.ts",
 		},
 	}
@@ -340,7 +340,7 @@ func (m Module) OpenAPIFiles() []string {
 }
 
 func (m Module) TestTemplates() []string {
-	return []string{"tests/feature/admin/{{.Snake}}_test.go"}
+	return []string{"tests/backend/feature/admin/{{.Snake}}_test.go"}
 }
 
 func list(ctx contractshttp.Context) contractshttp.Response {
@@ -722,7 +722,7 @@ import (
 	"goravel/app/modules"
 	"goravel/app/modules/{{.PackageName}}"
 	"goravel/app/services"
-	"goravel/tests"
+	"goravel/tests/backend/testcase"
 )
 
 type {{.Pascal}}ModuleTestSuite struct {
@@ -920,7 +920,7 @@ go run . artisan module:manifest:check --artifacts --frontend
 
 - Backend module: ` + "`app/modules/{{.PackageName}}/module.go`" + `
 - OpenAPI fragment: ` + "`docs/api-contract/openapi/{{.Slug}}.openapi.json`" + `
-- Feature test: ` + "`tests/feature/admin/{{.Snake}}_test.go`" + `
+- Feature test: ` + "`tests/backend/feature/admin/{{.Snake}}_test.go`" + `
 - Frontend module: ` + "`MineAdmin-web/src/modules/{{.Slug}}`" + `
 - E2E skeleton: ` + "`MineAdmin-web/tests/e2e/{{.Slug}}.spec.ts`" + `
 `

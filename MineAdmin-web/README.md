@@ -114,12 +114,17 @@ d:/other/MineAdmin-Vue/
 ├── eslint.config.js           # ESLint 配置
 ├── index.html                 # 入口 HTML（含加载动画）
 ├── package.json               # 项目依赖与脚本
-├── playwright.config.ts       # E2E 测试配置
 ├── postcss.config.js          # PostCSS 配置
 ├── tsconfig.json              # TypeScript 主配置
 ├── tsconfig.node.json         # Node 端 TypeScript 配置
 ├── uno.config.ts              # UnoCSS 原子化 CSS 引擎配置
 ├── vite.config.ts             # Vite 构建工具主配置
+│
+├── tests/                     # 前端测试统一目录
+│   ├── config/                # Playwright 配置
+│   ├── e2e/                   # E2E 用例与辅助代码
+│   ├── tools/                 # 稳定性测试工具
+│   └── run-oidc-e2e.sh        # 受控 OIDC 集成入口
 │
 ├── vite/                      # Vite 插件集合目录
 │   ├── index.ts               # 插件注册入口

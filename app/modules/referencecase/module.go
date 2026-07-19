@@ -85,7 +85,7 @@ func (m Module) OpenAPIFiles() []string {
 
 func (m Module) TestTemplates() []string {
 	return []string{
-		"tests/feature/admin/reference_case_test.go",
+		"tests/backend/feature/admin/reference_case_test.go",
 		"MineAdmin-web/tests/e2e/reference-case.spec.ts",
 	}
 }

@@ -420,7 +420,7 @@ kubectl -n goravel-mine create job --from=cronjob/goravel-mine-postgres-backup b
 ## 验证清单
 
 ```bash
-go test ./...
+tests/backend/test.sh ./...
 docker compose --env-file .env.production -f docker-compose.prod.yml config
 scripts/verify-deploy-manifests.sh
 ```

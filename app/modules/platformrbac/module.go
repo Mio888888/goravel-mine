@@ -125,7 +125,7 @@ func (m Module) OpenAPIFiles() []string {
 
 func (m Module) TestTemplates() []string {
 	return []string{
-		"tests/feature/admin/platform_rbac_test.go",
-		"tests/feature/admin/platform_bootstrap_test.go",
+		"tests/backend/feature/admin/platform_rbac_test.go",
+		"tests/backend/feature/admin/platform_bootstrap_test.go",
 	}
 }

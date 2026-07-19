@@ -13,6 +13,7 @@
     "package.json",
     "vite.config.ts",
     "vite/**/*.ts",
-    "playwright.config.ts"
+    "tests/config/*.ts",
+    "tests/tools/*.mts"
   ]
 }

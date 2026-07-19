@@ -88,7 +88,7 @@ func (m Module) OpenAPIFiles() []string {
 
 func (m Module) TestTemplates() []string {
 	return []string{
-		"tests/unit/observability_test.go",
-		"tests/feature/observability_test.go",
+		"tests/backend/unit/observability_test.go",
+		"tests/backend/feature/observability_test.go",
 	}
 }

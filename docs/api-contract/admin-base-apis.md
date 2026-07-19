@@ -7,7 +7,7 @@
 机器可验证契约：
 
 - OpenAPI 3.1: `docs/api-contract/openapi/admin-base-apis.openapi.json`
-- 契约测试：`go test ./tests/unit -run AdminOpenAPI`
+- 契约测试：`tests/backend/test.sh ./tests/backend/unit -run AdminOpenAPI`
 - TypeScript SDK 生成：`cd MineAdmin-web && yarn gen:openapi`
 - TypeScript SDK 漂移校验：`cd MineAdmin-web && yarn contract:openapi`
 

@@ -1,0 +1,24 @@
+{
+  "schema_version": "v1",
+  "modules": [
+    {
+      "id": "core",
+      "version": "1.0.0",
+      "source_kind": "internal",
+      "source_uri": "tests/backend/fixtures/moduleadmission/source.valid.txt",
+      "digest": "sha256:6cefb5f95d2015b86ca01db1bba98bd5f2b5ab7d02cd5251ea069232ebd20af4",
+      "go_import_path": "goravel/app/modules/core"
+    },
+    {
+      "id": "reporting",
+      "version": "1.0.0",
+      "source_kind": "internal",
+      "source_uri": "tests/backend/fixtures/moduleadmission/source.valid.txt",
+      "digest": "sha256:6cefb5f95d2015b86ca01db1bba98bd5f2b5ab7d02cd5251ea069232ebd20af4",
+      "go_import_path": "goravel/app/modules/reporting",
+      "dependencies": [
+        {"id": "core", "version_constraint": "1.0.0", "required": true}
+      ]
+    }
+  ]
+}

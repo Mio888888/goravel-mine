@@ -11,7 +11,7 @@ Quick profile runs multi-tenant scale, large Casbin policy, Redis outage, queue 
 ```bash
 RESILIENCE_ENVIRONMENT=ephemeral \
 RESILIENCE_TARGET_URL=https://staging.example.test \
-bash scripts/run-resilience-suite.sh --profile=quick
+bash tests/backend/resilience/run.sh --profile=quick
 ```
 
 The canonical output is `artifacts/resilience/resilience-report.json` using `resilience-report/v1`. Missing, stale, synthetic, or threshold-free evidence fails the suite.
