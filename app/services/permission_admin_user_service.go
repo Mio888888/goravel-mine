@@ -25,26 +25,20 @@ func (s *PermissionAdminService) ListUsers(filters map[string]string, page, page
 		query = query.Where("status", filters["status"])
 	}
 
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[UserRow]{}, err
-	}
-
-	users := make([]UserRow, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&users)
+	result, err := request.Paginate[UserRow](query.OrderByDesc("id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[UserRow]{}, err
 	}
 	passport := (&PassportService{connection: s.connection}).WithContext(s.ctx)
-	for i := range users {
-		roles, err := passport.UserRoles(users[i].ID)
+	for i := range result.List {
+		roles, err := passport.UserRoles(result.List[i].ID)
 		if err != nil {
 			return request.PageResult[UserRow]{}, err
 		}
-		users[i].Roles = roles
+		result.List[i].Roles = roles
 	}
 
-	return request.PageResult[UserRow]{List: users, Total: total}, nil
+	return result, nil
 }
 
 func (s *PermissionAdminService) CreateUser(input UserPayload, operatorID uint64) error {

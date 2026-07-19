@@ -69,7 +69,8 @@ zh_TW:
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import type { FileType, Resource, ResourcePanelProps } from './type.ts'
-import { deleteById } from '~/base/api/attachment.ts'
+import type { AttachmentVo } from '~/base/api/attachment.ts'
+import { deleteById, pageList } from '~/base/api/attachment.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
 
 import { useImageViewer } from '@/hooks/useImageViewer.ts'
@@ -142,15 +143,18 @@ const queryParams = ref<Record<string, any>>({
   suffix: [],
 })
 
-async function getResourceList(params: Resource = {}) {
+async function getResourceList(params: AttachmentVo = {}) {
   loading.value = true
-  const { data } = await useHttp().get(
-    '/admin/attachment/list',
-    { params: Object.assign({ page_size: queryParams.value.page_size, page: queryParams.value.page }, params) },
-  )
-  total.value = data.total
-  resources.value = data.list
-  loading.value = false
+  try {
+    const { data } = await pageList(
+      Object.assign({ page_size: queryParams.value.page_size, page: queryParams.value.page }, params),
+    )
+    total.value = data.total
+    resources.value = data.list as Resource[]
+  }
+  finally {
+    loading.value = false
+  }
 }
 
 // 监听v-model变化，更新selectedKeys

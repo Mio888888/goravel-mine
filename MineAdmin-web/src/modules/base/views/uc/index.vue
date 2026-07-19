@@ -73,7 +73,6 @@ import UcModifyInfo from './components/modify-info.vue'
 import UcTitle from './components/title.vue'
 import { useMessage } from '@/hooks/useMessage.ts'
 import type { OperationRequest } from '@/generated/admin-api'
-import { operations } from '@/generated/admin-api'
 
 const modalRef = ref()
 const selected = ref('profile')
@@ -99,15 +98,9 @@ const showFields = reactive({
   login_time: t('userinfo.loginTime'),
 })
 
-function permissionUpdatePath() {
-  return userStore.authScope === 'platform'
-    ? operations.adminPlatformPermissionUpdate.path
-    : operations.adminPermissionUpdate.path
-}
-
 watch(avatar, async (val: string | undefined) => {
   const payload: OperationRequest<'adminPermissionUpdate'> = { avatar: val ?? '' }
-  const response: any = await useHttp().post(permissionUpdatePath(), payload)
+  const response: any = await userStore.updateUserInfo(payload)
   if (response.code === 200) {
     msg.success(globalTrans('crud.updateSuccess'))
     const userInfo = userStore.getUserInfo()

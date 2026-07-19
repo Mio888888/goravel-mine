@@ -167,12 +167,6 @@ func (p TenantPayload) Tenant() Tenant {
 }
 
 func (s *TenantService) List(filters map[string]string, page, pageSize int) (request.PageResult[Tenant], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query := s.orm().
 		Query().
 		Table("tenant")
@@ -182,17 +176,7 @@ func (s *TenantService) List(filters map[string]string, page, pageSize int) (req
 	if filters["status"] != "" {
 		query = query.Where("status", filters["status"])
 	}
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[Tenant]{}, err
-	}
-	tenants := make([]Tenant, 0)
-	err = query.
-		OrderByDesc("id").
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Get(&tenants)
-	return request.PageResult[Tenant]{List: tenants, Total: total}, err
+	return request.Paginate[Tenant](query.OrderByDesc("id"), page, pageSize)
 }
 
 func (s *TenantService) Create(input TenantPayload) (Tenant, error) {

@@ -49,17 +49,7 @@ func (r *{{ .StructName }}Repository) List(filters map[string]string, page, page
 {{- end }}
 {{- end }}
 
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[models.{{ .StructName }}]{}, err
-	}
-
-	rows := make([]models.{{ .StructName }}, 0)
-	err = query.OrderBy("id", "desc").Offset((page - 1) * pageSize).Limit(pageSize).Get(&rows)
-	if err != nil {
-		return request.PageResult[models.{{ .StructName }}]{}, err
-	}
-	return request.PageResult[models.{{ .StructName }}]{List: rows, Total: total}, nil
+	return request.Paginate[models.{{ .StructName }}](query.OrderByDesc("id"), page, pageSize)
 }
 
 func (r *{{ .StructName }}Repository) Create(row *models.{{ .StructName }}) error {

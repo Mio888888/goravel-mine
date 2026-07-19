@@ -35,16 +35,17 @@ func (q adminListQuery[TRecord, TDTO]) page(
 	ctx context.Context,
 	requestValue adminPageRequest,
 ) (request.PageResult[TDTO], error) {
-	page, pageSize := normalizeAdminPage(requestValue.Page, requestValue.PageSize)
 	dbQuery := facades.Orm().WithContext(contextOrBackground(ctx)).Query().Table(q.spec.table)
 	dbQuery = q.applyFilters(dbQuery, requestValue.Filters)
-	total, err := dbQuery.Count()
+	result, err := request.Paginate[TRecord](
+		dbQuery.OrderByDesc(q.spec.orderBy),
+		requestValue.Page,
+		requestValue.PageSize,
+	)
 	if err != nil {
 		return request.PageResult[TDTO]{}, err
 	}
-	records := make([]TRecord, 0)
-	err = dbQuery.OrderByDesc(q.spec.orderBy).Offset((page - 1) * pageSize).Limit(pageSize).Get(&records)
-	return request.PageResult[TDTO]{List: mapSlice(records, q.mapper), Total: total}, err
+	return request.PageResult[TDTO]{List: mapSlice(result.List, q.mapper), Total: result.Total}, nil
 }
 
 func (q adminListQuery[TRecord, TDTO]) applyFilters(
@@ -55,16 +56,6 @@ func (q adminListQuery[TRecord, TDTO]) applyFilters(
 		dbQuery = adminEqualFilter(dbQuery, item.column, filters[item.filter])
 	}
 	return dbQuery
-}
-
-func normalizeAdminPage(page, pageSize int) (int, int) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
-	return page, pageSize
 }
 
 func adminEqualFilter(query contractsorm.Query, column string, value string) contractsorm.Query {

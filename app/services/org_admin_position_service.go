@@ -19,21 +19,19 @@ func (s *OrgAdminService) ListPositions(filters map[string]string, page, pageSiz
 	if filters["dept_id"] != "" {
 		query = query.Where("position.dept_id", filters["dept_id"])
 	}
-	total, err := query.Count()
+	result, err := request.Paginate[PositionRow](query.OrderBy("position.id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[PositionRow]{}, err
 	}
-	rows := make([]PositionRow, 0)
-	err = query.OrderBy("position.id").Offset((page - 1) * pageSize).Limit(pageSize).Scan(&rows)
-	for i := range rows {
-		if rows[i].PolicyType != "" {
-			rows[i].Policy = &PositionPolicy{
-				PolicyType: rows[i].PolicyType,
-				Value:      rows[i].Value,
+	for i := range result.List {
+		if result.List[i].PolicyType != "" {
+			result.List[i].Policy = &PositionPolicy{
+				PolicyType: result.List[i].PolicyType,
+				Value:      result.List[i].Value,
 			}
 		}
 	}
-	return request.PageResult[PositionRow]{List: rows, Total: total}, err
+	return result, nil
 }
 
 func (s *OrgAdminService) CreatePosition(input PositionPayload) error {

@@ -7,10 +7,10 @@
  * @Author X.Mo<root@imoi.cn>
  * @Link   https://github.com/mineadmin
  */
-import type { ResponseStruct } from '#/global'
+import type { PageList, ResponseStruct } from '#/global'
 import type { OperationParams, OperationRequest } from '@/generated/admin-api'
 
-export interface AttachmentVo extends Partial<OperationParams<'adminAttachmentList'>> {
+export interface AttachmentVo extends Omit<Partial<OperationParams<'adminAttachmentList'>>, 'suffix'> {
   id?: number
   storage_mode?: string
   storage_config_id?: number
@@ -19,7 +19,7 @@ export interface AttachmentVo extends Partial<OperationParams<'adminAttachmentLi
   hash?: string
   mime_type?: string
   storage_path?: string
-  suffix?: string
+  suffix?: string | string[]
   size_byte?: number
   size_info?: string
   url?: string
@@ -33,7 +33,7 @@ export function upload(file: File): Promise<ResponseStruct<AttachmentVo>> {
   return useHttp().post('/admin/attachment/upload', formData)
 }
 
-export function pageList(params: AttachmentVo): Promise<ResponseStruct<AttachmentVo[]>> {
+export function pageList(params: AttachmentVo): Promise<ResponseStruct<PageList<AttachmentVo>>> {
   return useHttp().get('/admin/attachment/list', { params })
 }
 

@@ -45,26 +45,20 @@ func (s *PlatformPermissionAdminService) ListUsers(filters map[string]string, pa
 		query = query.Where("status", filters["status"])
 	}
 
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[UserRow]{}, err
-	}
-
-	users := make([]UserRow, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&users)
+	result, err := request.Paginate[UserRow](query.OrderByDesc("id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[UserRow]{}, err
 	}
 	passport := NewPlatformPassportService().WithContext(s.ctx)
-	for i := range users {
-		roles, err := passport.UserRoles(users[i].ID)
+	for i := range result.List {
+		roles, err := passport.UserRoles(result.List[i].ID)
 		if err != nil {
 			return request.PageResult[UserRow]{}, err
 		}
-		users[i].Roles = roles
+		result.List[i].Roles = roles
 	}
 
-	return request.PageResult[UserRow]{List: users, Total: total}, nil
+	return result, nil
 }
 
 func (s *PlatformPermissionAdminService) CreateUser(input UserPayload, operatorID uint64) error {
@@ -264,18 +258,12 @@ func (s *PlatformPermissionAdminService) ListRoles(filters map[string]string, pa
 		query = query.Where("status", filters["status"])
 	}
 
-	total, err := query.Count()
+	result, err := request.Paginate[models.Role](query.OrderBy("sort").OrderBy("id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[models.Role]{}, err
 	}
 
-	roles := make([]models.Role, 0)
-	err = query.OrderBy("sort").OrderBy("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&roles)
-	if err != nil {
-		return request.PageResult[models.Role]{}, err
-	}
-
-	return request.PageResult[models.Role]{List: roles, Total: total}, nil
+	return result, nil
 }
 
 func (s *PlatformPermissionAdminService) CreateRole(input RolePayload, operatorID uint64) error {

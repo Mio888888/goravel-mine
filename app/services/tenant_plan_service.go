@@ -63,25 +63,13 @@ func (p TenantPlanPayload) TenantPlan() TenantPlan {
 }
 
 func (s *TenantPlanService) List(filters map[string]string, page, pageSize int) (request.PageResult[TenantPlan], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query := s.orm().Query().Table("tenant_plan")
 	query = applyTenantStringFilter(query, "code", filters["code"])
 	query = applyTenantStringFilter(query, "name", filters["name"])
 	if filters["status"] != "" {
 		query = query.Where("status", filters["status"])
 	}
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[TenantPlan]{}, err
-	}
-	plans := make([]TenantPlan, 0)
-	err = query.OrderBy("sort").OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&plans)
-	return request.PageResult[TenantPlan]{List: plans, Total: total}, err
+	return request.Paginate[TenantPlan](query.OrderBy("sort").OrderByDesc("id"), page, pageSize)
 }
 
 func (s *TenantPlanService) Options() ([]TenantPlan, error) {

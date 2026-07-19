@@ -65,12 +65,6 @@ func (s *StorageConfigService) WithContext(ctx context.Context) *StorageConfigSe
 }
 
 func (s *StorageConfigService) List(filters map[string]string, page, pageSize int) (request.PageResult[StorageConfig], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query := s.query().Table("storage_config")
 	query = applyStringFilter(query, "name", filters["name"])
 	query = equalFilter(query, "provider", filters["provider"])
@@ -78,14 +72,12 @@ func (s *StorageConfigService) List(filters map[string]string, page, pageSize in
 	if filters["status"] != "" {
 		query = query.Where("status", filters["status"])
 	}
-	total, err := query.Count()
+	result, err := request.Paginate[StorageConfig](query.OrderByDesc("is_default").OrderByDesc("id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[StorageConfig]{}, err
 	}
-	rows := make([]StorageConfig, 0)
-	err = query.OrderByDesc("is_default").OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&rows)
-	s.hideSecrets(rows)
-	return request.PageResult[StorageConfig]{List: rows, Total: total}, err
+	s.hideSecrets(result.List)
+	return result, nil
 }
 
 func (s *StorageConfigService) ActiveDefault() (StorageConfig, error) {

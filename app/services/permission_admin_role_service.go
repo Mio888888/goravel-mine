@@ -16,18 +16,7 @@ func (s *PermissionAdminService) ListRoles(filters map[string]string, page, page
 		query = query.Where("status", filters["status"])
 	}
 
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[models.Role]{}, err
-	}
-
-	roles := make([]models.Role, 0)
-	err = query.OrderBy("sort").OrderBy("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&roles)
-	if err != nil {
-		return request.PageResult[models.Role]{}, err
-	}
-
-	return request.PageResult[models.Role]{List: roles, Total: total}, nil
+	return request.Paginate[models.Role](query.OrderBy("sort").OrderBy("id"), page, pageSize)
 }
 
 func (s *PermissionAdminService) CreateRole(input RolePayload, operatorID uint64) error {

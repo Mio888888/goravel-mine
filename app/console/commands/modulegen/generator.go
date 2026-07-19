@@ -485,12 +485,6 @@ func (r *Repository) query() (contractsorm.Query, error) {
 }
 
 func (r *Repository) List(name string, page int, pageSize int) (request.PageResult[{{.Pascal}}], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query, err := r.query()
 	if err != nil {
 		return request.PageResult[{{.Pascal}}]{}, err
@@ -498,13 +492,7 @@ func (r *Repository) List(name string, page int, pageSize int) (request.PageResu
 	if name = strings.TrimSpace(name); name != "" {
 		query = query.Where("name LIKE ?", "%"+name+"%")
 	}
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[{{.Pascal}}]{}, err
-	}
-	items := make([]{{.Pascal}}, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&items)
-	return request.PageResult[{{.Pascal}}]{List: items, Total: total}, err
+	return request.Paginate[{{.Pascal}}](query.OrderByDesc("id"), page, pageSize)
 }
 
 func (r *Repository) Create(item {{.Pascal}}) ({{.Pascal}}, error) {

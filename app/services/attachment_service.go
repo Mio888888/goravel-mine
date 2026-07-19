@@ -119,13 +119,7 @@ func (s *AttachmentService) ensureStorageQuota(addBytes int64) error {
 
 func (s *AttachmentService) List(filters map[string]string, page, pageSize int) (request.PageResult[models.Attachment], error) {
 	query := attachmentFilters(s.orm().Query().Table("attachment"), filters)
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[models.Attachment]{}, err
-	}
-	attachments := make([]models.Attachment, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&attachments)
-	return request.PageResult[models.Attachment]{List: attachments, Total: total}, err
+	return request.Paginate[models.Attachment](query.OrderByDesc("id"), page, pageSize)
 }
 
 func (s *AttachmentService) Delete(id uint64) error {

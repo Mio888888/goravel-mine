@@ -68,12 +68,6 @@ func (p ReferenceCasePayload) ReferenceCase() ReferenceCase {
 }
 
 func (s *ReferenceCaseService) List(filters map[string]string, page, pageSize int) (request.PageResult[ReferenceCase], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query := s.orm().Query().Table("reference_case")
 	query = applyTenantStringFilter(query, "code", filters["code"])
 	query = applyTenantStringFilter(query, "title", filters["title"])
@@ -82,13 +76,7 @@ func (s *ReferenceCaseService) List(filters map[string]string, page, pageSize in
 		query = query.Where("status", filters["status"])
 	}
 
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[ReferenceCase]{}, err
-	}
-	items := make([]ReferenceCase, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&items)
-	return request.PageResult[ReferenceCase]{List: items, Total: total}, err
+	return request.Paginate[ReferenceCase](query.OrderByDesc("id"), page, pageSize)
 }
 
 func (s *ReferenceCaseService) Create(input ReferenceCasePayload) (ReferenceCase, error) {

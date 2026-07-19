@@ -74,34 +74,20 @@ func (s *LogAdminService) orm() contractsorm.Orm {
 
 func (s *LogAdminService) ListLoginLogs(filters map[string]string, page, pageSize int) (request.PageResult[LoginLogRow], error) {
 	query := loginLogFilters(s.orm().Query().Table("user_login_log"), filters)
-	total, err := query.Count()
+	result, err := request.Paginate[models.UserLoginLog](query.OrderByDesc("id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[LoginLogRow]{}, err
 	}
-
-	logs := make([]models.UserLoginLog, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&logs)
-	if err != nil {
-		return request.PageResult[LoginLogRow]{}, err
-	}
-
-	return request.PageResult[LoginLogRow]{List: loginLogRows(logs), Total: total}, nil
+	return request.PageResult[LoginLogRow]{List: loginLogRows(result.List), Total: result.Total}, nil
 }
 
 func (s *LogAdminService) ListOperationLogs(filters map[string]string, page, pageSize int) (request.PageResult[OperationLogRow], error) {
 	query := operationLogFilters(s.orm().Query().Table("user_operation_log"), filters)
-	total, err := query.Count()
+	result, err := request.Paginate[models.UserOperationLog](query.OrderByDesc("id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[OperationLogRow]{}, err
 	}
-
-	logs := make([]models.UserOperationLog, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&logs)
-	if err != nil {
-		return request.PageResult[OperationLogRow]{}, err
-	}
-
-	return request.PageResult[OperationLogRow]{List: operationLogRows(logs), Total: total}, nil
+	return request.PageResult[OperationLogRow]{List: operationLogRows(result.List), Total: result.Total}, nil
 }
 
 func (s *LogAdminService) WriteOperationLog(payload OperationLogPayload) error {

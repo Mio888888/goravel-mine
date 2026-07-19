@@ -150,31 +150,20 @@ func (p DictItemPayload) platformItem(typeID uint64, typeCode string, operatorID
 }
 
 func (s *PlatformDictionaryService) List(filters map[string]string, page, pageSize int) (request.PageResult[PlatformDictType], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query := s.orm().Query().Table("platform_dict_type")
 	query = applyStringFilter(query, "code", filters["code"])
 	query = applyStringFilter(query, "name", filters["name"])
 	if filters["status"] != "" {
 		query = query.Where("status", filters["status"])
 	}
-	total, err := query.Count()
+	result, err := request.Paginate[PlatformDictType](query.OrderBy("sort").OrderByDesc("id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[PlatformDictType]{}, err
 	}
-	types := make([]PlatformDictType, 0)
-	err = query.OrderBy("sort").OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&types)
-	if err != nil {
+	if err := s.fillPlatformItems(result.List); err != nil {
 		return request.PageResult[PlatformDictType]{}, err
 	}
-	if err := s.fillPlatformItems(types); err != nil {
-		return request.PageResult[PlatformDictType]{}, err
-	}
-	return request.PageResult[PlatformDictType]{List: types, Total: total}, nil
+	return result, nil
 }
 
 func (s *PlatformDictionaryService) Detail(id uint64) (PlatformDictType, error) {
@@ -456,25 +445,13 @@ func (s *PlatformDictionaryService) distributedTypeCount(ids []uint64) (int64, e
 }
 
 func (s *TenantDictionaryService) List(filters map[string]string, page, pageSize int) (request.PageResult[DictType], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query := s.orm().Query().Table("dict_type")
 	query = applyStringFilter(query, "code", filters["code"])
 	query = applyStringFilter(query, "name", filters["name"])
 	if filters["status"] != "" {
 		query = query.Where("status", filters["status"])
 	}
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[DictType]{}, err
-	}
-	types := make([]DictType, 0)
-	err = query.OrderBy("sort").OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&types)
-	return request.PageResult[DictType]{List: types, Total: total}, err
+	return request.Paginate[DictType](query.OrderBy("sort").OrderByDesc("id"), page, pageSize)
 }
 
 func (s *TenantDictionaryService) Detail(id uint64) (DictType, error) {

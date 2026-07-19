@@ -158,6 +158,10 @@ const useUserStore = defineStore(
       return authScope.value === 'platform' ? operations.adminPlatformPermissionUpdate.path : operations.adminPermissionUpdate.path
     }
 
+    function updateUserInfo(data: OperationRequest<'adminPermissionUpdate'>) {
+      return useHttp().post(permissionUpdatePath(), data)
+    }
+
     function setAuthScope(scope: AuthScope) {
       authScope.value = scope
       cache.set('auth_scope', scope)
@@ -384,7 +388,7 @@ const useUserStore = defineStore(
     function saveSettingToSever() {
       const backend_setting = setting.getSettings()
       const payload: OperationRequest<'adminPermissionUpdate'> = { backend_setting }
-      return useHttp().post(permissionUpdatePath(), payload).then(() => {
+      return updateUserInfo(payload).then(() => {
         cache.set('sys_settings', backend_setting)
       }).catch((error) => {
         console.log(error)
@@ -438,6 +442,7 @@ const useUserStore = defineStore(
       getRoles,
       getLocales,
       setLocales,
+      updateUserInfo,
       saveSettingToSever,
       getMenu,
     }

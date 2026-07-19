@@ -89,12 +89,6 @@ func (s *SSOProviderService) orm() contractsorm.Orm {
 }
 
 func (s *SSOProviderService) List(filters map[string]string, page, pageSize int) (request.PageResult[SSOProvider], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query := s.orm().Query().Table("sso_provider")
 	query = applyStringFilter(query, "name", filters["name"])
 	query = applyStringFilter(query, "display_name", filters["display_name"])
@@ -105,18 +99,7 @@ func (s *SSOProviderService) List(filters map[string]string, page, pageSize int)
 	if filters["enabled"] != "" {
 		query = query.Where("enabled", filters["enabled"])
 	}
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[SSOProvider]{}, err
-	}
-	providers := make([]SSOProvider, 0)
-	err = query.
-		OrderBy("display_order").
-		OrderByDesc("id").
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Get(&providers)
-	return request.PageResult[SSOProvider]{List: providers, Total: total}, err
+	return request.Paginate[SSOProvider](query.OrderBy("display_order").OrderByDesc("id"), page, pageSize)
 }
 
 func (s *SSOProviderService) PublicProviders(scene string) ([]PublicSSOProvider, error) {

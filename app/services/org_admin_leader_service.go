@@ -18,24 +18,21 @@ func (s *OrgAdminService) ListLeaders(filters map[string]string, page, pageSize 
 	if filters["user_id"] != "" {
 		query = query.Where("dept_leader.user_id", filters["user_id"])
 	}
-	total, err := query.Count()
+	result, err := request.Paginate[LeaderRow](query.OrderBy("dept_leader.dept_id").OrderBy("dept_leader.user_id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[LeaderRow]{}, err
 	}
-	rows := make([]LeaderRow, 0)
-	err = query.OrderBy("dept_leader.dept_id").OrderBy("dept_leader.user_id").
-		Offset((page - 1) * pageSize).Limit(pageSize).Scan(&rows)
-	for i := range rows {
-		rows[i].User = DepartmentUser{
-			ID:       rows[i].UserID,
-			Username: rows[i].Username,
-			Nickname: rows[i].Nickname,
-			Phone:    rows[i].Phone,
-			Email:    rows[i].Email,
+	for i := range result.List {
+		result.List[i].User = DepartmentUser{
+			ID:       result.List[i].UserID,
+			Username: result.List[i].Username,
+			Nickname: result.List[i].Nickname,
+			Phone:    result.List[i].Phone,
+			Email:    result.List[i].Email,
 		}
-		rows[i].Users = []DepartmentUser{rows[i].User}
+		result.List[i].Users = []DepartmentUser{result.List[i].User}
 	}
-	return request.PageResult[LeaderRow]{List: rows, Total: total}, err
+	return result, nil
 }
 
 func (s *OrgAdminService) SaveLeaders(input LeaderPayload) error {

@@ -176,6 +176,7 @@ func TestGeneratorCreatesModuleScaffold(t *testing.T) {
 			`func (r *Repository) List`,
 			`query, err := r.query()`,
 			`query = query.Where("name LIKE ?", "%"+name+"%")`,
+			`return request.Paginate[AuditLog](query.OrderByDesc("id"), page, pageSize)`,
 			`func (r *Repository) Create`,
 			`func (r *Repository) Update`,
 			`func (r *Repository) Delete`,

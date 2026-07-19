@@ -73,12 +73,6 @@ func (s *ScheduledTaskService) WithContext(ctx context.Context) *ScheduledTaskSe
 }
 
 func (s *ScheduledTaskService) List(filters map[string]string, page, pageSize int) (request.PageResult[ScheduledTask], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query := s.query().Table("scheduled_task")
 	query = applyStringFilter(query, "name", filters["name"])
 	query = applyStringFilter(query, "code", filters["code"])
@@ -86,22 +80,10 @@ func (s *ScheduledTaskService) List(filters map[string]string, page, pageSize in
 	if filters["status"] != "" {
 		query = query.Where("status", filters["status"])
 	}
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[ScheduledTask]{}, err
-	}
-	rows := make([]ScheduledTask, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&rows)
-	return request.PageResult[ScheduledTask]{List: rows, Total: total}, err
+	return request.Paginate[ScheduledTask](query.OrderByDesc("id"), page, pageSize)
 }
 
 func (s *ScheduledTaskService) Logs(filters map[string]string, page, pageSize int) (request.PageResult[ScheduledTaskLog], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
 	query := s.query().Table("scheduled_task_log")
 	query = equalFilter(query, "task_code", filters["task_code"])
 	query = equalFilter(query, "status", filters["status"])
@@ -109,13 +91,7 @@ func (s *ScheduledTaskService) Logs(filters map[string]string, page, pageSize in
 	if filters["task_id"] != "" {
 		query = query.Where("task_id", filters["task_id"])
 	}
-	total, err := query.Count()
-	if err != nil {
-		return request.PageResult[ScheduledTaskLog]{}, err
-	}
-	rows := make([]ScheduledTaskLog, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&rows)
-	return request.PageResult[ScheduledTaskLog]{List: rows, Total: total}, err
+	return request.Paginate[ScheduledTaskLog](query.OrderByDesc("id"), page, pageSize)
 }
 
 func (s *ScheduledTaskService) Detail(id uint64) (ScheduledTask, error) {

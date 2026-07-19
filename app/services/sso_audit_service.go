@@ -34,20 +34,12 @@ func (s *SSOAuditService) orm() contractsorm.Orm {
 }
 
 func (s *SSOAuditService) ListBindings(filters map[string]string, page, pageSize int) (request.PageResult[SSOUserBindingRow], error) {
-	query := ssoBindingFilters(s.bindingRowsQuery(), filters)
-	total, err := query.Count()
+	result, err := request.Paginate[SSOUserBindingRow](ssoBindingFilters(s.bindingRowsQuery(), filters).OrderByDesc("sso_user_binding.id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[SSOUserBindingRow]{}, err
 	}
-	rows := make([]SSOUserBindingRow, 0)
-	err = query.OrderByDesc("sso_user_binding.id").
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Scan(&rows)
-	if err != nil {
-		return request.PageResult[SSOUserBindingRow]{}, err
-	}
-	return request.PageResult[SSOUserBindingRow]{List: formatSSOBindingRows(rows), Total: total}, nil
+	result.List = formatSSOBindingRows(result.List)
+	return result, nil
 }
 
 func (s *SSOAuditService) Binding(id uint64) (SSOUserBindingRow, error) {
@@ -95,20 +87,12 @@ func (s *SSOAuditService) DeleteBinding(id uint64) error {
 }
 
 func (s *SSOAuditService) ListLoginLogs(filters map[string]string, page, pageSize int) (request.PageResult[SSOLoginLogRow], error) {
-	query := ssoLoginLogFilters(s.loginRowsQuery(), filters)
-	total, err := query.Count()
+	result, err := request.Paginate[SSOLoginLogRow](ssoLoginLogFilters(s.loginRowsQuery(), filters).OrderByDesc("sso_login_log.id"), page, pageSize)
 	if err != nil {
 		return request.PageResult[SSOLoginLogRow]{}, err
 	}
-	rows := make([]SSOLoginLogRow, 0)
-	err = query.OrderByDesc("sso_login_log.id").
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Scan(&rows)
-	if err != nil {
-		return request.PageResult[SSOLoginLogRow]{}, err
-	}
-	return request.PageResult[SSOLoginLogRow]{List: formatSSOLoginLogRows(rows), Total: total}, nil
+	result.List = formatSSOLoginLogRows(result.List)
+	return result, nil
 }
 
 func (s *SSOAuditService) LoginStats(filters map[string]string) (SSOLoginStats, error) {

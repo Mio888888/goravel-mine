@@ -29,8 +29,6 @@ zh_TW:
 import passwordForm from './password-form.vue'
 import userinfoForm from './userinfo-form.vue'
 import { useMessage } from '@/hooks/useMessage.ts'
-import type { OperationRequest } from '@/generated/admin-api'
-import { operations } from '@/generated/admin-api'
 
 defineOptions({ name: 'UcModifyInfo' })
 
@@ -56,20 +54,11 @@ function openModal() {
   state.isOpen = true
 }
 
-function permissionUpdatePath() {
-  return userStore.authScope === 'platform'
-    ? operations.adminPlatformPermissionUpdate.path
-    : operations.adminPermissionUpdate.path
-}
-
 function submit(data: Record<string, any>) {
   isFormSubmit.value = true
-  const update = (data: OperationRequest<'adminPermissionUpdate'>): Promise<any> => {
-    return useHttp().post(permissionUpdatePath(), data)
-  }
 
   if (data.type === 'userinfo') {
-    update(data.form).then(() => {
+    userStore.updateUserInfo(data.form).then(() => {
       msg.success(globalTrans('crud.updateSuccess'))
       const userInfo = userStore.getUserInfo()
       if (userInfo) {
@@ -81,7 +70,7 @@ function submit(data: Record<string, any>) {
   }
 
   if (data.type === 'password') {
-    update(data.form).then(() => {
+    userStore.updateUserInfo(data.form).then(() => {
       msg.success(globalTrans('crud.updateSuccess'))
       state.isOpen = false
     })

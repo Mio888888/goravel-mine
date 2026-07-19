@@ -87,24 +87,12 @@ func (s *QueueFailedJobService) WithContext(ctx context.Context) *QueueFailedJob
 }
 
 func (s *QueueFailedJobService) List(filters QueueFailedJobFilters, page, pageSize int) (request.PageResult[QueueFailedJobRow], error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 15
-	}
-	query := s.failedJobQuery(filters)
-	total, err := query.Count()
+	query := s.failedJobQuery(filters).OrderByDesc("id")
+	result, err := request.Paginate[queueFailedJobRecord](query, page, pageSize)
 	if err != nil {
 		return request.PageResult[QueueFailedJobRow]{}, err
 	}
-
-	records := make([]queueFailedJobRecord, 0)
-	err = query.OrderByDesc("id").Offset((page - 1) * pageSize).Limit(pageSize).Get(&records)
-	if err != nil {
-		return request.PageResult[QueueFailedJobRow]{}, err
-	}
-	return request.PageResult[QueueFailedJobRow]{List: queueFailedJobRecordRows(records), Total: total}, nil
+	return request.PageResult[QueueFailedJobRow]{List: queueFailedJobRecordRows(result.List), Total: result.Total}, nil
 }
 
 func (s *QueueFailedJobService) Retry(filters QueueFailedJobFilters) (QueueFailedJobRetryResult, error) {

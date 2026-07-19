@@ -2,6 +2,7 @@ import type { PageList, ResponseStruct } from '#/global'
 import type { MenuVo } from './menu'
 import type { SensitiveEvidence } from '~/base/utils/sensitiveOperation'
 import type { TenantPlanVo } from './platformTenantPlan'
+import * as platformTenantPlan from './platformTenantPlan'
 
 export interface TenantVo {
   id?: number
@@ -204,7 +205,7 @@ export function page(data: TenantSearchVo): Promise<ResponseStruct<PageList<Tena
 }
 
 export function planOptions(): Promise<ResponseStruct<TenantPlanOptionVo[]>> {
-  return useHttp().get('/admin/platform/tenant-plan/options')
+  return platformTenantPlan.options()
 }
 
 export function create(data: TenantVo): Promise<ResponseStruct<TenantVo>> {
