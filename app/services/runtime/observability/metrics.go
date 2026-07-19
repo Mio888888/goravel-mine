@@ -10,6 +10,8 @@ import (
 
 	observabilitycontract "goravel/app/contracts/observability"
 	casbincache "goravel/app/services/access/casbin"
+	messagebusservice "goravel/app/services/runtime/messagebus"
+	protectionservice "goravel/app/services/runtime/protection"
 	queueservice "goravel/app/services/runtime/queue"
 	"goravel/app/services/runtime/scheduledtask"
 )
@@ -57,6 +59,8 @@ type MetricsSnapshot struct {
 	CasbinCache       casbincache.CasbinEnforcerCacheMetrics
 	TenantConnections observabilitycontract.TenantConnectionCapacityMetrics
 	MigrationLocks    observabilitycontract.MigrationLockMetrics
+	Middleware        messagebusservice.MiddlewareMetricSnapshot
+	Protection        []protectionservice.Metric
 	UptimeSeconds     int64
 }
 
@@ -158,6 +162,8 @@ func Metrics() MetricsSnapshot {
 	snapshot.SlowSQLRetained = len(slowSQL.Items)
 	snapshot.SlowSQLObserved = slowSQL.Total
 	snapshot.GoRuntime = GoRuntimeMetrics()
+	snapshot.Middleware = messagebusservice.Metrics(nil)
+	snapshot.Protection = protectionservice.RuntimeMetrics()
 	return snapshot
 }
 

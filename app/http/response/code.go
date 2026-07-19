@@ -11,4 +11,7 @@ const (
 	CodeUnprocessableEntity = 422
 	CodeDisabled            = 423
 	CodeTooManyRequests     = 429
+	CodeBadGateway          = 502
+	CodeServiceUnavailable  = 503
+	CodeGatewayTimeout      = 504
 )

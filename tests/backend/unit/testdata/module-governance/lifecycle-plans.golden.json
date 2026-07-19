@@ -56,6 +56,17 @@
       "breaking_change_policy": "document in release notes and block without review"
     },
     {
+      "id": "middleware-platform",
+      "name": "Middleware Platform",
+      "action": "install",
+      "enabled": true,
+      "command": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
       "id": "tenant-rbac",
       "name": "Tenant RBAC",
       "action": "install",
@@ -115,6 +126,17 @@
     {
       "id": "tenant-rbac",
       "name": "Tenant RBAC",
+      "action": "rollback",
+      "enabled": true,
+      "command": "go run . artisan migrate:rollback",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "middleware-platform",
+      "name": "Middleware Platform",
       "action": "rollback",
       "enabled": true,
       "command": "go run . artisan migrate:rollback",
@@ -205,6 +227,17 @@
     {
       "id": "tenant-rbac",
       "name": "Tenant RBAC",
+      "action": "uninstall",
+      "enabled": true,
+      "command": "manual data review required",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "middleware-platform",
+      "name": "Middleware Platform",
       "action": "uninstall",
       "enabled": true,
       "command": "manual data review required",
@@ -317,6 +350,17 @@
     {
       "id": "scheduled-task",
       "name": "Scheduled Task",
+      "action": "upgrade",
+      "enabled": true,
+      "command": "go run . artisan migrate",
+      "destructive_check": "go run . artisan module:manifest:check",
+      "requires_restart": true,
+      "supports_hot_disable": false,
+      "breaking_change_policy": "document in release notes and block without review"
+    },
+    {
+      "id": "middleware-platform",
+      "name": "Middleware Platform",
       "action": "upgrade",
       "enabled": true,
       "command": "go run . artisan migrate",

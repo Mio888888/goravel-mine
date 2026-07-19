@@ -115,7 +115,7 @@ baseStorageConfigManage:
   optionsJsonError: Options must be valid JSON
 baseScheduledTaskManage:
   mainTitle: Scheduled Tasks
-  subTitle: Manage second-level tasks, target nodes, and execution logs.
+  subTitle: Manage persistent jobs, retries, and execution logs through code-registered handlers.
   name: Task Name
   code: Task Code
   description: Description
@@ -154,6 +154,183 @@ baseScheduledTaskManage:
   exitCode: Exit Code
   errorMessage: Error
   payloadJsonError: Payload must be valid JSON
+  handler: Task Handler
+  parameters: Handler Parameters JSON
+  parameterSchema: Parameter Schema (read-only)
+  parametersJsonError: Handler parameters must be a valid JSON object
+  concurrencyPolicy: Concurrency Policy
+  misfirePolicy: Misfire Policy
+  scope: Execution Scope
+  maxAttempts: Maximum Attempts
+  initialDelay: Initial Delay (seconds)
+  maxDelay: Maximum Delay (seconds)
+  runtimeState: Runtime State
+  runConfirm: Run this task now? A unique idempotency key will be attached.
+  reconcile: Reconcile
+  reconcileConfirm: Reconcile database tasks, handler registry, and runtime state?
+  reconcileResult: Reconciliation Result
+  reconcileMessage: Reconciliation Message
+  healthyCount: Healthy {count}
+  legacyCount: Legacy Risk {count}
+  missingCount: Missing Handler {count}
+  logicalExecutionId: Logical Execution ID
+  attempt: Attempt
+  correlationId: Correlation ID
+baseMiddleware:
+  title: Middleware Platform
+  subtitle: Manage configured queue adapters, message routes, deliveries, dead letters, protection rules, and runtime metrics.
+  refresh: Refresh
+  adapters: Adapters
+  adaptersHint: Only server-configured Goravel Queue connections can be registered. Connection secrets are never stored or returned here.
+  routes: Message Routes
+  routesHint: Routes are saved as drafts and published after capability validation. Each message type has one primary adapter.
+  deliveries: Deliveries
+  deliveriesHint: Inspect consumer attempts, duration, retries, and dead-letter status.
+  deadLetters: Dead Letters
+  deadLettersHint: List responses exclude payloads. Viewing redacted envelopes, replaying, and resolving use separate permissions.
+  protectionRules: Protection Rules
+  protectionHint: Configure fixed-window limits, slow/failure-rate circuits, and concurrency isolation with immutable published versions.
+  metrics: Monitoring
+  metricsHint: Inspect in-process protection metrics and database snapshots for messages, dead letters, and Outbox.
+  metricsSourceHint: Data comes from the current process and platform database at refresh time. There is no fixed time range, and protection state is not aggregated across instances.
+  name: Name
+  adapter: Adapter
+  adapterType: Adapter Type
+  connection: Queue Connection
+  capabilities: Capabilities
+  health: Health
+  version: Version
+  enabled: Enabled
+  disabled: Disabled
+  enable: Enable
+  disable: Disable
+  yes: Yes
+  no: No
+  registerAdapter: Register Configured Connection
+  editAdapter: Edit Adapter
+  testConnection: Test Connection
+  checkHealth: Health Check
+  healthChecked: Health status updated
+  connectionPassed: Connection test passed
+  disableAdapterConfirm: Disable this adapter? Active routes remain, and the backend will validate the impact again.
+  enableAdapterConfirm: Enable this adapter?
+  staticConfigHint: Connections and secrets are managed by server configuration. Online replacement and plaintext display are unsupported.
+  adapterNameRequired: Enter an adapter name
+  connectionRequired: Enter a configured queue connection name
+  capPersistent: Persistent
+  capCluster: Cluster
+  capBroadcast: Broadcast
+  capOfflineRecovery: Offline Recovery
+  capRetry: Retry
+  capDeadLetter: Dead Letter
+  capOrdering: Ordering
+  messageType: Message Type
+  destination: Destination
+  mode: Consumption Mode
+  consumerGroup: Consumer Group
+  concurrency: Concurrency
+  ordering: Ordered Consumption
+  routeStatus: Config Status
+  routeNameRequired: Enter a route name
+  messageTypeRequired: Select a message type
+  adapterRequired: Select an adapter
+  destinationRequired: Enter a topic, queue, stream, or internal channel
+  consumerGroupRequired: Cluster consumption requires a consumer group
+  retryPolicy: Retry Policy
+  maxAttempts: Maximum Attempts
+  initialDelay: Initial Delay (seconds)
+  maxDelay: Maximum Delay (seconds)
+  deadLetterPolicy: Dead Letter Policy
+  deadLetterDestination: Dead Letter Destination
+  retentionDays: Retention Days
+  alertEnabled: Alerts Enabled
+  validate: Validate
+  publish: Publish
+  published: Published
+  validationResult: Validation Result
+  validationPassed: Validation Passed
+  validationFailed: Validation Failed
+  publishRouteConfirm: Publish this message route? New messages will use this configuration.
+  disableRouteConfirm: Disable this message route?
+  enableRouteConfirm: Enable this message route?
+  messageId: Message ID
+  consumer: Consumer
+  deliveryStatus: Delivery Status
+  attempt: Attempt
+  duration: Duration(ms)
+  correlationId: Correlation ID
+  receivedAt: Received At
+  errorSummary: Error Summary
+  failureClass: Failure Class
+  resolutionStatus: Resolution Status
+  replayCount: Replay Count
+  lastFailedAt: Last Failure
+  replay: Replay
+  resolve: Resolve
+  replayConfirm: Replay this dead letter? The original messageId and a unique idempotency key will be retained.
+  replayQueued: Dead letter queued for replay
+  resolveConfirm: Mark this dead letter as resolved?
+  deadLetterDetail: Dead Letter Detail
+  redactedEnvelope: Redacted Message Envelope
+  scope: Scope
+  resourcePattern: Resource Pattern
+  ruleTypes: Rule Types
+  rules: Rules
+  addRule: Add Rule
+  rateLimit: Fixed-window Rate Limit
+  slowCallCircuit: Slow-call Circuit
+  failureRateCircuit: Failure-rate Circuit
+  concurrencyIsolation: Concurrency Isolation
+  ruleSetNameRequired: Enter a rule set name
+  scopeRequired: Select a scope
+  resourcePatternRequired: Enter a resource pattern
+  duplicateRuleType: A rule type cannot be repeated in one rule set
+  ruleRequired: Add at least one protection rule
+  limit: Limit
+  windowMs: Window(ms)
+  maxConcurrency: Maximum Concurrency
+  slowDurationMs: Slow-call Threshold(ms)
+  thresholdPercent: Threshold(%)
+  minimumRequests: Minimum Requests
+  statisticalWindowMs: Statistical Window(ms)
+  openDurationMs: Open Duration(ms)
+  halfOpenProbes: Half-open Probes
+  halfOpenSuccesses: Half-open Successes
+  publishRuleConfirm: Publish this protection rule? An immutable online version will be appended.
+  disableRuleConfirm: Disable this protection rule? A new disabled version will be appended.
+  enableRuleConfirm: Enable this protection rule? A new enabled version will be appended.
+  publishedVersion: Published Version
+  versions: Version History
+  versionHistory: Protection Rule Version History
+  publishedAt: Published At
+  rollback: Roll Back
+  rollbackConfirm: Roll back to version {version}? A new version will be appended without overwriting history.
+  rollbackSucceeded: Rollback version published
+  runtimeState: Runtime State
+  currentConcurrency: Current Concurrency
+  samples: Samples
+  failures: Failures
+  slowCalls: Slow Calls
+  adapterInstances: Adapter Instances
+  deliveryCount: Delivery Records
+  deadLetterCount: Dead Letters
+  outboxPending: Outbox Pending
+  outboxProcessing: Outbox Processing
+  outboxFailed: Outbox Failed
+  outboxSent: Outbox Sent
+  failedJobs: Failed Queue Jobs
+  protectionRuleCount: Protection Rule Sets
+  adapterHealthMetrics: Adapter Health
+  outbox: Outbox
+  deliveryMetrics: Delivery Metrics
+  protectionMetrics: Protection Metrics
+  count: Count
+  averageDuration: Average Duration
+  passed: Passed
+  rateLimited: Rate Limited
+  circuitRejected: Circuit Rejected
+  concurrencyRejected: Isolation Rejected
+  calls: Calls
 baseObservability:
   title: System Monitoring
   subtitle: Slow requests, slow SQL, and HTTP metric samples.
@@ -597,6 +774,13 @@ baseMenu:
     scheduledTaskDelete: Scheduled Task Delete
     scheduledTaskRun: Scheduled Task Run
     scheduledTaskLog: Scheduled Task Logs
+    middleware: Middleware Platform
+    middlewareList: Middleware Platform View
+    middlewareConfigure: Middleware Platform Configure
+    middlewareExecute: Middleware Platform Execute
+    middlewarePublish: Middleware Publish
+    middlewareReplay: Dead Letter Replay
+    middlewarePayload: Message Payload View
     queueFailedJobList: Failed Queue Job List
     queueFailedJobRetry: Failed Queue Job Retry
     queueFailedJobDelete: Failed Queue Job Delete

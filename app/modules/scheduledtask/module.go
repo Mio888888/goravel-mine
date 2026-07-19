@@ -32,6 +32,7 @@ func (m Module) Routes() []modules.Route {
 	controller := admin.NewScheduledTaskController()
 	return modules.BindRouteHandlers(m.ID(), scheduledTaskRoutes(), modules.RouteHandlers{
 		"platform.scheduled-task.list":           controller.List,
+		"platform.scheduled-task.handlers":       controller.Handlers,
 		"platform.scheduled-task.tenant-options": controller.TenantOptions,
 		"platform.scheduled-task.detail":         controller.Detail,
 		"platform.scheduled-task.create":         controller.Create,
@@ -41,12 +42,14 @@ func (m Module) Routes() []modules.Route {
 		"platform.scheduled-task.disable":        controller.Disable,
 		"platform.scheduled-task.run":            controller.Run,
 		"platform.scheduled-task.logs":           controller.Logs,
+		"platform.scheduled-task.reconcile":      controller.Reconcile,
 	})
 }
 
 func scheduledTaskRoutes() []modules.Route {
 	return []modules.Route{
 		{Name: "platform.scheduled-task.list", Method: "GET", Path: "/admin/platform/scheduled-task/list", Permission: "platform:scheduledTask:list", Middlewares: []string{"platform-admin"}},
+		{Name: "platform.scheduled-task.handlers", Method: "GET", Path: "/admin/platform/scheduled-task/handlers", Permission: "platform:scheduledTask:list", Permissions: []string{"platform:scheduledTask:list", "platform:scheduledTask:save", "platform:scheduledTask:update"}, Middlewares: []string{"platform-admin"}},
 		{Name: "platform.scheduled-task.tenant-options", Method: "GET", Path: "/admin/platform/scheduled-task/tenant-options", Permission: "platform:scheduledTask:list", Permissions: []string{"platform:scheduledTask:list", "platform:scheduledTask:save", "platform:scheduledTask:update"}, Middlewares: []string{"platform-admin"}},
 		{Name: "platform.scheduled-task.detail", Method: "GET", Path: "/admin/platform/scheduled-task/{id}", Permission: "platform:scheduledTask:list", Middlewares: []string{"platform-admin"}},
 		{Name: "platform.scheduled-task.create", Method: "POST", Path: "/admin/platform/scheduled-task", Permission: "platform:scheduledTask:save", Middlewares: []string{"platform-admin"}},
@@ -56,6 +59,7 @@ func scheduledTaskRoutes() []modules.Route {
 		{Name: "platform.scheduled-task.disable", Method: "PUT", Path: "/admin/platform/scheduled-task/{id}/disable", Permission: "platform:scheduledTask:update", Middlewares: []string{"platform-admin"}},
 		{Name: "platform.scheduled-task.run", Method: "POST", Path: "/admin/platform/scheduled-task/{id}/run", Permission: "platform:scheduledTask:run", Middlewares: []string{"platform-admin"}},
 		{Name: "platform.scheduled-task.logs", Method: "GET", Path: "/admin/platform/scheduled-task-log/list", Permission: "platform:scheduledTask:log", Middlewares: []string{"platform-admin"}},
+		{Name: "platform.scheduled-task.reconcile", Method: "POST", Path: "/admin/platform/scheduled-task/reconcile", Permission: "platform:scheduledTask:run", Middlewares: []string{"platform-admin"}},
 	}
 }
 

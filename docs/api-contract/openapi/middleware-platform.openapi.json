@@ -1,0 +1,3750 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Middleware Platform API Contract",
+    "version": "2026-07-19",
+    "description": "Actual management API surface for configured Goravel Queue adapters, message routes and delivery records, dead letters, protection rules, and runtime metrics. Unsupported external brokers and online secret replacement are intentionally not modeled."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "security": [
+    {
+      "MiddlewareBearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "MiddlewareRegistry"
+    },
+    {
+      "name": "MiddlewareAdapter"
+    },
+    {
+      "name": "MiddlewareRoute"
+    },
+    {
+      "name": "MiddlewareDelivery"
+    },
+    {
+      "name": "MiddlewareDeadLetter"
+    },
+    {
+      "name": "MiddlewareProtection"
+    },
+    {
+      "name": "MiddlewareMetrics"
+    }
+  ],
+  "paths": {
+    "/admin/platform/middleware/registry": {
+      "get": {
+        "tags": [
+          "MiddlewareRegistry"
+        ],
+        "operationId": "adminPlatformMiddlewareRegistry",
+        "x-permission": "platform:middleware:list",
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareRegistrySnapshot"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/adapters": {
+      "get": {
+        "tags": [
+          "MiddlewareAdapter"
+        ],
+        "operationId": "adminPlatformMiddlewareAdapterList",
+        "x-permission": "platform:middleware:list",
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/MiddlewareAdapter"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MiddlewareAdapter"
+        ],
+        "operationId": "adminPlatformMiddlewareAdapterCreate",
+        "x-permission": "platform:middleware:configure",
+        "description": "Registers one server-configured Goravel Queue connection. Arbitrary broker configuration is rejected.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareAdapterPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareAdapter"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/adapters/{id}": {
+      "get": {
+        "tags": [
+          "MiddlewareAdapter"
+        ],
+        "operationId": "adminPlatformMiddlewareAdapterDetail",
+        "x-permission": "platform:middleware:list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareAdapter"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "MiddlewareAdapter"
+        ],
+        "operationId": "adminPlatformMiddlewareAdapterUpdate",
+        "x-permission": "platform:middleware:configure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareAdapterPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareAdapter"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/adapters/{id}/health": {
+      "post": {
+        "tags": [
+          "MiddlewareAdapter"
+        ],
+        "operationId": "adminPlatformMiddlewareAdapterHealth",
+        "x-permission": "platform:middleware:execute",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareAdapter"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/adapters/{id}/test": {
+      "post": {
+        "tags": [
+          "MiddlewareAdapter"
+        ],
+        "operationId": "adminPlatformMiddlewareAdapterTest",
+        "x-permission": "platform:middleware:execute",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareAdapterConnectionTestResult"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/adapters/{id}/enable": {
+      "put": {
+        "tags": [
+          "MiddlewareAdapter"
+        ],
+        "operationId": "adminPlatformMiddlewareAdapterEnable",
+        "x-permission": "platform:middleware:configure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareAdapterVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareAdapter"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/adapters/{id}/disable": {
+      "put": {
+        "tags": [
+          "MiddlewareAdapter"
+        ],
+        "operationId": "adminPlatformMiddlewareAdapterDisable",
+        "x-permission": "platform:middleware:configure",
+        "description": "The confirm flag is required when active routes still reference the adapter.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareAdapterVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareAdapter"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/adapters/{id}/config": {
+      "put": {
+        "tags": [
+          "MiddlewareAdapter"
+        ],
+        "operationId": "adminPlatformMiddlewareAdapterReplaceConfig",
+        "x-permission": "platform:middleware:configure",
+        "description": "Reserved endpoint. Current statically configured Goravel Queue adapters reject online credential replacement.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareAdapterVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareEmptyArray"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/routes": {
+      "get": {
+        "tags": [
+          "MiddlewareRoute"
+        ],
+        "operationId": "adminPlatformMiddlewareRouteList",
+        "x-permission": "platform:middleware:list",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "message_type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "PUBLISHED"
+              ]
+            }
+          },
+          {
+            "name": "adapter_id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 1
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePage"
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePageSize"
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePerPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageRoutePage"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MiddlewareRoute"
+        ],
+        "operationId": "adminPlatformMiddlewareRouteCreate",
+        "x-permission": "platform:middleware:configure",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareMessageRoutePayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageRoute"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/routes/{id}": {
+      "get": {
+        "tags": [
+          "MiddlewareRoute"
+        ],
+        "operationId": "adminPlatformMiddlewareRouteDetail",
+        "x-permission": "platform:middleware:list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageRoute"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "MiddlewareRoute"
+        ],
+        "operationId": "adminPlatformMiddlewareRouteUpdate",
+        "x-permission": "platform:middleware:configure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareMessageRoutePayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageRoute"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/routes/{id}/validate": {
+      "post": {
+        "tags": [
+          "MiddlewareRoute"
+        ],
+        "operationId": "adminPlatformMiddlewareRouteValidate",
+        "x-permission": "platform:middleware:configure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareValidationResult"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/routes/{id}/publish": {
+      "post": {
+        "tags": [
+          "MiddlewareRoute"
+        ],
+        "operationId": "adminPlatformMiddlewareRoutePublish",
+        "x-permission": "platform:middleware:publish",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageRoute"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/routes/{id}/enable": {
+      "put": {
+        "tags": [
+          "MiddlewareRoute"
+        ],
+        "operationId": "adminPlatformMiddlewareRouteEnable",
+        "x-permission": "platform:middleware:configure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageRoute"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/routes/{id}/disable": {
+      "put": {
+        "tags": [
+          "MiddlewareRoute"
+        ],
+        "operationId": "adminPlatformMiddlewareRouteDisable",
+        "x-permission": "platform:middleware:configure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageRoute"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/deliveries": {
+      "get": {
+        "tags": [
+          "MiddlewareDelivery"
+        ],
+        "operationId": "adminPlatformMiddlewareDeliveryList",
+        "x-permission": "platform:middleware:list",
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "message_type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "consumer_key",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROCESSING",
+                "SUCCEEDED",
+                "RETRY_SCHEDULED",
+                "DEAD_LETTERED",
+                "IGNORED"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePage"
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePageSize"
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePerPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageDeliveryPage"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/dead-letters": {
+      "get": {
+        "tags": [
+          "MiddlewareDeadLetter"
+        ],
+        "operationId": "adminPlatformMiddlewareDeadLetterList",
+        "x-permission": "platform:middleware:list",
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "message_type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "consumer_key",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "failure_class",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RETRYABLE",
+                "NON_RETRYABLE",
+                "UNKNOWN_RESULT"
+              ]
+            }
+          },
+          {
+            "name": "resolution_status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "RESOLVED"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePage"
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePageSize"
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePerPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageDeadLetterPage"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/dead-letters/{id}": {
+      "get": {
+        "tags": [
+          "MiddlewareDeadLetter"
+        ],
+        "operationId": "adminPlatformMiddlewareDeadLetterDetail",
+        "x-permission": "platform:middleware:payload",
+        "description": "Requires the dedicated payload permission. The stored clear projection is redacted; replay uses the encrypted original envelope.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageDeadLetter"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/dead-letters/{id}/replay": {
+      "post": {
+        "tags": [
+          "MiddlewareDeadLetter"
+        ],
+        "operationId": "adminPlatformMiddlewareDeadLetterReplay",
+        "x-permission": "platform:middleware:replay",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareReplayReceipt"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/dead-letters/{id}/resolve": {
+      "put": {
+        "tags": [
+          "MiddlewareDeadLetter"
+        ],
+        "operationId": "adminPlatformMiddlewareDeadLetterResolve",
+        "x-permission": "platform:middleware:replay",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMessageDeadLetter"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-rules": {
+      "get": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleList",
+        "x-permission": "platform:middleware:list",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "GLOBAL",
+                "SERVICE",
+                "ENDPOINT",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "PUBLISHED",
+                "ARCHIVED"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePage"
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePageSize"
+          },
+          {
+            "$ref": "#/components/parameters/MiddlewarePerPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareProtectionRuleSetPage"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleCreate",
+        "x-permission": "platform:middleware:configure",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareProtectionRuleSetPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareProtectionRuleSet"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-rules/{id}": {
+      "get": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleDetail",
+        "x-permission": "platform:middleware:list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareProtectionRuleSet"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleUpdate",
+        "x-permission": "platform:middleware:configure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareProtectionRuleSetPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareProtectionRuleSet"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleDelete",
+        "x-permission": "platform:middleware:configure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareEmptyArray"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-rules/{id}/validate": {
+      "post": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleValidate",
+        "x-permission": "platform:middleware:configure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareValidationResult"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-rules/{id}/publish": {
+      "post": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRulePublish",
+        "x-permission": "platform:middleware:publish",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareProtectionRuleSet"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-rules/{id}/enable": {
+      "put": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleEnable",
+        "x-permission": "platform:middleware:publish",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareProtectionRuleSet"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-rules/{id}/disable": {
+      "put": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleDisable",
+        "x-permission": "platform:middleware:publish",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareProtectionRuleSet"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-rules/{id}/versions": {
+      "get": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleVersions",
+        "x-permission": "platform:middleware:list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/MiddlewareProtectionRuleVersion"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-rules/{id}/rollback": {
+      "post": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleRollback",
+        "x-permission": "platform:middleware:publish",
+        "description": "Creates a new published version with the selected historical content. Existing history is not mutated.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MiddlewareProtectionRollbackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareProtectionRuleSet"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-rules/{id}/state": {
+      "get": {
+        "tags": [
+          "MiddlewareProtection"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionRuleState",
+        "x-permission": "platform:middleware:list",
+        "description": "Returns process-local runtime state for the current application instance.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MiddlewareID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareProtectionRuleState"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/protection-metrics": {
+      "get": {
+        "tags": [
+          "MiddlewareMetrics"
+        ],
+        "operationId": "adminPlatformMiddlewareProtectionMetrics",
+        "x-permission": "platform:middleware:list",
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/MiddlewareProtectionMetric"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/middleware/metrics": {
+      "get": {
+        "tags": [
+          "MiddlewareMetrics"
+        ],
+        "operationId": "adminPlatformMiddlewareMetrics",
+        "x-permission": "platform:middleware:list",
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MiddlewareApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/MiddlewareMetricsSnapshot"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/MiddlewareErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "MiddlewareBearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "MiddlewareID": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 1
+        }
+      },
+      "MiddlewarePage": {
+        "name": "page",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "MiddlewarePageSize": {
+        "name": "page_size",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 15
+        }
+      },
+      "MiddlewarePerPage": {
+        "name": "per_page",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 15
+        }
+      }
+    },
+    "schemas": {
+      "MiddlewareApiResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "enum": [
+              200
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {}
+        }
+      },
+      "MiddlewareErrorResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "enum": [
+              401,
+              403,
+              404,
+              405,
+              406,
+              422,
+              423,
+              429,
+              500,
+              502,
+              503,
+              504
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MiddlewareEmptyArray"
+          }
+        }
+      },
+      "MiddlewareEmptyArray": {
+        "type": "array",
+        "maxItems": 0,
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": true
+        }
+      },
+      "MiddlewareVersionRequest": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "MiddlewareAdapterVersionRequest": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "MiddlewareProtectionRollbackRequest": {
+        "type": "object",
+        "required": [
+          "version",
+          "target_version"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "target_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "MiddlewareAdapterCapabilities": {
+        "type": "object",
+        "required": [
+          "persistent",
+          "cluster",
+          "broadcast",
+          "offline_recovery",
+          "retry",
+          "dead_letter",
+          "ordering"
+        ],
+        "properties": {
+          "persistent": {
+            "type": "boolean"
+          },
+          "cluster": {
+            "type": "boolean"
+          },
+          "broadcast": {
+            "type": "boolean"
+          },
+          "offline_recovery": {
+            "type": "boolean"
+          },
+          "retry": {
+            "type": "boolean"
+          },
+          "dead_letter": {
+            "type": "boolean"
+          },
+          "ordering": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MiddlewareAdapterPayload": {
+        "type": "object",
+        "required": [
+          "name",
+          "connection"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "connection": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "confirm": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MiddlewareAdapter": {
+        "type": "object",
+        "required": [
+          "id",
+          "adapter_key",
+          "name",
+          "adapter_type",
+          "connection",
+          "capabilities",
+          "configured",
+          "enabled",
+          "health_status",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "adapter_key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "adapter_type": {
+            "type": "string",
+            "enum": [
+              "memory",
+              "goravel_queue",
+              "redis_queue"
+            ]
+          },
+          "connection": {
+            "type": "string"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/MiddlewareAdapterCapabilities"
+          },
+          "config_fingerprint": {
+            "type": "string"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "health_status": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "UP",
+              "DEGRADED",
+              "DOWN"
+            ]
+          },
+          "last_checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "created_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "updated_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      },
+      "MiddlewareAdapterConnectionTestResult": {
+        "type": "object",
+        "required": [
+          "adapter_id",
+          "status"
+        ],
+        "properties": {
+          "adapter_id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "UP",
+              "DEGRADED",
+              "DOWN"
+            ]
+          }
+        }
+      },
+      "MiddlewareMessageTypeDefinition": {
+        "type": "object",
+        "required": [
+          "message_type",
+          "description",
+          "supported_schema_versions",
+          "sensitive_field_paths"
+        ],
+        "properties": {
+          "message_type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "supported_schema_versions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "sensitive_field_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MiddlewareConsumerDefinition": {
+        "type": "object",
+        "required": [
+          "consumer_key",
+          "message_type",
+          "description",
+          "supported_schema_versions",
+          "default_mode"
+        ],
+        "properties": {
+          "consumer_key": {
+            "type": "string"
+          },
+          "message_type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "supported_schema_versions": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "default_mode": {
+            "type": "string",
+            "enum": [
+              "CLUSTER",
+              "BROADCAST"
+            ]
+          }
+        }
+      },
+      "MiddlewareRegistrySnapshot": {
+        "type": "object",
+        "required": [
+          "message_types",
+          "consumers"
+        ],
+        "properties": {
+          "message_types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareMessageTypeDefinition"
+            }
+          },
+          "consumers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareConsumerDefinition"
+            }
+          }
+        }
+      },
+      "MiddlewareRetryPolicy": {
+        "type": "object",
+        "required": [
+          "max_attempts",
+          "initial_delay_seconds",
+          "max_delay_seconds"
+        ],
+        "properties": {
+          "max_attempts": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "initial_delay_seconds": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_delay_seconds": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": true
+      },
+      "MiddlewareDeadLetterPolicy": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "retention_days": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "alert_enabled": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      },
+      "MiddlewareMessageRoutePayload": {
+        "type": "object",
+        "required": [
+          "name",
+          "message_type",
+          "adapter_id",
+          "destination",
+          "consumption_mode",
+          "consumer_group",
+          "concurrency",
+          "ordering_enabled",
+          "retry_policy",
+          "dead_letter_policy"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "message_type": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "adapter_id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "consumption_mode": {
+            "type": "string",
+            "enum": [
+              "CLUSTER",
+              "BROADCAST"
+            ]
+          },
+          "consumer_group": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "concurrency": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "ordering_enabled": {
+            "type": "boolean"
+          },
+          "retry_policy": {
+            "$ref": "#/components/schemas/MiddlewareRetryPolicy"
+          },
+          "dead_letter_policy": {
+            "$ref": "#/components/schemas/MiddlewareDeadLetterPolicy"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "MiddlewareMessageRoute": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "message_type",
+          "adapter_id",
+          "destination",
+          "consumption_mode",
+          "consumer_group",
+          "concurrency",
+          "ordering_enabled",
+          "retry_policy",
+          "dead_letter_policy",
+          "status",
+          "enabled",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string"
+          },
+          "message_type": {
+            "type": "string"
+          },
+          "adapter_id": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "consumption_mode": {
+            "type": "string",
+            "enum": [
+              "CLUSTER",
+              "BROADCAST"
+            ]
+          },
+          "consumer_group": {
+            "type": "string"
+          },
+          "concurrency": {
+            "type": "integer"
+          },
+          "ordering_enabled": {
+            "type": "boolean"
+          },
+          "retry_policy": {
+            "$ref": "#/components/schemas/MiddlewareRetryPolicy"
+          },
+          "dead_letter_policy": {
+            "$ref": "#/components/schemas/MiddlewareDeadLetterPolicy"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "adapter": {
+            "$ref": "#/components/schemas/MiddlewareAdapter"
+          },
+          "created_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "updated_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      },
+      "MiddlewareValidationResult": {
+        "type": "object",
+        "required": [
+          "valid",
+          "errors",
+          "warnings"
+        ],
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MiddlewareMessageRoutePage": {
+        "type": "object",
+        "required": [
+          "list",
+          "total"
+        ],
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareMessageRoute"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "MiddlewareMessageDelivery": {
+        "type": "object",
+        "required": [
+          "id",
+          "message_id",
+          "message_type",
+          "consumer_key",
+          "route_id",
+          "adapter_id",
+          "status",
+          "attempt"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "message_id": {
+            "type": "string"
+          },
+          "message_type": {
+            "type": "string"
+          },
+          "consumer_key": {
+            "type": "string"
+          },
+          "route_id": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "adapter_id": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PROCESSING",
+              "SUCCEEDED",
+              "RETRY_SCHEDULED",
+              "DEAD_LETTERED",
+              "IGNORED"
+            ]
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "correlation_id": {
+            "type": "string"
+          },
+          "external_position": {
+            "type": "string"
+          },
+          "error_summary": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      },
+      "MiddlewareMessageDeliveryPage": {
+        "type": "object",
+        "required": [
+          "list",
+          "total"
+        ],
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareMessageDelivery"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "MiddlewareMessageEnvelope": {
+        "type": "object",
+        "required": [
+          "message_id",
+          "message_type",
+          "schema_version",
+          "occurred_at",
+          "published_at",
+          "correlation_id",
+          "payload"
+        ],
+        "properties": {
+          "message_id": {
+            "type": "string"
+          },
+          "message_type": {
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "correlation_id": {
+            "type": "string"
+          },
+          "causation_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "partition_key": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 32
+          }
+        }
+      },
+      "MiddlewareMessageDeadLetter": {
+        "type": "object",
+        "required": [
+          "id",
+          "message_id",
+          "message_type",
+          "consumer_key",
+          "route_id",
+          "adapter_id",
+          "failure_class",
+          "error_summary",
+          "replay_count",
+          "resolution_status"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "message_id": {
+            "type": "string"
+          },
+          "message_type": {
+            "type": "string"
+          },
+          "consumer_key": {
+            "type": "string"
+          },
+          "route_id": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "adapter_id": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "envelope": {
+            "$ref": "#/components/schemas/MiddlewareMessageEnvelope"
+          },
+          "failure_class": {
+            "type": "string",
+            "enum": [
+              "RETRYABLE",
+              "NON_RETRYABLE",
+              "UNKNOWN_RESULT"
+            ]
+          },
+          "error_summary": {
+            "type": "string"
+          },
+          "first_failed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_failed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "replay_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "resolution_status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "RESOLVED"
+            ]
+          },
+          "resolved_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "resolved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      },
+      "MiddlewareMessageDeadLetterPage": {
+        "type": "object",
+        "required": [
+          "list",
+          "total"
+        ],
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareMessageDeadLetter"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "MiddlewareReplayReceipt": {
+        "type": "object",
+        "required": [
+          "dead_letter_id",
+          "message_id",
+          "status"
+        ],
+        "properties": {
+          "dead_letter_id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "message_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "ALREADY_QUEUED"
+            ]
+          }
+        }
+      },
+      "MiddlewareProtectionRule": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "RATE_LIMIT",
+              "SLOW_CALL_CIRCUIT",
+              "FAILURE_RATE_CIRCUIT",
+              "CONCURRENCY"
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "window_ms": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "slow_call_duration_ms": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "threshold_percent": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "minimum_requests": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "statistical_window_ms": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "open_duration_ms": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "half_open_probes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "half_open_successes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "max_concurrency": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "MiddlewareProtectionRuleConfig": {
+        "type": "object",
+        "required": [
+          "rules"
+        ],
+        "properties": {
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareProtectionRule"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "MiddlewareProtectionRuleSetPayload": {
+        "type": "object",
+        "required": [
+          "name",
+          "scope",
+          "resource_pattern",
+          "rules"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "SERVICE",
+              "ENDPOINT",
+              "CUSTOM"
+            ]
+          },
+          "resource_pattern": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "rules": {
+            "$ref": "#/components/schemas/MiddlewareProtectionRuleConfig"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "MiddlewareProtectionRuleSet": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "scope",
+          "resource_pattern",
+          "rules",
+          "status",
+          "enabled",
+          "version",
+          "published_version"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "SERVICE",
+              "ENDPOINT",
+              "CUSTOM"
+            ]
+          },
+          "resource_pattern": {
+            "type": "string"
+          },
+          "rules": {
+            "$ref": "#/components/schemas/MiddlewareProtectionRuleConfig"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "ARCHIVED"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "published_version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "updated_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      },
+      "MiddlewareProtectionRuleSetPage": {
+        "type": "object",
+        "required": [
+          "list",
+          "total"
+        ],
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareProtectionRuleSet"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "MiddlewareProtectionRuleVersion": {
+        "type": "object",
+        "required": [
+          "id",
+          "rule_set_id",
+          "version",
+          "name",
+          "scope",
+          "resource_pattern",
+          "rules",
+          "enabled",
+          "published_by",
+          "published_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "rule_set_id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "SERVICE",
+              "ENDPOINT",
+              "CUSTOM"
+            ]
+          },
+          "resource_pattern": {
+            "type": "string"
+          },
+          "rules": {
+            "$ref": "#/components/schemas/MiddlewareProtectionRuleConfig"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "published_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MiddlewareProtectionCircuit": {
+        "type": "object",
+        "required": [
+          "rule_type",
+          "state",
+          "sample_count",
+          "failure_count",
+          "slow_count",
+          "half_open_inflight",
+          "half_open_successes"
+        ],
+        "properties": {
+          "rule_type": {
+            "type": "string",
+            "enum": [
+              "SLOW_CALL_CIRCUIT",
+              "FAILURE_RATE_CIRCUIT"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "CLOSED",
+              "OPEN",
+              "HALF_OPEN"
+            ]
+          },
+          "sample_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "failure_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "slow_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "half_open_inflight": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "half_open_successes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "opened_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MiddlewareProtectionRuleState": {
+        "type": "object",
+        "required": [
+          "rule_set_id",
+          "version",
+          "circuits",
+          "concurrent"
+        ],
+        "properties": {
+          "rule_set_id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "circuits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareProtectionCircuit"
+            }
+          },
+          "concurrent": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "MiddlewareAdapterMetric": {
+        "type": "object",
+        "required": [
+          "adapter_type",
+          "health_status",
+          "count"
+        ],
+        "properties": {
+          "adapter_type": {
+            "type": "string"
+          },
+          "health_status": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "UP",
+              "DEGRADED",
+              "DOWN"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "MiddlewareDeliveryMetric": {
+        "type": "object",
+        "required": [
+          "message_type",
+          "consumer_key",
+          "status",
+          "count",
+          "duration_sum_ms"
+        ],
+        "properties": {
+          "message_type": {
+            "type": "string"
+          },
+          "consumer_key": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "duration_sum_ms": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      },
+      "MiddlewareDeadLetterMetric": {
+        "type": "object",
+        "required": [
+          "failure_class",
+          "resolution_status",
+          "count"
+        ],
+        "properties": {
+          "failure_class": {
+            "type": "string",
+            "enum": [
+              "RETRYABLE",
+              "NON_RETRYABLE",
+              "UNKNOWN_RESULT"
+            ]
+          },
+          "resolution_status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "RESOLVED"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "MiddlewareMessageMetricSnapshot": {
+        "type": "object",
+        "required": [
+          "adapters",
+          "deliveries",
+          "dead_letters"
+        ],
+        "properties": {
+          "adapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareAdapterMetric"
+            }
+          },
+          "deliveries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareDeliveryMetric"
+            }
+          },
+          "dead_letters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareDeadLetterMetric"
+            }
+          }
+        }
+      },
+      "MiddlewareProtectionMetric": {
+        "type": "object",
+        "required": [
+          "rule_set_id",
+          "version",
+          "scope",
+          "resource_pattern",
+          "passed",
+          "rate_limited",
+          "circuit_rejected",
+          "concurrency_rejected",
+          "half_open_probes",
+          "calls",
+          "failures",
+          "duration_sum_ms"
+        ],
+        "properties": {
+          "rule_set_id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "scope": {
+            "type": "string"
+          },
+          "resource_pattern": {
+            "type": "string"
+          },
+          "passed": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "rate_limited": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "circuit_rejected": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "concurrency_rejected": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "half_open_probes": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "calls": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "failures": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "duration_sum_ms": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      },
+      "MiddlewareQueueClassMetric": {
+        "type": "object",
+        "required": [
+          "Class",
+          "Pending",
+          "OldestAge",
+          "ArrivalRate",
+          "CompletionRate"
+        ],
+        "properties": {
+          "Class": {
+            "type": "string"
+          },
+          "Pending": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "OldestAge": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Go time.Duration encoded as nanoseconds."
+          },
+          "ArrivalRate": {
+            "type": "number"
+          },
+          "CompletionRate": {
+            "type": "number"
+          }
+        }
+      },
+      "MiddlewareQueueBacklogMetric": {
+        "type": "object",
+        "required": [
+          "FailedJobs",
+          "OutboxPending",
+          "OutboxProcessing",
+          "OutboxFailed",
+          "OutboxSent",
+          "Classes"
+        ],
+        "properties": {
+          "FailedJobs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "OutboxPending": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "OutboxProcessing": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "OutboxFailed": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "OutboxSent": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "Classes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareQueueClassMetric"
+            }
+          }
+        }
+      },
+      "MiddlewareMetricsSnapshot": {
+        "type": "object",
+        "required": [
+          "message",
+          "outbox",
+          "protection"
+        ],
+        "properties": {
+          "message": {
+            "$ref": "#/components/schemas/MiddlewareMessageMetricSnapshot"
+          },
+          "outbox": {
+            "$ref": "#/components/schemas/MiddlewareQueueBacklogMetric"
+          },
+          "protection": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiddlewareProtectionMetric"
+            }
+          }
+        }
+      }
+    }
+  }
+}

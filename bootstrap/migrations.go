@@ -54,6 +54,7 @@ func Migrations() []schema.Migration {
 		&migrations.M202607110008AddPlanToTenantGovernanceRun{},
 		&migrations.M202607110009EnforceTenantDatabaseIsolation{},
 		&migrations.M202607190001DropQueueTaskLockTable{},
+		&migrations.M202607190003ExtendQueueMessageOutbox{},
 	}
 
 	return moduleboot.Modules().MergeMigrationsAfter(items, "202607030002_add_storage_config_id_to_attachment_table")

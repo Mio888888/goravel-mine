@@ -51,6 +51,7 @@ func QueueBacklogMetrics(ctx context.Context) (metric QueueBacklogMetric) {
 	metric.OutboxPending = countQueueOutboxStatus(db, QueueOutboxStatusPending)
 	metric.OutboxProcessing = countQueueOutboxStatus(db, QueueOutboxStatusProcessing)
 	metric.OutboxFailed = countQueueOutboxStatus(db, QueueOutboxStatusFailed)
+	metric.OutboxSent = countQueueOutboxStatus(db, QueueOutboxStatusSent)
 	metric.Classes = queueClassMetrics(ctx, db, time.Now())
 
 	return metric

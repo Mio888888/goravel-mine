@@ -28,6 +28,18 @@ func TestQueueRetryPolicyUsesExponentialBackoffAndStopsAtMaxAttempts(t *testing.
 	require.Zero(t, delay)
 }
 
+func TestQueueRetryPolicyStopsForNonRetryableMessageFailure(t *testing.T) {
+	policy := services.QueueRetryPolicy{MaxAttempts: 4, InitialDelay: time.Second}
+
+	retryable, delay := policy.ShouldRetry(
+		services.NonRetryableMessageError(errors.New("adapter disabled")),
+		1,
+	)
+
+	require.False(t, retryable)
+	require.Zero(t, delay)
+}
+
 func TestQueueIdempotencyStoreReturnsCachedResultForDuplicateKey(t *testing.T) {
 	store := services.NewMemoryQueueIdempotencyStore()
 	ctx := context.Background()

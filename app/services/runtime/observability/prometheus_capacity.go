@@ -16,6 +16,7 @@ func writeQueuePrometheusMetrics(b *strings.Builder, queue queueservice.QueueBac
 	b.WriteString(fmt.Sprintf("goravel_queue_outbox_events{status=%q} %d\n", queueservice.QueueOutboxStatusPending, queue.OutboxPending))
 	b.WriteString(fmt.Sprintf("goravel_queue_outbox_events{status=%q} %d\n", queueservice.QueueOutboxStatusProcessing, queue.OutboxProcessing))
 	b.WriteString(fmt.Sprintf("goravel_queue_outbox_events{status=%q} %d\n", queueservice.QueueOutboxStatusFailed, queue.OutboxFailed))
+	b.WriteString(fmt.Sprintf("goravel_queue_outbox_events{status=%q} %d\n", queueservice.QueueOutboxStatusSent, queue.OutboxSent))
 	b.WriteString("# HELP goravel_queue_pending_jobs Current pending queue jobs by workload class.\n")
 	b.WriteString("# TYPE goravel_queue_pending_jobs gauge\n")
 	b.WriteString("# HELP goravel_queue_oldest_backlog_age_seconds Age of the oldest pending queue job by workload class.\n")

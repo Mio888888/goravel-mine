@@ -34,23 +34,31 @@ type ScheduledTaskExecutionResult struct {
 
 var scheduledTaskHandlers = struct {
 	sync.RWMutex
-	items map[string]ScheduledTaskHandler
-}{items: map[string]ScheduledTaskHandler{}}
+	items map[string]ScheduledTaskHandlerDefinition
+}{items: map[string]ScheduledTaskHandlerDefinition{}}
 
 func init() {
-	RegisterScheduledTaskHandler("scheduler.noop", func(context.Context, models.JSONMap) ScheduledTaskExecutionResult {
-		return ScheduledTaskExecutionResult{Status: ScheduledTaskLogStatusSuccess, Stdout: "ok"}
+	MustRegisterScheduledTaskHandlerDefinition(ScheduledTaskHandlerDefinition{
+		HandlerKey:       "scheduler.noop",
+		Description:      "空操作健康检查处理器",
+		ParameterSchema:  models.JSONMap{"type": "object", "additionalProperties": false},
+		DefaultTimeout:   5,
+		TenantCapability: ScheduledTaskTenantGlobalOnly,
+		Handler: func(context.Context, models.JSONMap) ScheduledTaskExecutionResult {
+			return ScheduledTaskExecutionResult{Status: ScheduledTaskLogStatusSuccess, Stdout: "ok"}
+		},
 	})
 }
 
 func RegisterScheduledTaskHandler(name string, handler ScheduledTaskHandler) {
-	name = strings.TrimSpace(name)
-	if name == "" || handler == nil {
-		return
-	}
-	scheduledTaskHandlers.Lock()
-	defer scheduledTaskHandlers.Unlock()
-	scheduledTaskHandlers.items[name] = handler
+	_ = RegisterScheduledTaskHandlerDefinition(ScheduledTaskHandlerDefinition{
+		HandlerKey:       name,
+		Description:      name,
+		DefaultTimeout:   60,
+		TenantCapability: ScheduledTaskTenantPerTenantAllowed,
+		Privileged:       isPrivilegedScheduledTaskHandler(name),
+		Handler:          handler,
+	})
 }
 
 func UnregisterScheduledTaskHandler(name string) {
@@ -79,6 +87,8 @@ func executeScheduledTaskWithScope(ctx context.Context, task models.ScheduledTas
 		return executeBackupTask(ctx, task, scope)
 	case ScheduledTaskTypeGovernance:
 		return executeGovernanceTask(ctx, task, scope)
+	case ScheduledTaskTypeHandler:
+		return executeRegisteredHandlerTask(ctx, task, scope)
 	default:
 		return taskFailure("不支持的任务类型")
 	}
@@ -174,75 +184,103 @@ func executeScriptTask(ctx context.Context, task models.ScheduledTask, scope sch
 }
 
 func executeMethodTask(ctx context.Context, task models.ScheduledTask, scope scheduledTaskTenantScope) ScheduledTaskExecutionResult {
-	handlerName := strings.TrimSpace(jsonString(task.Payload, "handler"))
+	handlerName := scheduledTaskHandlerKey(task)
 	if isPrivilegedScheduledTaskHandler(handlerName) {
 		return taskFailure("方法任务不允许调用特权任务处理器")
 	}
-	handler, ok := scheduledTaskHandler(handlerName)
-	if !ok {
-		return taskFailure("任务方法未注册")
-	}
-	payload := cloneJSONMap(task.Payload)
-	payload["_scheduler"] = scope.SchedulerPayload(task)
-	return handler(ctx, payload)
+	return executeHandlerDefinition(ctx, task, scope, handlerName)
 }
 
 func executeBackupTask(ctx context.Context, task models.ScheduledTask, scope scheduledTaskTenantScope) ScheduledTaskExecutionResult {
-	handler, ok := scheduledTaskHandler("scheduler.backup")
-	if !ok {
-		return taskFailure("备份任务未配置处理器")
-	}
-	payload := cloneJSONMap(task.Payload)
-	payload["task_code"] = task.Code
-	payload["task_name"] = task.Name
-	payload["_scheduler"] = scope.SchedulerPayload(task)
-	return handler(ctx, payload)
+	return executeHandlerDefinition(ctx, task, scope, "scheduler.backup")
 }
 
 func executeGovernanceTask(ctx context.Context, task models.ScheduledTask, scope scheduledTaskTenantScope) ScheduledTaskExecutionResult {
-	handlerName := strings.TrimSpace(jsonString(task.Payload, "handler"))
+	handlerName := scheduledTaskHandlerKey(task)
 	if !isPrivilegedScheduledTaskHandler(handlerName) || handlerName == "scheduler.backup" {
 		return taskFailure("治理任务处理器无效")
 	}
-	handler, ok := scheduledTaskHandler(handlerName)
+	return executeHandlerDefinition(ctx, task, scope, handlerName)
+}
+
+func executeRegisteredHandlerTask(ctx context.Context, task models.ScheduledTask, scope scheduledTaskTenantScope) ScheduledTaskExecutionResult {
+	return executeHandlerDefinition(ctx, task, scope, scheduledTaskHandlerKey(task))
+}
+
+func executeHandlerDefinition(ctx context.Context, task models.ScheduledTask, scope scheduledTaskTenantScope, handlerName string) ScheduledTaskExecutionResult {
+	definition, ok := scheduledTaskHandlerDefinition(handlerName)
 	if !ok {
 		return taskFailure("治理任务处理器未注册")
 	}
-	payload := cloneJSONMap(task.Payload)
+	payload := cloneJSONMap(task.Parameters)
+	if payload == nil {
+		payload = cloneJSONMap(task.Payload)
+		delete(payload, "handler")
+	}
+	payload["task_code"] = task.Code
+	payload["task_name"] = task.Name
 	payload["_scheduler"] = scope.SchedulerPayload(task)
-	return handler(ctx, payload)
+	return definition.Handler(ctx, payload)
 }
 
 func validateScheduledTaskPayload(task models.ScheduledTask) error {
 	switch task.TaskType {
 	case ScheduledTaskTypeURL:
-		rawURL := jsonString(task.Payload, "url")
-		if _, err := scheduledTaskURL(rawURL); err != nil {
-			return BusinessError{Message: "URL 任务地址必须为 http 或 https"}
-		}
+		return BusinessError{Message: "不再允许创建或修改 URL 动态任务，请注册代码处理器"}
 	case ScheduledTaskTypeScript:
-		command := jsonString(task.Payload, "command")
-		if !allowedScriptCommand(command) {
-			return BusinessError{Message: "脚本命令必须在 storage/scripts 目录下"}
+		return BusinessError{Message: "不再允许创建或修改脚本动态任务，请注册代码处理器"}
+	case ScheduledTaskTypeMethod, ScheduledTaskTypeHandler:
+		if err := validateRegisteredScheduledTaskHandler(task); err != nil {
+			return err
 		}
-	case ScheduledTaskTypeMethod:
-		handlerName := strings.TrimSpace(jsonString(task.Payload, "handler"))
-		if handlerName == "" {
-			return BusinessError{Message: "方法任务必须配置 handler"}
-		}
-		if isPrivilegedScheduledTaskHandler(handlerName) {
+		if task.TaskType == ScheduledTaskTypeMethod && isPrivilegedScheduledTaskHandler(task.HandlerKey) {
 			return BusinessError{Message: "方法任务不允许调用特权任务处理器"}
 		}
 	case ScheduledTaskTypeBackup:
-		if !scheduledTaskHandlerRegistered("scheduler.backup") {
-			return BusinessError{Message: "备份任务必须先注册真实处理器"}
-		}
+		task.HandlerKey = "scheduler.backup"
+		return validateRegisteredScheduledTaskHandler(task)
 	case ScheduledTaskTypeGovernance:
-		return BusinessError{Message: "治理任务仅允许系统预置"}
+		if !isPrivilegedScheduledTaskHandler(task.HandlerKey) || task.HandlerKey == "scheduler.backup" {
+			return BusinessError{Message: "治理任务处理器无效"}
+		}
+		return validateRegisteredScheduledTaskHandler(task)
 	default:
 		return BusinessError{Message: "任务类型不支持"}
 	}
 	return nil
+}
+
+func validateRegisteredScheduledTaskHandler(task models.ScheduledTask) error {
+	handlerKey := scheduledTaskHandlerKey(task)
+	if handlerKey == "" {
+		return BusinessError{Message: "任务处理器不能为空"}
+	}
+	definition, ok := scheduledTaskHandlerDefinition(handlerKey)
+	if !ok {
+		return BusinessError{Message: "任务处理器未注册"}
+	}
+	if task.Scope == ScheduledTaskScopePerTenant && definition.TenantCapability == ScheduledTaskTenantGlobalOnly {
+		return BusinessError{Message: "任务处理器仅支持全局作用域"}
+	}
+	parameters := task.Parameters
+	if parameters == nil {
+		parameters = cloneJSONMap(task.Payload)
+		delete(parameters, "handler")
+	}
+	if err := definition.ValidateParameters(parameters); err != nil {
+		return BusinessError{Message: err.Error()}
+	}
+	return nil
+}
+
+func scheduledTaskHandlerKey(task models.ScheduledTask) string {
+	if handlerKey := strings.TrimSpace(task.HandlerKey); handlerKey != "" {
+		return handlerKey
+	}
+	if task.TaskType == ScheduledTaskTypeBackup {
+		return "scheduler.backup"
+	}
+	return strings.TrimSpace(jsonString(task.Payload, "handler"))
 }
 
 func ValidateScheduledTaskPayload(task models.ScheduledTask) error {
@@ -279,10 +317,8 @@ func scheduledTaskHandlerRegistered(name string) bool {
 }
 
 func scheduledTaskHandler(name string) (ScheduledTaskHandler, bool) {
-	scheduledTaskHandlers.RLock()
-	defer scheduledTaskHandlers.RUnlock()
-	handler, ok := scheduledTaskHandlers.items[strings.TrimSpace(name)]
-	return handler, ok
+	definition, ok := scheduledTaskHandlerDefinition(name)
+	return definition.Handler, ok
 }
 
 func cloneJSONMap(value models.JSONMap) models.JSONMap {

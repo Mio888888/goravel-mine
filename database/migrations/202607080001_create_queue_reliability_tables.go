@@ -27,10 +27,14 @@ func (r *M202607080001CreateQueueReliabilityTables) Down() error {
 }
 
 func createQueueOutboxTable() error {
-	if facades.Schema().HasTable("queue_outbox") {
+	return createQueueOutboxTableOn(facades.Schema())
+}
+
+func createQueueOutboxTableOn(dbSchema schema.Schema) error {
+	if dbSchema.HasTable("queue_outbox") {
 		return nil
 	}
-	return facades.Schema().Create("queue_outbox", func(table schema.Blueprint) {
+	return dbSchema.Create("queue_outbox", func(table schema.Blueprint) {
 		table.ID()
 		table.String("topic", 120)
 		table.String("connection", 40).Default("redis")
@@ -52,10 +56,14 @@ func createQueueOutboxTable() error {
 }
 
 func createQueueIdempotencyTable() error {
-	if facades.Schema().HasTable("queue_idempotency") {
+	return createQueueIdempotencyTableOn(facades.Schema())
+}
+
+func createQueueIdempotencyTableOn(dbSchema schema.Schema) error {
+	if dbSchema.HasTable("queue_idempotency") {
 		return nil
 	}
-	return facades.Schema().Create("queue_idempotency", func(table schema.Blueprint) {
+	return dbSchema.Create("queue_idempotency", func(table schema.Blueprint) {
 		table.ID()
 		table.String("key", 180)
 		table.String("status", 30).Default("success")

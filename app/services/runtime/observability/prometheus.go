@@ -166,6 +166,7 @@ func PrometheusMetricsText(snapshot MetricsSnapshot) string {
 
 	writeQueuePrometheusMetrics(&b, snapshot.Queue)
 	writeCapacityPrometheusMetrics(&b, snapshot)
+	writeMiddlewarePrometheusMetrics(&b, snapshot.Middleware, snapshot.Protection)
 
 	b.WriteString("# HELP goravel_scheduler_node_alive Scheduler node heartbeat status.\n")
 	b.WriteString("# TYPE goravel_scheduler_node_alive gauge\n")
@@ -306,7 +307,10 @@ func MetricsSummary(snapshot MetricsSnapshot) map[string]any {
 			"outbox_pending":    snapshot.Queue.OutboxPending,
 			"outbox_processing": snapshot.Queue.OutboxProcessing,
 			"outbox_failed":     snapshot.Queue.OutboxFailed,
+			"outbox_sent":       snapshot.Queue.OutboxSent,
 		},
+		"middleware":      snapshot.Middleware,
+		"protection":      snapshot.Protection,
 		"scheduler_nodes": len(snapshot.SchedulerNodes),
 		"uptime_seconds":  snapshot.UptimeSeconds,
 		"slow_routes":     slowRoutes,

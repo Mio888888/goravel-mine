@@ -3,6 +3,7 @@ package moduleboot
 import (
 	"goravel/app/modules"
 	"goravel/app/modules/datacenter"
+	"goravel/app/modules/middlewareplatform"
 	"goravel/app/modules/platformobservability"
 	"goravel/app/modules/platformrbac"
 	"goravel/app/modules/platformtenant"
@@ -19,6 +20,7 @@ func Modules() modules.Registry {
 		platformobservability.New(),
 		referencecase.New(),
 		scheduledtask.New(),
+		middlewareplatform.New(),
 		security.New(),
 		datacenter.New(),
 		tenantrbac.New(),

@@ -21,6 +21,10 @@ func (r *ScheduledTaskController) List(ctx contractshttp.Context) contractshttp.
 	return jsonResult(ctx, result, err)
 }
 
+func (r *ScheduledTaskController) Handlers(ctx contractshttp.Context) contractshttp.Response {
+	return jsonResult(ctx, services.ScheduledTaskHandlerDefinitions(), nil)
+}
+
 func (r *ScheduledTaskController) Detail(ctx contractshttp.Context) contractshttp.Response {
 	id, err := routeID(ctx)
 	if err != nil {
@@ -92,12 +96,21 @@ func (r *ScheduledTaskController) Run(ctx contractshttp.Context) contractshttp.R
 	if err != nil {
 		return jsonError(ctx, response.CodeUnprocessableEntity, "请求参数错误")
 	}
-	log, err := r.service.WithContext(ctx.Context()).ManualRun(ctx.Context(), id)
+	log, err := r.service.WithContext(ctx.Context()).ManualRunIdempotent(
+		ctx.Context(),
+		id,
+		ctx.Request().Header("Idempotency-Key", ""),
+	)
 	return jsonResult(ctx, log, err)
 }
 
 func (r *ScheduledTaskController) Logs(ctx contractshttp.Context) contractshttp.Response {
 	result, err := r.service.WithContext(ctx.Context()).Logs(queryFilters(ctx), page(ctx), pageSize(ctx))
+	return jsonResult(ctx, result, err)
+}
+
+func (r *ScheduledTaskController) Reconcile(ctx contractshttp.Context) contractshttp.Response {
+	result, err := r.service.WithContext(ctx.Context()).Reconcile()
 	return jsonResult(ctx, result, err)
 }
 
@@ -125,6 +138,7 @@ func (r *ScheduledTaskController) authorizeConfiguration(ctx contractshttp.Conte
 	}
 	if task.TaskType != services.ScheduledTaskTypeScript &&
 		task.TaskType != services.ScheduledTaskTypeBackup &&
+		!services.ScheduledTaskHandlerPrivileged(task.HandlerKey) &&
 		!services.ScheduledTaskUsesPrivilegedHandler(task.TaskType, task.Payload) {
 		return nil
 	}

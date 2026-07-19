@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"errors"
 	"time"
 )
 
@@ -31,6 +32,12 @@ type QueueRetryPolicy struct {
 
 func (p QueueRetryPolicy) ShouldRetry(err error, attempt int) (bool, time.Duration) {
 	if err == nil {
+		return false, 0
+	}
+	var classified interface {
+		Retryable() bool
+	}
+	if errors.As(err, &classified) && !classified.Retryable() {
 		return false, 0
 	}
 	maxAttempts := p.MaxAttempts

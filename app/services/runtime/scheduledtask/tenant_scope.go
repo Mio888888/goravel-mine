@@ -118,6 +118,9 @@ func (s *ScheduledTaskService) validateScheduledTaskTenantIDs(values models.JSON
 }
 
 func (s *ScheduledTaskService) scheduledTaskTenantScopeFor(task ScheduledTask) (scheduledTaskTenantScope, error) {
+	if task.Scope == ScheduledTaskScopeGlobal {
+		return scheduledTaskTenantScope{}, nil
+	}
 	ids, valid := jsonSliceToUint64(task.TenantIDs)
 	if !valid {
 		return scheduledTaskTenantScope{}, BusinessError{Message: "任务租户范围必须为正整数 ID"}

@@ -11,8 +11,10 @@ import (
 	orgservice "goravel/app/services/platform/org"
 	referencecaseservice "goravel/app/services/platform/referencecase"
 	storageservice "goravel/app/services/platform/storage"
+	messagebusservice "goravel/app/services/runtime/messagebus"
 	migrationlockservice "goravel/app/services/runtime/migrationlock"
 	observabilityservice "goravel/app/services/runtime/observability"
+	protectionservice "goravel/app/services/runtime/protection"
 	queueservice "goravel/app/services/runtime/queue"
 	scheduledtaskservice "goravel/app/services/runtime/scheduledtask"
 	securityrotationservice "goravel/app/services/runtime/securityrotation"
@@ -58,6 +60,7 @@ func QueueJobs() []queue.Job {
 	return []queue.Job{
 		&OperationLogJob{},
 		&QueueOutboxDispatchJob{},
+		&MessageConsumeJob{},
 	}
 }
 
@@ -233,6 +236,7 @@ type QueueFailedJobRetryResult = queueservice.QueueFailedJobRetryResult
 type QueueFailedJobDeleteResult = queueservice.QueueFailedJobDeleteResult
 type QueueFailedJobService = queueservice.QueueFailedJobService
 type QueueIdempotencyResult = queueservice.QueueIdempotencyResult
+type QueueIdempotencyMetadata = queueservice.QueueIdempotencyMetadata
 type QueueIdempotencyStore = queueservice.QueueIdempotencyStore
 type MemoryQueueIdempotencyStore = queueservice.MemoryQueueIdempotencyStore
 type DBQueueIdempotencyStore = queueservice.DBQueueIdempotencyStore
@@ -320,6 +324,130 @@ func RunQueueOutboxDispatchOnceForTest(ctx context.Context, dispatcher QueueOutb
 	queueservice.RunQueueOutboxDispatchOnceForTest(ctx, dispatcher, owner, batch, logger)
 }
 
+// Source: message_bus.go
+const (
+	ConsumptionModeCluster   = messagebusservice.ConsumptionModeCluster
+	ConsumptionModeBroadcast = messagebusservice.ConsumptionModeBroadcast
+
+	RouteStatusDraft     = messagebusservice.RouteStatusDraft
+	RouteStatusPublished = messagebusservice.RouteStatusPublished
+
+	FailureClassRetryable    = messagebusservice.FailureClassRetryable
+	FailureClassNonRetryable = messagebusservice.FailureClassNonRetryable
+	FailureClassUnknown      = messagebusservice.FailureClassUnknown
+)
+
+type MessageEnvelope = messagebusservice.MessageEnvelope
+type MessageTypeDefinition = messagebusservice.MessageTypeDefinition
+type ConsumerDefinition = messagebusservice.ConsumerDefinition
+type MessagePayloadValidator = messagebusservice.MessagePayloadValidator
+type MessageHandler = messagebusservice.MessageHandler
+type IdempotencyKeyResolver = messagebusservice.IdempotencyKeyResolver
+type RegistrySnapshot = messagebusservice.RegistrySnapshot
+type AdapterCapabilities = messagebusservice.AdapterCapabilities
+type AdapterPayload = messagebusservice.AdapterPayload
+type AdapterConnectionTestResult = messagebusservice.AdapterConnectionTestResult
+type RoutePayload = messagebusservice.RoutePayload
+type RouteValidationResult = messagebusservice.RouteValidationResult
+type PublishReceipt = messagebusservice.PublishReceipt
+type ReplayReceipt = messagebusservice.ReplayReceipt
+type MiddlewarePlatformService = messagebusservice.MiddlewarePlatformService
+type MessageConsumeJob = messagebusservice.MessageConsumeJob
+type MiddlewareMetricSnapshot = messagebusservice.MiddlewareMetricSnapshot
+type MiddlewareAdapterMetric = messagebusservice.AdapterMetric
+type MiddlewareDeliveryMetric = messagebusservice.DeliveryMetric
+type MiddlewareDeadLetterMetric = messagebusservice.DeadLetterMetric
+
+func init() {
+	messagebusservice.ConfigureDependencies(OrmForConnectionWithContext, PlatformConnection)
+}
+
+func NewMiddlewarePlatformService() *MiddlewarePlatformService {
+	return messagebusservice.NewMiddlewarePlatformService()
+}
+
+var NewMessageEnvelope = messagebusservice.NewMessageEnvelope
+var ValidateMessageEnvelope = messagebusservice.ValidateMessageEnvelope
+var EncodeMessageEnvelope = messagebusservice.EncodeMessageEnvelope
+var DecodeMessageEnvelope = messagebusservice.DecodeMessageEnvelope
+var RegisterMessageType = messagebusservice.RegisterMessageType
+var MustRegisterMessageType = messagebusservice.MustRegisterMessageType
+var UnregisterMessageType = messagebusservice.UnregisterMessageType
+var RegisterMessageConsumer = messagebusservice.RegisterMessageConsumer
+var MustRegisterMessageConsumer = messagebusservice.MustRegisterMessageConsumer
+var UnregisterMessageConsumer = messagebusservice.UnregisterMessageConsumer
+var MessageRegistrySnapshot = messagebusservice.MessageRegistrySnapshot
+var RetryableMessageError = messagebusservice.RetryableMessageError
+var NonRetryableMessageError = messagebusservice.NonRetryableMessageError
+var UnknownResultMessageError = messagebusservice.UnknownResultMessageError
+var MiddlewareRuntimeMetrics = messagebusservice.Metrics
+
+// Source: protection.go
+const (
+	ProtectionScopeGlobal   = protectionservice.ScopeGlobal
+	ProtectionScopeService  = protectionservice.ScopeService
+	ProtectionScopeEndpoint = protectionservice.ScopeEndpoint
+	ProtectionScopeCustom   = protectionservice.ScopeCustom
+
+	ProtectionRuleTypeRateLimit          = protectionservice.RuleTypeRateLimit
+	ProtectionRuleTypeSlowCallCircuit    = protectionservice.RuleTypeSlowCallCircuit
+	ProtectionRuleTypeFailureRateCircuit = protectionservice.RuleTypeFailureRateCircuit
+	ProtectionRuleTypeConcurrency        = protectionservice.RuleTypeConcurrency
+
+	ProtectionRuleStatusDraft     = protectionservice.StatusDraft
+	ProtectionRuleStatusPublished = protectionservice.StatusPublished
+	ProtectionRuleStatusArchived  = protectionservice.StatusArchived
+
+	ProtectionCircuitClosed   = protectionservice.CircuitClosed
+	ProtectionCircuitOpen     = protectionservice.CircuitOpen
+	ProtectionCircuitHalfOpen = protectionservice.CircuitHalfOpen
+
+	ProtectionRejectionRateLimited        = protectionservice.RejectionRateLimited
+	ProtectionRejectionCircuitOpen        = protectionservice.RejectionCircuitOpen
+	ProtectionRejectionConcurrencyLimited = protectionservice.RejectionConcurrencyLimited
+)
+
+var (
+	ErrProtectionRateLimited        = protectionservice.ErrRateLimited
+	ErrProtectionCircuitOpen        = protectionservice.ErrCircuitOpen
+	ErrProtectionConcurrencyLimited = protectionservice.ErrConcurrencyLimited
+	ErrProtectionDependencyTimeout  = protectionservice.ErrDependencyTimeout
+	ErrProtectionDependencyFailure  = protectionservice.ErrDependencyFailure
+)
+
+type ProtectionRule = protectionservice.Rule
+type ProtectionRuleConfig = protectionservice.RuleConfig
+type PublishedProtectionRuleSet = protectionservice.PublishedRuleSet
+type ProtectionValidationResult = protectionservice.ValidationResult
+type ProtectionRequestContext = protectionservice.RequestContext
+type ProtectionDecision = protectionservice.Decision
+type ProtectionRuleSetState = protectionservice.RuleSetState
+type ProtectionMetric = protectionservice.Metric
+type ProtectionEngine = protectionservice.Engine
+type ProtectionRuleSetPayload = protectionservice.RuleSetPayload
+type ProtectionRuleSetService = protectionservice.RuleSetService
+
+func init() {
+	protectionservice.ConfigureDependencies(OrmForConnectionWithContext, PlatformConnection)
+}
+
+func NewProtectionEngine() *ProtectionEngine {
+	return protectionservice.NewEngine()
+}
+
+func NewProtectionRuleSetService() *ProtectionRuleSetService {
+	return protectionservice.NewRuleSetService()
+}
+
+var ValidateProtectionRuleSet = protectionservice.ValidateRuleSet
+var ValidatePublishedProtectionConflicts = protectionservice.ValidatePublishedConflicts
+var ProtectionRuntimeMetrics = protectionservice.RuntimeMetrics
+var RecordProtectionSuccess = protectionservice.RecordSuccess
+var RecordProtectionFailure = protectionservice.RecordFailure
+var RecordProtectionDecisionSuccess = protectionservice.RecordDecisionSuccess
+var RecordProtectionDecisionFailure = protectionservice.RecordDecisionFailure
+var ResetProtectionRuntimeForTest = protectionservice.ResetRuntimeForTest
+
 // Source: reference_case.go
 const ReferenceCaseStatusEnabled = referencecaseservice.ReferenceCaseStatusEnabled
 
@@ -349,6 +477,22 @@ const (
 	ScheduledTaskTypeMethod     = scheduledtaskservice.ScheduledTaskTypeMethod
 	ScheduledTaskTypeBackup     = scheduledtaskservice.ScheduledTaskTypeBackup
 	ScheduledTaskTypeGovernance = scheduledtaskservice.ScheduledTaskTypeGovernance
+	ScheduledTaskTypeHandler    = scheduledtaskservice.ScheduledTaskTypeHandler
+
+	ScheduledTaskConcurrencyAllow   = scheduledtaskservice.ScheduledTaskConcurrencyAllow
+	ScheduledTaskConcurrencyForbid  = scheduledtaskservice.ScheduledTaskConcurrencyForbid
+	ScheduledTaskConcurrencyReplace = scheduledtaskservice.ScheduledTaskConcurrencyReplace
+
+	ScheduledTaskMisfireIgnore           = scheduledtaskservice.ScheduledTaskMisfireIgnore
+	ScheduledTaskMisfireFireOnceNow      = scheduledtaskservice.ScheduledTaskMisfireFireOnceNow
+	ScheduledTaskMisfireSchedulerDefault = scheduledtaskservice.ScheduledTaskMisfireSchedulerDefault
+
+	ScheduledTaskScopeGlobal    = scheduledtaskservice.ScheduledTaskScopeGlobal
+	ScheduledTaskScopePerTenant = scheduledtaskservice.ScheduledTaskScopePerTenant
+
+	ScheduledTaskRuntimeRegistered   = scheduledtaskservice.ScheduledTaskRuntimeRegistered
+	ScheduledTaskRuntimeLegacyUnsafe = scheduledtaskservice.ScheduledTaskRuntimeLegacyUnsafe
+	ScheduledTaskRuntimeUnavailable  = scheduledtaskservice.ScheduledTaskRuntimeUnavailable
 
 	ScheduledTaskLogStatusRunning = scheduledtaskservice.ScheduledTaskLogStatusRunning
 	ScheduledTaskLogStatusSuccess = scheduledtaskservice.ScheduledTaskLogStatusSuccess
@@ -357,6 +501,9 @@ const (
 
 	ScheduledTaskTriggerSchedule = scheduledtaskservice.ScheduledTaskTriggerSchedule
 	ScheduledTaskTriggerManual   = scheduledtaskservice.ScheduledTaskTriggerManual
+
+	ScheduledTaskTenantGlobalOnly       = scheduledtaskservice.ScheduledTaskTenantGlobalOnly
+	ScheduledTaskTenantPerTenantAllowed = scheduledtaskservice.ScheduledTaskTenantPerTenantAllowed
 )
 
 type ScheduledTask = scheduledtaskservice.ScheduledTask
@@ -366,6 +513,10 @@ type ScheduledTaskService = scheduledtaskservice.ScheduledTaskService
 type ScheduledTaskHandler = scheduledtaskservice.ScheduledTaskHandler
 type ScheduledTaskExecutionResult = scheduledtaskservice.ScheduledTaskExecutionResult
 type ScheduledTaskTenantOption = scheduledtaskservice.ScheduledTaskTenantOption
+type ScheduledTaskHandlerDefinition = scheduledtaskservice.ScheduledTaskHandlerDefinition
+type ScheduledTaskParameterValidator = scheduledtaskservice.ScheduledTaskParameterValidator
+type ScheduledTaskReconciliationItem = scheduledtaskservice.ScheduledTaskReconciliationItem
+type ScheduledTaskReconciliationReport = scheduledtaskservice.ScheduledTaskReconciliationReport
 type SchedulerNodeMetric = scheduledtaskservice.SchedulerNodeMetric
 type SchedulerHeartbeatMetrics = scheduledtaskservice.SchedulerHeartbeatMetrics
 
@@ -403,6 +554,22 @@ func NewScheduledTaskRunner() foundation.Runner {
 
 func RegisterScheduledTaskHandler(name string, handler ScheduledTaskHandler) {
 	scheduledtaskservice.RegisterScheduledTaskHandler(name, handler)
+}
+
+func RegisterScheduledTaskHandlerDefinition(definition ScheduledTaskHandlerDefinition) error {
+	return scheduledtaskservice.RegisterScheduledTaskHandlerDefinition(definition)
+}
+
+func MustRegisterScheduledTaskHandlerDefinition(definition ScheduledTaskHandlerDefinition) {
+	scheduledtaskservice.MustRegisterScheduledTaskHandlerDefinition(definition)
+}
+
+func ScheduledTaskHandlerDefinitions() []ScheduledTaskHandlerDefinition {
+	return scheduledtaskservice.ScheduledTaskHandlerDefinitions()
+}
+
+func ScheduledTaskHandlerPrivileged(name string) bool {
+	return scheduledtaskservice.ScheduledTaskHandlerPrivileged(name)
 }
 
 func UnregisterScheduledTaskHandler(name string) {

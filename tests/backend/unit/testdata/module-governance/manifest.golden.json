@@ -1170,6 +1170,20 @@
           ]
         },
         {
+          "name": "platform.scheduled-task.handlers",
+          "method": "GET",
+          "path": "/admin/platform/scheduled-task/handlers",
+          "permission": "platform:scheduledTask:list",
+          "permissions": [
+            "platform:scheduledTask:list",
+            "platform:scheduledTask:save",
+            "platform:scheduledTask:update"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
           "name": "platform.scheduled-task.tenant-options",
           "method": "GET",
           "path": "/admin/platform/scheduled-task/tenant-options",
@@ -1278,6 +1292,18 @@
           "middlewares": [
             "platform-admin"
           ]
+        },
+        {
+          "name": "platform.scheduled-task.reconcile",
+          "method": "POST",
+          "path": "/admin/platform/scheduled-task/reconcile",
+          "permission": "platform:scheduledTask:run",
+          "permissions": [
+            "platform:scheduledTask:run"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
         }
       ],
       "menus": [
@@ -1330,6 +1356,541 @@
         "tests/backend/feature/admin/scheduled_task_test.go",
         "tests/backend/unit/scheduled_task_cron_test.go",
         "tests/backend/unit/scheduled_task_runner_test.go"
+      ]
+    },
+    {
+      "id": "middleware-platform",
+      "name": "Middleware Platform",
+      "version": "1.0.0",
+      "compatible": "\u003e=1.17.0",
+      "package": {
+        "import_path": "goravel/app/modules/middlewareplatform",
+        "registry_key": "middleware-platform",
+        "version": "1.0.0",
+        "owner": "platform-team",
+        "release_track": "internal",
+        "compatibility": [
+          "\u003e=1.17.0 \u003c2.0.0"
+        ]
+      },
+      "enabled": true,
+      "dependencies": [
+        {
+          "id": "platform-rbac",
+          "version_constraint": "\u003e=1.0.0",
+          "required": true
+        }
+      ],
+      "lifecycle": {
+        "install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "uninstall": "manual data review required",
+        "upgrade": "go run . artisan migrate",
+        "rollback": "go run . artisan migrate:rollback",
+        "destructive_check": "go run . artisan module:manifest:check",
+        "supports_hot_disable": false,
+        "requires_restart": true,
+        "breaking_change_policy": "document in release notes and block without review"
+      },
+      "seed_strategy": {
+        "mode": "idempotent",
+        "idempotent": true,
+        "command": "go run . artisan db:seed"
+      },
+      "frontend": {},
+      "routes": [
+        {
+          "name": "platform.middleware.registry",
+          "method": "GET",
+          "path": "/admin/platform/middleware/registry",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.adapters",
+          "method": "GET",
+          "path": "/admin/platform/middleware/adapters",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.adapter-detail",
+          "method": "GET",
+          "path": "/admin/platform/middleware/adapters/{id}",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.adapter-create",
+          "method": "POST",
+          "path": "/admin/platform/middleware/adapters",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.adapter-update",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/adapters/{id}",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.adapter-health",
+          "method": "POST",
+          "path": "/admin/platform/middleware/adapters/{id}/health",
+          "permission": "platform:middleware:execute",
+          "permissions": [
+            "platform:middleware:execute"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.adapter-test",
+          "method": "POST",
+          "path": "/admin/platform/middleware/adapters/{id}/test",
+          "permission": "platform:middleware:execute",
+          "permissions": [
+            "platform:middleware:execute"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.adapter-enable",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/adapters/{id}/enable",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.adapter-disable",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/adapters/{id}/disable",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.adapter-config",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/adapters/{id}/config",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.routes",
+          "method": "GET",
+          "path": "/admin/platform/middleware/routes",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.route-detail",
+          "method": "GET",
+          "path": "/admin/platform/middleware/routes/{id}",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.route-create",
+          "method": "POST",
+          "path": "/admin/platform/middleware/routes",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.route-update",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/routes/{id}",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.route-validate",
+          "method": "POST",
+          "path": "/admin/platform/middleware/routes/{id}/validate",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.route-publish",
+          "method": "POST",
+          "path": "/admin/platform/middleware/routes/{id}/publish",
+          "permission": "platform:middleware:publish",
+          "permissions": [
+            "platform:middleware:publish"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.route-enable",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/routes/{id}/enable",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.route-disable",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/routes/{id}/disable",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.deliveries",
+          "method": "GET",
+          "path": "/admin/platform/middleware/deliveries",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.dead-letters",
+          "method": "GET",
+          "path": "/admin/platform/middleware/dead-letters",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.dead-letter-detail",
+          "method": "GET",
+          "path": "/admin/platform/middleware/dead-letters/{id}",
+          "permission": "platform:middleware:payload",
+          "permissions": [
+            "platform:middleware:payload"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.dead-letter-replay",
+          "method": "POST",
+          "path": "/admin/platform/middleware/dead-letters/{id}/replay",
+          "permission": "platform:middleware:replay",
+          "permissions": [
+            "platform:middleware:replay"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.dead-letter-resolve",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/dead-letters/{id}/resolve",
+          "permission": "platform:middleware:replay",
+          "permissions": [
+            "platform:middleware:replay"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rules",
+          "method": "GET",
+          "path": "/admin/platform/middleware/protection-rules",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-detail",
+          "method": "GET",
+          "path": "/admin/platform/middleware/protection-rules/{id}",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-create",
+          "method": "POST",
+          "path": "/admin/platform/middleware/protection-rules",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-update",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/protection-rules/{id}",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-delete",
+          "method": "DELETE",
+          "path": "/admin/platform/middleware/protection-rules/{id}",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-validate",
+          "method": "POST",
+          "path": "/admin/platform/middleware/protection-rules/{id}/validate",
+          "permission": "platform:middleware:configure",
+          "permissions": [
+            "platform:middleware:configure"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-publish",
+          "method": "POST",
+          "path": "/admin/platform/middleware/protection-rules/{id}/publish",
+          "permission": "platform:middleware:publish",
+          "permissions": [
+            "platform:middleware:publish"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-enable",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/protection-rules/{id}/enable",
+          "permission": "platform:middleware:publish",
+          "permissions": [
+            "platform:middleware:publish"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-disable",
+          "method": "PUT",
+          "path": "/admin/platform/middleware/protection-rules/{id}/disable",
+          "permission": "platform:middleware:publish",
+          "permissions": [
+            "platform:middleware:publish"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-versions",
+          "method": "GET",
+          "path": "/admin/platform/middleware/protection-rules/{id}/versions",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-rollback",
+          "method": "POST",
+          "path": "/admin/platform/middleware/protection-rules/{id}/rollback",
+          "permission": "platform:middleware:publish",
+          "permissions": [
+            "platform:middleware:publish"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-rule-state",
+          "method": "GET",
+          "path": "/admin/platform/middleware/protection-rules/{id}/state",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.protection-metrics",
+          "method": "GET",
+          "path": "/admin/platform/middleware/protection-metrics",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        },
+        {
+          "name": "platform.middleware.metrics",
+          "method": "GET",
+          "path": "/admin/platform/middleware/metrics",
+          "permission": "platform:middleware:list",
+          "permissions": [
+            "platform:middleware:list"
+          ],
+          "middlewares": [
+            "platform-admin"
+          ]
+        }
+      ],
+      "menus": [
+        {
+          "key": "platform:middleware",
+          "parent_key": "platform:system",
+          "title": "中间件平台",
+          "path": "/platform-system/middleware",
+          "component": "base/views/platform/middleware/index",
+          "permission": "platform:middleware:list",
+          "type": "M",
+          "i18n": "baseMenu.platform.middleware",
+          "sort": 35
+        }
+      ],
+      "permissions": [
+        {
+          "key": "platform:middleware:list",
+          "description": "中间件平台查看"
+        },
+        {
+          "key": "platform:middleware:configure",
+          "description": "中间件平台配置"
+        },
+        {
+          "key": "platform:middleware:execute",
+          "description": "中间件平台执行"
+        },
+        {
+          "key": "platform:middleware:publish",
+          "description": "消息路由发布"
+        },
+        {
+          "key": "platform:middleware:replay",
+          "description": "消息死信重放"
+        },
+        {
+          "key": "platform:middleware:payload",
+          "description": "消息载荷查看"
+        }
+      ],
+      "migrations": [
+        "202607190002_create_middleware_platform_tables"
+      ],
+      "openapi_files": [
+        "docs/api-contract/openapi/middleware-platform.openapi.json"
+      ],
+      "test_templates": [
+        "tests/backend/feature/admin/middleware_platform_test.go",
+        "tests/backend/unit/message_registry_test.go"
       ]
     },
     {

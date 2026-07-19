@@ -21,6 +21,21 @@ func jsonResult(ctx contractshttp.Context, data any, err error) contractshttp.Re
 		if errors.Is(err, services.ErrQuotaExceeded) {
 			return jsonError(ctx, response.CodeTooManyRequests, "租户配额已用尽")
 		}
+		if errors.Is(err, services.ErrProtectionRateLimited) {
+			return jsonError(ctx, response.CodeTooManyRequests, "请求已被限流规则拒绝")
+		}
+		if errors.Is(err, services.ErrProtectionConcurrencyLimited) {
+			return jsonError(ctx, response.CodeTooManyRequests, "请求已被并发隔离规则拒绝")
+		}
+		if errors.Is(err, services.ErrProtectionCircuitOpen) {
+			return jsonError(ctx, response.CodeServiceUnavailable, "请求已被熔断规则拒绝")
+		}
+		if errors.Is(err, services.ErrProtectionDependencyTimeout) {
+			return jsonError(ctx, response.CodeGatewayTimeout, "受保护依赖调用超时")
+		}
+		if errors.Is(err, services.ErrProtectionDependencyFailure) {
+			return jsonError(ctx, response.CodeBadGateway, "受保护依赖调用失败")
+		}
 		if errors.Is(err, services.ErrSubscriptionInactive) {
 			return jsonError(ctx, response.CodeDisabled, "租户订阅不可用")
 		}

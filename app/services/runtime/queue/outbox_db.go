@@ -82,6 +82,7 @@ func (s *DBQueueOutboxStore) MarkSent(ctx context.Context, id uint64, claimToken
 			"lock_owner":   "",
 			"claim_token":  "",
 			"last_error":   nil,
+			"published_at": now,
 			"updated_at":   now,
 		})
 	return err

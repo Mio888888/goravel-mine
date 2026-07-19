@@ -1,14 +1,17 @@
 <script setup lang="tsx">
 import type { MaProTableExpose, MaProTableOptions, MaProTableSchema } from '@mineadmin/pro-table'
 import type { Ref } from 'vue'
-import type { ScheduledTaskVo } from '~/base/api/platformScheduledTask'
+import type {
+  ScheduledTaskReconciliationReportVo,
+  ScheduledTaskVo,
+} from '~/base/api/platformScheduledTask'
 import type { TransType } from '@/hooks/auto-imports/useTrans.ts'
 import type { UseDialogExpose } from '@/hooks/useDialog.ts'
 import { ElTag } from 'element-plus'
-import { deleteByIds, logs, page } from '~/base/api/platformScheduledTask'
+import { deleteByIds, logs, page, reconcile } from '~/base/api/platformScheduledTask'
 import getSearchItems from './data/getSearchItems.tsx'
 import getTableColumns from './data/getTableColumns.tsx'
-import { logStatusMeta, taskTypeLabel } from './data/options.ts'
+import { isLegacyTask, logStatusMeta } from './data/options.ts'
 import ScheduledTaskForm from './form.vue'
 import useDialog from '@/hooks/useDialog.ts'
 import { useMessage } from '@/hooks/useMessage.ts'
@@ -26,6 +29,10 @@ const logDrawerVisible = ref(false)
 const activeTask = ref<ScheduledTaskVo | null>(null)
 const logLoading = ref(false)
 const logRows = ref<any[]>([])
+const reconcileLoading = ref(false)
+const reconcileDrawerVisible = ref(false)
+const reconcileReport = ref<ScheduledTaskReconciliationReportVo | null>(null)
+const editableSelections = computed(() => selections.value.filter(item => !isLegacyTask(item)))
 
 const maDialog: UseDialogExpose = useDialog({
   lgWidth: '860px',
@@ -77,7 +84,7 @@ const schema = ref<MaProTableSchema>({
 })
 
 function handleDelete() {
-  const ids = selections.value.map((item: any) => item.id)
+  const ids = editableSelections.value.map((item: any) => item.id)
   msg.confirm(t('crud.delMessage')).then(async () => {
     const response = await deleteByIds(ids)
     if (response.code === ResultCode.SUCCESS) {
@@ -85,6 +92,30 @@ function handleDelete() {
       await proTableRef.value.refresh()
     }
   })
+}
+
+async function handleReconcile() {
+  try {
+    await msg.confirm(t('baseScheduledTaskManage.reconcileConfirm'))
+  }
+  catch {
+    return
+  }
+  reconcileLoading.value = true
+  try {
+    const response = await reconcile()
+    if (response.code === ResultCode.SUCCESS) {
+      reconcileReport.value = response.data
+      reconcileDrawerVisible.value = true
+      await proTableRef.value.refresh()
+    }
+    else {
+      msg.error(response.message)
+    }
+  }
+  finally {
+    reconcileLoading.value = false
+  }
 }
 
 async function openLogs(row: ScheduledTaskVo) {
@@ -106,6 +137,13 @@ async function openLogs(row: ScheduledTaskVo) {
     <MaProTable ref="proTableRef" :options="options" :schema="schema">
       <template #actions>
         <el-button
+          v-auth="['platform:scheduledTask:run']"
+          :loading="reconcileLoading"
+          @click="handleReconcile"
+        >
+          {{ t('baseScheduledTaskManage.reconcile') }}
+        </el-button>
+        <el-button
           v-auth="['platform:scheduledTask:save']"
           type="primary"
           @click="() => {
@@ -121,7 +159,7 @@ async function openLogs(row: ScheduledTaskVo) {
           v-auth="['platform:scheduledTask:delete']"
           type="danger"
           plain
-          :disabled="selections.length < 1"
+          :disabled="editableSelections.length < 1"
           @click="handleDelete"
         >
           {{ t('crud.delete') }}
@@ -153,11 +191,6 @@ async function openLogs(row: ScheduledTaskVo) {
       <el-table v-loading="logLoading" :data="logRows" border>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="trigger_mode" :label="t('baseScheduledTaskManage.triggerMode')" width="110" />
-        <el-table-column :label="t('baseScheduledTaskManage.taskType')" width="110">
-          <template #default="{ row }">
-            <ElTag>{{ taskTypeLabel(row.task_type) }}</ElTag>
-          </template>
-        </el-table-column>
         <el-table-column :label="t('baseScheduledTaskManage.logStatus')" width="100">
           <template #default="{ row }">
             <ElTag :type="logStatusMeta(row.status).type">
@@ -165,6 +198,9 @@ async function openLogs(row: ScheduledTaskVo) {
             </ElTag>
           </template>
         </el-table-column>
+        <el-table-column prop="logical_execution_id" :label="t('baseScheduledTaskManage.logicalExecutionId')" min-width="220" show-overflow-tooltip />
+        <el-table-column prop="attempt" :label="t('baseScheduledTaskManage.attempt')" width="90" />
+        <el-table-column prop="correlation_id" :label="t('baseScheduledTaskManage.correlationId')" min-width="220" show-overflow-tooltip />
         <el-table-column prop="node_ip" :label="t('baseScheduledTaskManage.nodeIp')" width="140" />
         <el-table-column prop="started_at" :label="t('baseScheduledTaskManage.startedAt')" width="170" />
         <el-table-column prop="duration_ms" :label="t('baseScheduledTaskManage.duration')" width="110" />
@@ -175,5 +211,42 @@ async function openLogs(row: ScheduledTaskVo) {
         <el-table-column prop="stderr" label="STDERR" min-width="220" show-overflow-tooltip />
       </el-table>
     </el-drawer>
+
+    <el-drawer v-model="reconcileDrawerVisible" :title="t('baseScheduledTaskManage.reconcileResult')" size="64%">
+      <div v-if="reconcileReport" class="reconcile-summary">
+        <ElTag type="success">
+          {{ t('baseScheduledTaskManage.healthyCount', { count: reconcileReport.healthy }) }}
+        </ElTag>
+        <ElTag type="warning">
+          {{ t('baseScheduledTaskManage.legacyCount', { count: reconcileReport.legacy }) }}
+        </ElTag>
+        <ElTag type="danger">
+          {{ t('baseScheduledTaskManage.missingCount', { count: reconcileReport.missing }) }}
+        </ElTag>
+        <span>{{ reconcileReport.checked_at }}</span>
+      </div>
+      <el-table :data="reconcileReport?.items ?? []" border>
+        <el-table-column prop="task_id" label="ID" width="80" />
+        <el-table-column prop="task_code" :label="t('baseScheduledTaskManage.code')" min-width="150" />
+        <el-table-column prop="handler_key" :label="t('baseScheduledTaskManage.handler')" min-width="220" />
+        <el-table-column prop="state" :label="t('baseScheduledTaskManage.runtimeState')" width="160" />
+        <el-table-column prop="message" :label="t('baseScheduledTaskManage.reconcileMessage')" min-width="240" />
+      </el-table>
+    </el-drawer>
   </div>
 </template>
+
+<style scoped>
+.reconcile-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.reconcile-summary span {
+  margin-left: auto;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+</style>

@@ -2,7 +2,7 @@
 
 本文档记录 Goravel 后端当前实现的 MineAdmin V3 兼容基础 API。所有接口默认返回 HTTP 200，业务状态由 JSON `code` 表示。
 
-范围：本文件为 `admin-base-apis` scoped subset（基础接口子集），覆盖本文列出并承诺生成 SDK 的管理端基础接口；不作为 `routes/web.go` 全量路由清单。平台租户、SSO、计划任务、观测等扩展接口需另建契约或补入本文后再生成对应 SDK。
+范围：本文件为 `admin-base-apis` scoped subset（基础接口子集），覆盖本文列出并承诺生成 SDK 的管理端基础接口；不作为 `routes/web.go` 全量路由清单。平台租户、SSO、计划任务和观测等扩展接口需另建契约或补入本文后再生成对应 SDK。
 
 机器可验证契约：
 
@@ -617,6 +617,93 @@ Query: `username`, `status`, `ip`, `os`, `browser`, `page`, `per_page`
 Query: `username`, `method`, `router`, `service_name`, `page`, `per_page`
 
 登录日志与操作日志为只读审计记录；留存期清理仅可通过受 Task 5 证据流保护的 `security:audit-prune` CLI/job 执行，管理 API 不提供删除操作。
+
+## Scheduled Task
+
+计划任务后台只允许选择代码注册的处理器。`url` 与 `script` 仅作为历史数据兼容执行，不允许通过管理 API 新建或修改。
+
+### `GET /admin/platform/scheduled-task/list`
+
+Query: `name`, `code`, `task_type`, `status`, `page`, `page_size` 或 `per_page`
+
+任务数据包含 `handler_key`、`parameters`、`concurrency_policy`、`misfire_policy`、`retry_policy`、`scope`、`runtime_state` 与乐观锁 `version`。`runtime_state` 为：
+
+- `REGISTERED`：处理器可用。
+- `LEGACY_UNSAFE`：历史 URL 或脚本任务，只读兼容。
+- `HANDLER_UNAVAILABLE`：处理器未注册，需修复代码或任务配置。
+
+### `GET /admin/platform/scheduled-task/handlers`
+
+返回可配置处理器注册表，包括参数 Schema、默认超时、租户能力、取消能力和特权标记。
+
+### `GET /admin/platform/scheduled-task/tenant-options`
+
+返回启用租户，用于 `PER_TENANT` 任务选择目标租户。
+
+### `GET /admin/platform/scheduled-task/{id}`
+
+返回任务详情。
+
+### `POST /admin/platform/scheduled-task`
+
+创建处理器任务。核心请求字段：
+
+```json
+{
+  "name": "每日健康检查",
+  "code": "scheduler-health-daily",
+  "cron_expression": "0 0 * * *",
+  "timezone": "Asia/Shanghai",
+  "task_type": "handler",
+  "handler_key": "scheduler.noop",
+  "parameters": {},
+  "concurrency_policy": "FORBID",
+  "misfire_policy": "SCHEDULER_DEFAULT",
+  "retry_policy": {
+    "max_attempts": 1,
+    "initial_delay_seconds": 1,
+    "max_delay_seconds": 30
+  },
+  "scope": "GLOBAL",
+  "status": 1
+}
+```
+
+`REPLACE` 仅允许支持协作取消的处理器。`PER_TENANT` 必须与处理器租户能力兼容。
+
+### `PUT /admin/platform/scheduled-task/{id}`
+
+同创建请求，并携带当前 `version` 防止并发覆盖。
+
+### `DELETE /admin/platform/scheduled-task`
+
+请求体为任务 ID 数组。历史 `LEGACY_UNSAFE` 任务不允许从管理页面操作；删除前需确保调度状态可安全移除。
+
+```json
+[1, 2]
+```
+
+### `PUT /admin/platform/scheduled-task/{id}/enable`
+
+启用任务。
+
+### `PUT /admin/platform/scheduled-task/{id}/disable`
+
+停用任务。
+
+### `POST /admin/platform/scheduled-task/{id}/run`
+
+立即执行任务。必须提供唯一 `Idempotency-Key` 请求头；重复键返回原逻辑执行，不创建第二次副作用。
+
+### `GET /admin/platform/scheduled-task-log/list`
+
+Query: `task_id`, `task_code`, `status`, `trigger_mode`, `page`, `page_size` 或 `per_page`
+
+日志包含 `logical_execution_id`、`idempotency_key`、`attempt` 与 `correlation_id`。同一触发的重试共享逻辑执行 ID，每次尝试单独记录。
+
+### `POST /admin/platform/scheduled-task/reconcile`
+
+比较数据库任务、代码处理器注册表和当前运行状态，返回健康、历史不安全和处理器缺失统计。接口只报告状态，不执行破坏性覆盖或删除。
 
 ## Tooling
 

@@ -2,10 +2,12 @@ package admin
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -422,15 +424,20 @@ func (s *ScheduledTaskTestSuite) TestScriptTaskIgnoresWorkdirForScriptPathResolu
 		"timeout_seconds": 5,
 		"status": 1
 	}`)
-	require.Equal(s.T(), float64(200), res["code"])
-	id := uint64(res["data"].(map[string]any)["id"].(float64))
+	require.Equal(s.T(), float64(422), res["code"])
 
-	run := s.postJSON("/admin/platform/scheduled-task/"+itoa(id)+"/run", `{}`)
+	task := s.createLegacyScriptTask(
+		"script_workdir",
+		models.JSONMap{"command": "storage/scripts/" + scriptName, "workdir": tmp},
+		5,
+		services.ScheduledTaskScopeGlobal,
+		nil,
+	)
+	log, err := services.NewScheduledTaskService().ManualRun(context.Background(), task.ID)
 
-	require.Equal(s.T(), float64(200), run["code"])
-	body := run["data"].(map[string]any)
-	require.Equal(s.T(), "failed", body["status"])
-	require.NotContains(s.T(), body["stdout"], "bypassed")
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), "failed", log.Status)
+	require.NotContains(s.T(), log.Stdout, "bypassed")
 }
 
 func (s *ScheduledTaskTestSuite) TestScriptTaskStopsWhenContextCancelled() {
@@ -449,19 +456,167 @@ func (s *ScheduledTaskTestSuite) TestScriptTaskStopsWhenContextCancelled() {
 		"timeout_seconds": 10,
 		"status": 1
 	}`)
-	require.Equal(s.T(), float64(200), create["code"])
-	id := uint64(create["data"].(map[string]any)["id"].(float64))
+	require.Equal(s.T(), float64(422), create["code"])
+	task := s.createLegacyScriptTask(
+		"script_context_cancel",
+		models.JSONMap{"command": "storage/scripts/context-cancel-test.sh"},
+		10,
+		services.ScheduledTaskScopeGlobal,
+		nil,
+	)
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
 	started := time.Now()
-	log, err := services.NewScheduledTaskService().ManualRun(ctx, id)
+	log, err := services.NewScheduledTaskService().ManualRun(ctx, task.ID)
 	elapsed := time.Since(started)
 
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), "failed", log.Status)
 	require.Less(s.T(), elapsed, 2*time.Second)
 	require.NotContains(s.T(), log.Stdout, "finished")
+}
+
+func (s *ScheduledTaskTestSuite) TestManualRunRetriesShareLogicalExecutionAndOnlyFirstAttemptStoresIdempotencyKey() {
+	calls := 0
+	services.RegisterScheduledTaskHandler("scheduler.retry_idempotency", func(_ context.Context, _ models.JSONMap) services.ScheduledTaskExecutionResult {
+		calls++
+		if calls == 1 {
+			return services.ScheduledTaskExecutionResult{
+				Status: services.ScheduledTaskLogStatusFailed, ErrorMessage: "temporary",
+			}
+		}
+		return services.ScheduledTaskExecutionResult{
+			Status: services.ScheduledTaskLogStatusSuccess, Stdout: "recovered",
+		}
+	})
+	s.T().Cleanup(func() {
+		services.UnregisterScheduledTaskHandler("scheduler.retry_idempotency")
+	})
+	create := s.postJSON("/admin/platform/scheduled-task", `{
+		"name": "重试幂等",
+		"code": "retry_idempotency",
+		"cron_expression": "0 0 0 */10 * *",
+		"task_type": "method",
+		"handler_key": "scheduler.retry_idempotency",
+		"retry_policy": {
+			"max_attempts": 2,
+			"initial_delay_seconds": 1,
+			"max_delay_seconds": 1
+		},
+		"timeout_seconds": 5,
+		"status": 1
+	}`)
+	require.Equal(s.T(), float64(200), create["code"])
+	id := uint64(create["data"].(map[string]any)["id"].(float64))
+
+	log, err := services.NewScheduledTaskService().ManualRunIdempotent(
+		context.Background(), id, "manual-retry-key",
+	)
+
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), services.ScheduledTaskLogStatusSuccess, log.Status)
+	require.Equal(s.T(), 2, calls)
+
+	var attempts []models.ScheduledTaskLog
+	require.NoError(s.T(), facades.Orm().Connection(services.PlatformConnection()).Query().
+		Table("scheduled_task_log").
+		Where("task_id", id).
+		OrderBy("attempt").
+		Get(&attempts))
+	require.Len(s.T(), attempts, 2)
+	require.NotEmpty(s.T(), attempts[0].LogicalExecutionID)
+	require.Equal(s.T(), attempts[0].LogicalExecutionID, attempts[1].LogicalExecutionID)
+	require.Equal(s.T(), "manual-retry-key", attempts[0].IdempotencyKey)
+	require.Empty(s.T(), attempts[1].IdempotencyKey)
+	require.Equal(s.T(), 1, attempts[0].Attempt)
+	require.Equal(s.T(), 2, attempts[1].Attempt)
+
+	duplicate, err := services.NewScheduledTaskService().ManualRunIdempotent(
+		context.Background(), id, "manual-retry-key",
+	)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), attempts[1].ID, duplicate.ID)
+	require.Equal(s.T(), 2, calls)
+}
+
+func (s *ScheduledTaskTestSuite) TestConcurrentIdempotentRunDoesNotStartRetryExecution() {
+	started := make(chan struct{})
+	release := make(chan struct{})
+	var calls atomic.Int32
+	require.NoError(s.T(), services.RegisterScheduledTaskHandlerDefinition(services.ScheduledTaskHandlerDefinition{
+		HandlerKey:           "scheduler.concurrent_idempotency",
+		Description:          "并发幂等测试",
+		DefaultTimeout:       5,
+		TenantCapability:     services.ScheduledTaskTenantGlobalOnly,
+		SupportsCancellation: true,
+		Handler: func(ctx context.Context, _ models.JSONMap) services.ScheduledTaskExecutionResult {
+			if calls.Add(1) == 1 {
+				close(started)
+			}
+			select {
+			case <-release:
+				return services.ScheduledTaskExecutionResult{Status: services.ScheduledTaskLogStatusSuccess}
+			case <-ctx.Done():
+				return services.ScheduledTaskExecutionResult{
+					Status: services.ScheduledTaskLogStatusFailed, ErrorMessage: ctx.Err().Error(),
+				}
+			}
+		},
+	}))
+	s.T().Cleanup(func() {
+		services.UnregisterScheduledTaskHandler("scheduler.concurrent_idempotency")
+	})
+	create := s.postJSON("/admin/platform/scheduled-task", `{
+		"name": "并发幂等",
+		"code": "concurrent_idempotency",
+		"cron_expression": "0 0 0 */10 * *",
+		"task_type": "method",
+		"handler_key": "scheduler.concurrent_idempotency",
+		"concurrency_policy": "REPLACE",
+		"retry_policy": {
+			"max_attempts": 2,
+			"initial_delay_seconds": 1,
+			"max_delay_seconds": 1
+		},
+		"timeout_seconds": 5,
+		"status": 1
+	}`)
+	require.Equal(s.T(), float64(200), create["code"])
+	id := uint64(create["data"].(map[string]any)["id"].(float64))
+
+	type runResult struct {
+		log models.ScheduledTaskLog
+		err error
+	}
+	firstResult := make(chan runResult, 1)
+	go func() {
+		log, err := services.NewScheduledTaskService().ManualRunIdempotent(
+			context.Background(), id, "concurrent-run-key",
+		)
+		firstResult <- runResult{log: log, err: err}
+	}()
+	<-started
+
+	duplicate, err := services.NewScheduledTaskService().ManualRunIdempotent(
+		context.Background(), id, "concurrent-run-key",
+	)
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), services.ScheduledTaskLogStatusRunning, duplicate.Status)
+	require.Equal(s.T(), int32(1), calls.Load())
+
+	close(release)
+	first := <-firstResult
+	require.NoError(s.T(), first.err)
+	require.Equal(s.T(), services.ScheduledTaskLogStatusSuccess, first.log.Status)
+	require.Equal(s.T(), int32(1), calls.Load())
+
+	attempts, err := facades.Orm().Connection(services.PlatformConnection()).Query().
+		Table("scheduled_task_log").
+		Where("task_id", id).
+		Count()
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), int64(1), attempts)
 }
 
 func (s *ScheduledTaskTestSuite) TestManualRunReturnsErrorWhenExecutionLogCannotBeCreated() {
@@ -658,15 +813,21 @@ func (s *ScheduledTaskTestSuite) TestScriptTaskReceivesTenantScopeEnvironment() 
 		"timeout_seconds": 5,
 		"status": 1
 	}`, tenant.ID))
-	require.Equal(s.T(), float64(200), create["code"])
-	id := uint64(create["data"].(map[string]any)["id"].(float64))
+	require.Equal(s.T(), float64(422), create["code"])
+	task := s.createLegacyScriptTask(
+		"tenant_scope_script",
+		models.JSONMap{"command": "storage/scripts/tenant-scope-test.sh"},
+		5,
+		services.ScheduledTaskScopePerTenant,
+		models.JSONSlice{tenant.ID},
+	)
 
-	run := s.postJSON("/admin/platform/scheduled-task/"+itoa(id)+"/run", `{}`)
+	log, err := services.NewScheduledTaskService().ManualRun(context.Background(), task.ID)
 
-	require.Equal(s.T(), float64(200), run["code"])
-	require.Equal(s.T(), "success", run["data"].(map[string]any)["status"])
-	require.Contains(s.T(), run["data"].(map[string]any)["stdout"], "tenant_scope_script")
-	require.Contains(s.T(), run["data"].(map[string]any)["stdout"], itoa(tenant.ID))
+	require.NoError(s.T(), err)
+	require.Equal(s.T(), "success", log.Status)
+	require.Contains(s.T(), log.Stdout, "tenant_scope_script")
+	require.Contains(s.T(), log.Stdout, itoa(tenant.ID))
 }
 
 func (s *ScheduledTaskTestSuite) TestEmptyTenantScopeMeansAllActiveTenants() {
@@ -738,6 +899,37 @@ func (s *ScheduledTaskTestSuite) createScheduledTaskRecord(code string, nextRunA
 	_, err = facades.Orm().Connection(services.PlatformConnection()).Query().Exec(
 		"UPDATE scheduled_task SET payload = ?::jsonb WHERE id = ?",
 		`{"handler":"scheduler.noop"}`, task.ID,
+	)
+	require.NoError(s.T(), err)
+	return task
+}
+
+func (s *ScheduledTaskTestSuite) createLegacyScriptTask(
+	code string,
+	payload models.JSONMap,
+	timeoutSeconds int,
+	scope string,
+	tenantIDs models.JSONSlice,
+) models.ScheduledTask {
+	now := time.Now()
+	task := models.ScheduledTask{
+		Name: code, Code: code, CronExpression: "0 0 0 */10 * *", Timezone: "UTC",
+		NextRunAt: &now, TaskType: services.ScheduledTaskTypeScript,
+		TimeoutSeconds: timeoutSeconds, MaxLogOutput: 4000, RunOnOneServer: true,
+		ConcurrencyPolicy: services.ScheduledTaskConcurrencyForbid,
+		MisfirePolicy:     services.ScheduledTaskMisfireSchedulerDefault,
+		Scope:             scope, RuntimeState: services.ScheduledTaskRuntimeLegacyUnsafe, Version: 1,
+		Status: services.ScheduledTaskStatusEnabled,
+	}
+	query := facades.Orm().Connection(services.PlatformConnection()).Query()
+	require.NoError(s.T(), query.Table("scheduled_task").Create(&task))
+	encodedPayload, err := json.Marshal(payload)
+	require.NoError(s.T(), err)
+	encodedTenants, err := json.Marshal(tenantIDs)
+	require.NoError(s.T(), err)
+	_, err = query.Exec(
+		"UPDATE scheduled_task SET payload = ?::jsonb, tenant_ids = ?::jsonb WHERE id = ?",
+		string(encodedPayload), string(encodedTenants), task.ID,
 	)
 	require.NoError(s.T(), err)
 	return task

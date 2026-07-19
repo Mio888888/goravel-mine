@@ -117,7 +117,7 @@ baseStorageConfigManage:
   optionsJsonError: 扩展配置必须是合法 JSON
 baseScheduledTaskManage:
   mainTitle: 计划任务
-  subTitle: 维护平台级秒级任务、定点节点执行与运行日志。
+  subTitle: 通过代码注册处理器维护持久化任务、重试策略与执行日志。
   name: 任务名称
   code: 任务编码
   description: 任务说明
@@ -156,6 +156,183 @@ baseScheduledTaskManage:
   exitCode: 退出码
   errorMessage: 错误
   payloadJsonError: Payload 必须是合法 JSON
+  handler: 任务处理器
+  parameters: 处理器参数 JSON
+  parameterSchema: 参数 Schema（只读）
+  parametersJsonError: 处理器参数必须是合法 JSON 对象
+  concurrencyPolicy: 并发策略
+  misfirePolicy: 错过触发策略
+  scope: 执行作用域
+  maxAttempts: 最大尝试次数
+  initialDelay: 初始延迟（秒）
+  maxDelay: 最大延迟（秒）
+  runtimeState: 运行状态
+  runConfirm: 确认立即执行该任务？本次请求会携带唯一幂等键。
+  reconcile: 任务对账
+  reconcileConfirm: 确认对账数据库任务、处理器注册表和运行状态？
+  reconcileResult: 任务对账结果
+  reconcileMessage: 对账说明
+  healthyCount: 健康 {count}
+  legacyCount: 历史高风险 {count}
+  missingCount: 处理器缺失 {count}
+  logicalExecutionId: 逻辑执行 ID
+  attempt: 尝试
+  correlationId: 关联 ID
+baseMiddleware:
+  title: 中间件平台
+  subtitle: 管理已配置队列适配器、消息路由、投递、死信、保护规则与运行指标。
+  refresh: 刷新
+  adapters: 适配器
+  adaptersHint: 仅注册服务端已配置的 Goravel Queue 连接，不在线保存或返回连接密钥。
+  routes: 消息路由
+  routesHint: 路由先保存为草稿，经能力校验后再发布；每条消息类型只选择一个主适配器。
+  deliveries: 消息投递
+  deliveriesHint: 查询消费者投递尝试、耗时、重试和死信状态。
+  deadLetters: 死信
+  deadLettersHint: 默认列表不返回载荷；查看脱敏信封、重放和解决均受独立权限控制。
+  protectionRules: 保护规则
+  protectionHint: 配置固定窗口限流、慢调用/异常比例熔断和并发隔离，发布后生成不可变版本。
+  metrics: 监控
+  metricsHint: 查看进程内实时保护指标与数据库聚合的消息、死信和 Outbox 快照。
+  metricsSourceHint: 数据源为当前应用进程与平台数据库实时快照；无固定时间范围，刷新即重新采样，保护状态尚未跨实例聚合。
+  name: 名称
+  adapter: 适配器
+  adapterType: 适配器类型
+  connection: 队列连接
+  capabilities: 能力
+  health: 健康状态
+  version: 版本
+  enabled: 已启用
+  disabled: 已停用
+  enable: 启用
+  disable: 停用
+  yes: 是
+  no: 否
+  registerAdapter: 注册已配置连接
+  editAdapter: 编辑适配器
+  testConnection: 连接测试
+  checkHealth: 健康检查
+  healthChecked: 健康状态已更新
+  connectionPassed: 连接测试通过
+  disableAdapterConfirm: 确认停用该适配器？活动路由仍会保留，后端将再次校验影响。
+  enableAdapterConfirm: 确认启用该适配器？
+  staticConfigHint: 连接与密钥由服务端静态配置管理；页面不支持在线替换或回显明文。
+  adapterNameRequired: 请输入适配器名称
+  connectionRequired: 请输入已配置的队列连接名
+  capPersistent: 持久化
+  capCluster: 集群消费
+  capBroadcast: 广播
+  capOfflineRecovery: 离线恢复
+  capRetry: 重试
+  capDeadLetter: 死信
+  capOrdering: 顺序
+  messageType: 消息类型
+  destination: 目标
+  mode: 消费模式
+  consumerGroup: 消费者组
+  concurrency: 并发数
+  ordering: 顺序消费
+  routeStatus: 配置状态
+  routeNameRequired: 请输入路由名称
+  messageTypeRequired: 请选择消息类型
+  adapterRequired: 请选择适配器
+  destinationRequired: 请输入 Topic、Queue、Stream 或内部通道
+  consumerGroupRequired: 集群消费必须填写消费者组
+  retryPolicy: 重试策略
+  maxAttempts: 最大尝试次数
+  initialDelay: 初始延迟（秒）
+  maxDelay: 最大延迟（秒）
+  deadLetterPolicy: 死信策略
+  deadLetterDestination: 死信目标
+  retentionDays: 保留天数
+  alertEnabled: 启用告警
+  validate: 校验
+  publish: 发布
+  published: 已发布
+  validationResult: 校验结果
+  validationPassed: 校验通过
+  validationFailed: 校验失败
+  publishRouteConfirm: 确认发布该消息路由？发布后新消息将使用此配置。
+  disableRouteConfirm: 确认停用该消息路由？
+  enableRouteConfirm: 确认启用该消息路由？
+  messageId: 消息 ID
+  consumer: 消费者
+  deliveryStatus: 投递状态
+  attempt: 尝试
+  duration: 耗时(ms)
+  correlationId: 关联 ID
+  receivedAt: 接收时间
+  errorSummary: 错误摘要
+  failureClass: 失败分类
+  resolutionStatus: 解决状态
+  replayCount: 重放次数
+  lastFailedAt: 最近失败
+  replay: 重放
+  resolve: 标记解决
+  replayConfirm: 确认重放该死信？将保留原 messageId 并携带唯一幂等键。
+  replayQueued: 死信已进入重放队列
+  resolveConfirm: 确认将该死信标记为已解决？
+  deadLetterDetail: 死信详情
+  redactedEnvelope: 脱敏消息信封
+  scope: 作用域
+  resourcePattern: 资源表达式
+  ruleTypes: 规则类型
+  rules: 规则
+  addRule: 添加规则
+  rateLimit: 固定窗口限流
+  slowCallCircuit: 慢调用熔断
+  failureRateCircuit: 异常比例熔断
+  concurrencyIsolation: 并发隔离
+  ruleSetNameRequired: 请输入规则集名称
+  scopeRequired: 请选择作用域
+  resourcePatternRequired: 请输入资源表达式
+  duplicateRuleType: 同一规则集不能重复配置相同规则类型
+  ruleRequired: 至少添加一条保护规则
+  limit: 限流阈值
+  windowMs: 窗口(ms)
+  maxConcurrency: 最大并发
+  slowDurationMs: 慢调用阈值(ms)
+  thresholdPercent: 比例阈值(%)
+  minimumRequests: 最小请求数
+  statisticalWindowMs: 统计窗口(ms)
+  openDurationMs: 熔断时长(ms)
+  halfOpenProbes: 半开探测数
+  halfOpenSuccesses: 半开成功数
+  publishRuleConfirm: 确认发布该保护规则？将追加不可变线上版本。
+  disableRuleConfirm: 确认停用该保护规则？将追加新的停用版本。
+  enableRuleConfirm: 确认重新启用该保护规则？将追加新的启用版本。
+  publishedVersion: 发布版本
+  versions: 版本历史
+  versionHistory: 保护规则版本历史
+  publishedAt: 发布时间
+  rollback: 回滚
+  rollbackConfirm: 确认回滚到版本 {version}？系统会追加一个新版本，不覆盖历史。
+  rollbackSucceeded: 回滚版本已发布
+  runtimeState: 运行状态
+  currentConcurrency: 当前并发
+  samples: 样本
+  failures: 失败
+  slowCalls: 慢调用
+  adapterInstances: 适配器实例
+  deliveryCount: 投递记录
+  deadLetterCount: 死信记录
+  outboxPending: Outbox 待发送
+  outboxProcessing: Outbox 处理中
+  outboxFailed: Outbox 失败
+  outboxSent: Outbox 已发送
+  failedJobs: 失败队列任务
+  protectionRuleCount: 保护规则数
+  adapterHealthMetrics: 适配器健康
+  outbox: Outbox
+  deliveryMetrics: 消息投递指标
+  protectionMetrics: 服务保护指标
+  count: 数量
+  averageDuration: 平均耗时
+  passed: 放行
+  rateLimited: 限流拒绝
+  circuitRejected: 熔断拒绝
+  concurrencyRejected: 隔离拒绝
+  calls: 调用
 baseObservability:
   title: 系统监控
   subtitle: 慢请求、慢 SQL 与 HTTP 指标采样
@@ -671,6 +848,13 @@ baseMenu:
     scheduledTaskDelete: 计划任务删除
     scheduledTaskRun: 计划任务执行
     scheduledTaskLog: 计划任务日志
+    middleware: 中间件平台
+    middlewareList: 中间件平台查看
+    middlewareConfigure: 中间件平台配置
+    middlewareExecute: 中间件平台执行
+    middlewarePublish: 中间件发布
+    middlewareReplay: 消息死信重放
+    middlewarePayload: 消息载荷查看
     queueFailedJobList: 失败队列列表
     queueFailedJobRetry: 失败队列重试
     queueFailedJobDelete: 失败队列丢弃

@@ -51,13 +51,31 @@ func (s *ScheduledTaskService) orm() contractsorm.Orm {
 
 func scheduledTaskScalar(task ScheduledTask) ScheduledTask {
 	task.Payload = nil
+	task.Parameters = nil
+	task.RetryPolicy = nil
 	task.TargetIPs = nil
 	task.TenantIDs = nil
 	return task
 }
 
-func updateScheduledTaskJSON(query contractsorm.Query, id uint64, payload models.JSONMap, targetIPs models.JSONSlice, tenantIDs models.JSONSlice) error {
+func updateScheduledTaskJSON(
+	query contractsorm.Query,
+	id uint64,
+	payload models.JSONMap,
+	parameters models.JSONMap,
+	retryPolicy models.JSONMap,
+	targetIPs models.JSONSlice,
+	tenantIDs models.JSONSlice,
+) error {
 	encodedPayload, err := json.Marshal(nullIfEmpty(payload))
+	if err != nil {
+		return err
+	}
+	encodedParameters, err := json.Marshal(nullIfEmpty(parameters))
+	if err != nil {
+		return err
+	}
+	encodedRetryPolicy, err := json.Marshal(nullIfEmpty(retryPolicy))
 	if err != nil {
 		return err
 	}
@@ -70,8 +88,12 @@ func updateScheduledTaskJSON(query contractsorm.Query, id uint64, payload models
 		return err
 	}
 	_, err = query.Exec(
-		"UPDATE scheduled_task SET payload = ?::jsonb, target_ips = ?::jsonb, tenant_ids = ?::jsonb WHERE id = ?",
-		string(encodedPayload), string(encodedTargets), string(encodedTenants), id,
+		`UPDATE scheduled_task
+		 SET payload = ?::jsonb, parameters = ?::jsonb, retry_policy = ?::jsonb,
+		     target_ips = ?::jsonb, tenant_ids = ?::jsonb
+		 WHERE id = ?`,
+		string(encodedPayload), string(encodedParameters), string(encodedRetryPolicy),
+		string(encodedTargets), string(encodedTenants), id,
 	)
 	return err
 }

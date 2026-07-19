@@ -2,6 +2,7 @@ package scheduledtask
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,15 +11,100 @@ import (
 	"goravel/app/models"
 )
 
-func (s *ScheduledTaskService) runTask(ctx context.Context, task ScheduledTask, triggerMode string, scheduledAt time.Time, token string) (ScheduledTaskLog, error) {
+var errScheduledTaskExecutionExists = errors.New("scheduled task execution already exists")
+
+func (s *ScheduledTaskService) runTask(
+	ctx context.Context,
+	task ScheduledTask,
+	triggerMode string,
+	scheduledAt time.Time,
+	token string,
+	idempotencyKey string,
+) (ScheduledTaskLog, error) {
+	logicalExecutionID := randomRunToken()
+	runCtx := ctx
+	unregister := func() {}
+	registered := false
+	defer func() {
+		unregister()
+	}()
+	executionContext := func() context.Context {
+		if !registered {
+			runCtx, unregister = registerScheduledTaskRun(task, ctx)
+			registered = true
+		}
+		return runCtx
+	}
+	policy := scheduledTaskRetryPolicy(task)
+	if policy.MaxAttempts < 1 {
+		policy.MaxAttempts = 1
+	}
+	logicalStartedAt := scheduledTaskNow()
+	var lastLog ScheduledTaskLog
+	for attempt := 1; attempt <= policy.MaxAttempts; attempt++ {
+		attemptIdempotencyKey := ""
+		if attempt == 1 {
+			attemptIdempotencyKey = idempotencyKey
+		}
+		log, err := s.runTaskAttempt(
+			executionContext, task, triggerMode, scheduledAt, token, logicalExecutionID, attemptIdempotencyKey, attempt,
+		)
+		if errors.Is(err, errScheduledTaskExecutionExists) {
+			return s.latestScheduledTaskExecutionLog(log), nil
+		}
+		if err != nil {
+			return log, err
+		}
+		lastLog = log
+		if log.Status == ScheduledTaskLogStatusSuccess || log.Status == ScheduledTaskLogStatusSkipped {
+			break
+		}
+		if attempt >= policy.MaxAttempts || runCtx.Err() != nil {
+			break
+		}
+		timer := time.NewTimer(policy.Delay(attempt))
+		select {
+		case <-runCtx.Done():
+			timer.Stop()
+			attempt = policy.MaxAttempts
+		case <-timer.C:
+		}
+	}
+	taskErr := s.finishScheduledTask(
+		task.ID, triggerMode, token, logicalStartedAt, scheduledTaskNow(), lastLog,
+	)
+	return lastLog, taskErr
+}
+
+func (s *ScheduledTaskService) runTaskAttempt(
+	executionContext func() context.Context,
+	task ScheduledTask,
+	triggerMode string,
+	scheduledAt time.Time,
+	token string,
+	logicalExecutionID string,
+	idempotencyKey string,
+	attempt int,
+) (ScheduledTaskLog, error) {
 	start := scheduledTaskNow()
 	log := ScheduledTaskLog{
 		TaskID: task.ID, TaskName: task.Name, TaskCode: task.Code, RunToken: token,
+		LogicalExecutionID: logicalExecutionID, IdempotencyKey: idempotencyKey,
+		Attempt: attempt, CorrelationID: logicalExecutionID,
 		TriggerMode: triggerMode, TaskType: task.TaskType, NodeIP: s.nodeIP,
 		Status: ScheduledTaskLogStatusRunning, ScheduledAt: &scheduledAt, StartedAt: &start,
 		Timestamps: models.Timestamps{CreatedAt: start, UpdatedAt: start},
 	}
 	if err := s.query().Table("scheduled_task_log").Create(&log); err != nil {
+		if idempotencyKey != "" {
+			var existing ScheduledTaskLog
+			if loadErr := s.query().Table("scheduled_task_log").
+				Where("task_id", task.ID).
+				Where("idempotency_key", idempotencyKey).
+				First(&existing); loadErr == nil && existing.ID > 0 {
+				return existing, errScheduledTaskExecutionExists
+			}
+		}
 		_ = s.recordTaskRunWriteFailure(task.ID, triggerMode, token, start, err)
 		return ScheduledTaskLog{}, err
 	}
@@ -36,6 +122,7 @@ func (s *ScheduledTaskService) runTask(ctx context.Context, task ScheduledTask, 
 		}
 	}
 
+	ctx := executionContext()
 	runCtx, cancel := context.WithTimeout(ctx, scheduledTaskTimeout(task))
 	defer cancel()
 
@@ -65,15 +152,27 @@ func (s *ScheduledTaskService) runTask(ctx context.Context, task ScheduledTask, 
 			"task_id":     task.ID,
 			"task_code":   task.Code,
 			"run_id":      log.ID,
-			"handler":     jsonString(task.Payload, "handler"),
+			"handler":     scheduledTaskHandlerKey(task),
 			"duration_ms": duration,
 			"error":       result.ErrorMessage,
 		})
 	}
 
-	logErr := s.finishScheduledTaskLog(log, finished)
-	taskErr := s.finishScheduledTask(task.ID, triggerMode, token, start, finished, log)
-	return log, firstError(logErr, taskErr)
+	return log, s.finishScheduledTaskLog(log, finished)
+}
+
+func (s *ScheduledTaskService) latestScheduledTaskExecutionLog(existing ScheduledTaskLog) ScheduledTaskLog {
+	if existing.LogicalExecutionID == "" {
+		return existing
+	}
+	var latest ScheduledTaskLog
+	if err := s.query().Table("scheduled_task_log").
+		Where("logical_execution_id", existing.LogicalExecutionID).
+		OrderByDesc("attempt").
+		First(&latest); err == nil && latest.ID > 0 {
+		return latest
+	}
+	return existing
 }
 
 func governanceTaskOutcome(status string) string {

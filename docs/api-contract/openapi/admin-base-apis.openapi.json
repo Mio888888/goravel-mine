@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "MineAdmin Admin Base API Contract",
-    "version": "2026-07-06",
+    "version": "2026-07-19",
     "description": "Scoped subset for documented admin-base APIs; not a full route list. Add new endpoints here before generating an SDK for them."
   },
   "servers": [{ "url": "/" }],
@@ -17,7 +17,8 @@
     { "name": "Organization" },
     { "name": "PlatformStorageConfig" },
     { "name": "Attachment" },
-    { "name": "Logs" }
+    { "name": "Logs" },
+    { "name": "ScheduledTask" }
   ],
   "paths": {
     "/admin/passport/login": {
@@ -952,6 +953,692 @@
             "content": {
               "application/x-ndjson": { "schema": { "type": "string", "format": "binary" } },
               "text/csv": { "schema": { "type": "string", "format": "binary" } }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task/list": {
+      "get": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskList",
+        "x-permission": "platform:scheduledTask:list",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "task_type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "handler",
+                "method",
+                "backup",
+                "governance",
+                "url",
+                "script"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "enum": [
+                1,
+                2
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          },
+          {
+            "$ref": "#/components/parameters/PerPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/ScheduledTaskPageData"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task/handlers": {
+      "get": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskHandlers",
+        "x-permission": "platform:scheduledTask:list",
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ScheduledTaskHandlerDefinition"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task/tenant-options": {
+      "get": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskTenantOptions",
+        "x-permission": "platform:scheduledTask:list",
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/ScheduledTaskTenantOption"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task/{id}": {
+      "get": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskDetail",
+        "x-permission": "platform:scheduledTask:list",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/ScheduledTask"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskUpdate",
+        "x-permission": "platform:scheduledTask:update",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledTaskPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/ScheduledTask"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task": {
+      "post": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskCreate",
+        "x-permission": "platform:scheduledTask:save",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledTaskPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/ScheduledTask"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskDelete",
+        "x-permission": "platform:scheduledTask:delete",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdList"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/EmptyArray"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task/{id}/enable": {
+      "put": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskEnable",
+        "x-permission": "platform:scheduledTask:update",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/ScheduledTask"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task/{id}/disable": {
+      "put": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskDisable",
+        "x-permission": "platform:scheduledTask:update",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/ScheduledTask"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task/{id}/run": {
+      "post": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskRun",
+        "x-permission": "platform:scheduledTask:run",
+        "description": "Triggers one logical execution. Reusing the idempotency key returns the original execution.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Id"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/ScheduledTaskLog"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task-log/list": {
+      "get": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskLogList",
+        "x-permission": "platform:scheduledTask:log",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "task_code",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "running",
+                "success",
+                "failed",
+                "skipped"
+              ]
+            }
+          },
+          {
+            "name": "trigger_mode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "schedule",
+                "manual"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          },
+          {
+            "$ref": "#/components/parameters/PerPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/ScheduledTaskLogPageData"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/platform/scheduled-task/reconcile": {
+      "post": {
+        "tags": [
+          "ScheduledTask"
+        ],
+        "operationId": "adminPlatformScheduledTaskReconcile",
+        "x-permission": "platform:scheduledTask:run",
+        "responses": {
+          "200": {
+            "description": "HTTP 200; business status is carried by the JSON code field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/ApiResponse"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "data"
+                          ],
+                          "properties": {
+                            "data": {
+                              "$ref": "#/components/schemas/ScheduledTaskReconciliationReport"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ]
+                }
+              }
             }
           }
         }
@@ -2259,6 +2946,638 @@
           { "allOf": [{ "$ref": "#/components/schemas/ApiResponse" }, { "type": "object", "required": ["data"], "properties": { "data": { "$ref": "#/components/schemas/TenantExportStatus" } } }] },
           { "$ref": "#/components/schemas/ErrorResponse" }
         ]
+      },
+      "ScheduledTaskRetryPolicy": {
+        "type": "object",
+        "required": [
+          "max_attempts",
+          "initial_delay_seconds",
+          "max_delay_seconds"
+        ],
+        "properties": {
+          "max_attempts": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "initial_delay_seconds": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_delay_seconds": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "ScheduledTaskPayload": {
+        "type": "object",
+        "required": [
+          "name",
+          "code",
+          "cron_expression",
+          "timezone",
+          "task_type",
+          "handler_key",
+          "parameters",
+          "concurrency_policy",
+          "misfire_policy",
+          "retry_policy",
+          "scope",
+          "status"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string"
+          },
+          "cron_expression": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "task_type": {
+            "type": "string",
+            "enum": [
+              "handler",
+              "method",
+              "backup",
+              "governance"
+            ]
+          },
+          "handler_key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "concurrency_policy": {
+            "type": "string",
+            "enum": [
+              "ALLOW",
+              "FORBID",
+              "REPLACE"
+            ]
+          },
+          "misfire_policy": {
+            "type": "string",
+            "enum": [
+              "IGNORE",
+              "FIRE_ONCE_NOW",
+              "SCHEDULER_DEFAULT"
+            ]
+          },
+          "retry_policy": {
+            "$ref": "#/components/schemas/ScheduledTaskRetryPolicy"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "PER_TENANT"
+            ]
+          },
+          "max_log_output": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "target_ips": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tenant_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 1
+            }
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "remark": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ScheduledTask": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "code",
+          "cron_expression",
+          "timezone",
+          "task_type",
+          "handler_key",
+          "parameters",
+          "concurrency_policy",
+          "misfire_policy",
+          "retry_policy",
+          "scope",
+          "status",
+          "runtime_state",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "cron_expression": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "next_run_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "task_type": {
+            "type": "string",
+            "enum": [
+              "handler",
+              "method",
+              "backup",
+              "governance",
+              "url",
+              "script"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "handler_key": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "timeout_seconds": {
+            "type": "integer"
+          },
+          "allow_overlap": {
+            "type": "boolean"
+          },
+          "concurrency_policy": {
+            "type": "string",
+            "enum": [
+              "ALLOW",
+              "FORBID",
+              "REPLACE"
+            ]
+          },
+          "misfire_policy": {
+            "type": "string",
+            "enum": [
+              "IGNORE",
+              "FIRE_ONCE_NOW",
+              "SCHEDULER_DEFAULT"
+            ]
+          },
+          "retry_policy": {
+            "$ref": "#/components/schemas/ScheduledTaskRetryPolicy"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "PER_TENANT"
+            ]
+          },
+          "max_log_output": {
+            "type": "integer"
+          },
+          "target_ips": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tenant_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint64"
+            }
+          },
+          "run_on_one_server": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "last_run_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_status": {
+            "type": "string"
+          },
+          "last_duration_ms": {
+            "type": "integer"
+          },
+          "last_message": {
+            "type": "string"
+          },
+          "runtime_state": {
+            "type": "string",
+            "enum": [
+              "REGISTERED",
+              "LEGACY_UNSAFE",
+              "HANDLER_UNAVAILABLE"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "created_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "updated_by": {
+            "type": "integer",
+            "format": "uint64"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "remark": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "ScheduledTaskHandlerDefinition": {
+        "type": "object",
+        "required": [
+          "handler_key",
+          "description",
+          "parameter_schema",
+          "default_timeout",
+          "tenant_capability",
+          "supports_cancellation",
+          "privileged"
+        ],
+        "properties": {
+          "handler_key": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "parameter_schema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "default_timeout": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "tenant_capability": {
+            "type": "string",
+            "enum": [
+              "GLOBAL_ONLY",
+              "PER_TENANT_ALLOWED"
+            ]
+          },
+          "supports_cancellation": {
+            "type": "boolean"
+          },
+          "privileged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ScheduledTaskTenantOption": {
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ScheduledTaskLog": {
+        "type": "object",
+        "required": [
+          "id",
+          "task_id",
+          "task_name",
+          "task_code",
+          "trigger_mode",
+          "task_type",
+          "logical_execution_id",
+          "attempt",
+          "correlation_id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "task_id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "task_name": {
+            "type": "string"
+          },
+          "task_code": {
+            "type": "string"
+          },
+          "run_token": {
+            "type": "string"
+          },
+          "trigger_mode": {
+            "type": "string",
+            "enum": [
+              "schedule",
+              "manual"
+            ]
+          },
+          "task_type": {
+            "type": "string",
+            "enum": [
+              "handler",
+              "method",
+              "backup",
+              "governance",
+              "url",
+              "script"
+            ]
+          },
+          "logical_execution_id": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "correlation_id": {
+            "type": "string"
+          },
+          "node_ip": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "success",
+              "failed",
+              "skipped"
+            ]
+          },
+          "scheduled_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration_ms": {
+            "type": "integer"
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "http_status": {
+            "type": "integer"
+          },
+          "stdout": {
+            "type": "string"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
+          },
+          "tenants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "code"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "uint64"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      },
+      "ScheduledTaskReconciliationItem": {
+        "type": "object",
+        "required": [
+          "task_id",
+          "task_code",
+          "handler_key",
+          "state",
+          "message"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 1
+          },
+          "task_code": {
+            "type": "string"
+          },
+          "handler_key": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "REGISTERED",
+              "LEGACY_UNSAFE",
+              "HANDLER_UNAVAILABLE"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "ScheduledTaskReconciliationReport": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "items",
+          "missing",
+          "legacy",
+          "healthy"
+        ],
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledTaskReconciliationItem"
+            }
+          },
+          "missing": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "legacy": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "healthy": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "ScheduledTaskPageData": {
+        "type": "object",
+        "required": [
+          "list",
+          "total"
+        ],
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledTask"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ScheduledTaskLogPageData": {
+        "type": "object",
+        "required": [
+          "list",
+          "total"
+        ],
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledTaskLog"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
       },
       "ErrorResponse": {
         "type": "object",

@@ -6,7 +6,7 @@ import { deleteByIds, detail, disable, enable, run } from '~/base/api/platformSc
 import { useMessage } from '@/hooks/useMessage.ts'
 import { ResultCode } from '@/utils/ResultCode.ts'
 import hasAuth from '@/utils/permission/hasAuth.ts'
-import { logStatusMeta, taskTypeLabel } from './options.ts'
+import { isLegacyTask, logStatusMeta, runtimeStateMeta, taskTypeLabel } from './options.ts'
 
 const operationLinkProps = {
   style: {
@@ -37,7 +37,12 @@ export default function getTableColumns(dialog: UseDialogExpose, openLogs: (row:
 
 function baseColumns(t: any): MaProTableColumns[] {
   return [
-    { type: 'selection', showOverflowTooltip: false, label: () => t('crud.selection') },
+    {
+      type: 'selection',
+      showOverflowTooltip: false,
+      label: () => t('crud.selection'),
+      selectable: (row: ScheduledTaskVo) => !isLegacyTask(row),
+    },
     { type: 'index' },
     { label: () => t('baseScheduledTaskManage.name'), prop: 'name', minWidth: '150px' },
     { label: () => t('baseScheduledTaskManage.code'), prop: 'code', minWidth: '150px' },
@@ -47,7 +52,17 @@ function baseColumns(t: any): MaProTableColumns[] {
       width: '110px',
       cellRender: ({ row }) => <ElTag>{taskTypeLabel(row.task_type)}</ElTag>,
     },
+    { label: () => t('baseScheduledTaskManage.handler'), prop: 'handler_key', minWidth: '210px', showOverflowTooltip: true },
     { label: () => t('baseScheduledTaskManage.cron'), prop: 'cron_expression', minWidth: '150px' },
+    {
+      label: () => t('baseScheduledTaskManage.runtimeState'),
+      prop: 'runtime_state',
+      width: '130px',
+      cellRender: ({ row }) => {
+        const meta = runtimeStateMeta(row.runtime_state)
+        return <ElTag type={meta.type}>{meta.label}</ElTag>
+      },
+    },
     { label: () => t('baseScheduledTaskManage.nextRunAt'), prop: 'next_run_at', minWidth: '170px' },
     {
       label: () => t('baseScheduledTaskManage.lastStatus'),
@@ -77,7 +92,7 @@ function operationColumn(dialog: UseDialogExpose, openLogs: (row: ScheduledTaskV
   return {
     type: 'operation',
     label: () => t('crud.operation'),
-    width: '360px',
+    width: '380px',
     operationConfigure: { type: 'tile', actions: operationActions(dialog, openLogs, refreshAfter, msg, t) },
   }
 }
@@ -96,7 +111,7 @@ function editAction(dialog: UseDialogExpose, msg: any, t: any) {
   return {
     name: 'edit',
     icon: 'material-symbols:edit-square-outline',
-    show: () => hasAuth('platform:scheduledTask:update'),
+    show: ({ row }: any) => hasAuth('platform:scheduledTask:update') && !isLegacyTask(row),
     linkProps: operationLinkProps,
     text: () => t('crud.edit'),
     onClick: async ({ row }: any) => {
@@ -112,14 +127,18 @@ function editAction(dialog: UseDialogExpose, msg: any, t: any) {
 }
 
 function runAction(refreshAfter: any, t: any) {
+  const msg = useMessage()
   return {
     name: 'run',
     icon: 'material-symbols:play-arrow-outline',
-    show: () => hasAuth('platform:scheduledTask:run'),
+    show: ({ row }: any) => hasAuth('platform:scheduledTask:run') && !isLegacyTask(row),
     linkProps: operationLinkProps,
     text: () => t('baseScheduledTaskManage.run'),
     onClick: async ({ row }: any, proxy: MaProTableExpose) => {
-      await refreshAfter(await run(row.id), proxy, t('baseScheduledTaskManage.runSuccess'))
+      await msg.confirm(t('baseScheduledTaskManage.runConfirm'))
+      const key = globalThis.crypto?.randomUUID?.()
+        ?? `scheduled-task-${row.id}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+      await refreshAfter(await run(row.id, key), proxy, t('baseScheduledTaskManage.runSuccess'))
     },
   }
 }
@@ -128,7 +147,7 @@ function toggleAction(refreshAfter: any, t: any) {
   return {
     name: 'toggle',
     icon: 'material-symbols:power-settings-new',
-    show: () => hasAuth('platform:scheduledTask:update'),
+    show: ({ row }: any) => hasAuth('platform:scheduledTask:update') && !isLegacyTask(row),
     linkProps: operationLinkProps,
     text: ({ row }: any): string => row?.status === 1 ? t('baseScheduledTaskManage.disable') : t('baseScheduledTaskManage.enable'),
     onClick: async ({ row }: any, proxy: MaProTableExpose) => {
@@ -153,7 +172,7 @@ function deleteAction(refreshAfter: any, msg: any, t: any) {
   return {
     name: 'del',
     icon: 'mdi:delete',
-    show: () => hasAuth('platform:scheduledTask:delete'),
+    show: ({ row }: any) => hasAuth('platform:scheduledTask:delete') && !isLegacyTask(row),
     linkProps: operationLinkProps,
     text: () => t('crud.delete'),
     onClick: ({ row }: any, proxy: MaProTableExpose) => {

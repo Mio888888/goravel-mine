@@ -9,8 +9,9 @@ import (
 )
 
 type QueueIdempotencyResult struct {
-	Status string
-	Result string
+	Status    string
+	Result    string
+	Duplicate bool
 }
 
 type QueueIdempotencyStore interface {
@@ -50,6 +51,7 @@ func (s *MemoryQueueIdempotencyStore) reserve(key string) (bool, QueueIdempotenc
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if result, ok := s.items[key]; ok && result.Status != QueueIdempotencyStatusFailed {
+		result.Duplicate = true
 		return false, result
 	}
 	s.items[key] = QueueIdempotencyResult{Status: QueueIdempotencyStatusRunning}
@@ -66,12 +68,21 @@ type DBQueueIdempotencyStore struct {
 	connection string
 }
 
+type QueueIdempotencyMetadata struct {
+	ConsumerKey    string
+	IdempotencyKey string
+	MessageID      string
+}
+
 type queueIdempotencyRecord struct {
-	Key         string     `gorm:"column:key"`
-	Status      string     `gorm:"column:status"`
-	Result      string     `gorm:"column:result"`
-	LockedUntil *time.Time `gorm:"column:locked_until"`
-	ClaimToken  string     `gorm:"column:claim_token"`
+	Key            string     `gorm:"column:key"`
+	ConsumerKey    string     `gorm:"column:consumer_key"`
+	IdempotencyKey string     `gorm:"column:idempotency_key"`
+	MessageID      string     `gorm:"column:message_id"`
+	Status         string     `gorm:"column:status"`
+	Result         string     `gorm:"column:result"`
+	LockedUntil    *time.Time `gorm:"column:locked_until"`
+	ClaimToken     string     `gorm:"column:claim_token"`
 }
 
 func NewDBQueueIdempotencyStore(connection string) *DBQueueIdempotencyStore {
@@ -79,12 +90,27 @@ func NewDBQueueIdempotencyStore(connection string) *DBQueueIdempotencyStore {
 }
 
 func (s *DBQueueIdempotencyStore) Once(ctx context.Context, key string, fn func(context.Context) (QueueIdempotencyResult, error)) (QueueIdempotencyResult, error) {
+	return s.OnceWithMetadata(ctx, key, QueueIdempotencyMetadata{}, fn)
+}
+
+func (s *DBQueueIdempotencyStore) OnceWithMetadata(
+	ctx context.Context,
+	key string,
+	metadata QueueIdempotencyMetadata,
+	fn func(context.Context) (QueueIdempotencyResult, error),
+) (QueueIdempotencyResult, error) {
 	ctx = contextOrBackground(ctx)
 	key = strings.TrimSpace(key)
 	if key == "" {
 		return QueueIdempotencyResult{}, errors.New("queue idempotency key is required")
 	}
-	reserved, claimToken, result, err := s.reserve(ctx, key)
+	metadata.ConsumerKey = strings.TrimSpace(metadata.ConsumerKey)
+	metadata.IdempotencyKey = strings.TrimSpace(metadata.IdempotencyKey)
+	metadata.MessageID = strings.TrimSpace(metadata.MessageID)
+	if (metadata.ConsumerKey == "") != (metadata.IdempotencyKey == "") {
+		return QueueIdempotencyResult{}, errors.New("queue idempotency consumer key and idempotency key must be provided together")
+	}
+	reserved, claimToken, result, err := s.reserve(ctx, key, metadata)
 	if !reserved || err != nil {
 		return result, err
 	}
@@ -99,7 +125,11 @@ func (s *DBQueueIdempotencyStore) Once(ctx context.Context, key string, fn func(
 	return result, s.finish(ctx, key, claimToken, result)
 }
 
-func (s *DBQueueIdempotencyStore) reserve(ctx context.Context, key string) (bool, string, QueueIdempotencyResult, error) {
+func (s *DBQueueIdempotencyStore) reserve(
+	ctx context.Context,
+	key string,
+	metadata QueueIdempotencyMetadata,
+) (bool, string, QueueIdempotencyResult, error) {
 	query := OrmForConnectionWithContext(ctx, s.connection).Query()
 	var record queueIdempotencyRecord
 	err := query.Table("queue_idempotency").Where("key", key).First(&record)
@@ -109,6 +139,7 @@ func (s *DBQueueIdempotencyStore) reserve(ctx context.Context, key string) (bool
 			if record.Status == QueueIdempotencyStatusRunning && isExpired(record.LockedUntil, time.Now()) {
 				return s.reserveStaleRunning(ctx, key, result)
 			}
+			result.Duplicate = true
 			return false, "", result, nil
 		}
 		return s.reserveFailed(ctx, key, result)
@@ -116,12 +147,15 @@ func (s *DBQueueIdempotencyStore) reserve(ctx context.Context, key string) (bool
 	now := time.Now()
 	claimToken := randomRunToken()
 	err = query.Table("queue_idempotency").Create(map[string]any{
-		"key":          key,
-		"status":       QueueIdempotencyStatusRunning,
-		"locked_until": now.Add(5 * time.Minute),
-		"claim_token":  claimToken,
-		"created_at":   now,
-		"updated_at":   now,
+		"key":             key,
+		"consumer_key":    metadata.ConsumerKey,
+		"idempotency_key": metadata.IdempotencyKey,
+		"message_id":      metadata.MessageID,
+		"status":          QueueIdempotencyStatusRunning,
+		"locked_until":    now.Add(5 * time.Minute),
+		"claim_token":     claimToken,
+		"created_at":      now,
+		"updated_at":      now,
 	})
 	if err == nil {
 		return true, claimToken, QueueIdempotencyResult{}, nil
@@ -176,7 +210,9 @@ func (s *DBQueueIdempotencyStore) existingAfterReserveConflict(ctx context.Conte
 		Where("key", key).
 		First(&existing)
 	if err == nil && existing.Key != "" {
-		return false, "", QueueIdempotencyResult{Status: existing.Status, Result: existing.Result}, nil
+		return false, "", QueueIdempotencyResult{
+			Status: existing.Status, Result: existing.Result, Duplicate: true,
+		}, nil
 	}
 	return false, "", QueueIdempotencyResult{}, originalErr
 }

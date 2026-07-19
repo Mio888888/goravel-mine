@@ -229,6 +229,53 @@
     }
   },
   {
+    "ID": "middleware-platform",
+    "Enabled": true,
+    "Reason": "",
+    "Metadata": {
+      "Name": "Middleware Platform",
+      "Version": "1.0.0",
+      "Compatible": "\u003e=1.17.0",
+      "Dependencies": [
+        {
+          "ID": "platform-rbac",
+          "VersionConstraint": "\u003e=1.0.0",
+          "Required": true
+        }
+      ],
+      "Lifecycle": {
+        "Install": "go run . artisan migrate \u0026\u0026 go run . artisan db:seed",
+        "Uninstall": "manual data review required",
+        "Upgrade": "go run . artisan migrate",
+        "Rollback": "go run . artisan migrate:rollback",
+        "DestructiveCheck": "go run . artisan module:manifest:check",
+        "SupportsHotDisable": false,
+        "RequiresRestart": true,
+        "BreakingChangePolicy": "document in release notes and block without review"
+      },
+      "SeedStrategy": {
+        "Mode": "idempotent",
+        "Idempotent": true,
+        "Command": "go run . artisan db:seed",
+        "Notes": ""
+      },
+      "Frontend": {
+        "ModulePath": "",
+        "ApiFiles": null,
+        "RouteFiles": null,
+        "LocaleFiles": null,
+        "TypeFiles": null,
+        "TestFiles": null
+      },
+      "DestructiveNote": "",
+      "Overrides": {
+        "RequiresRestart": true,
+        "SupportsHotDisable": null,
+        "SeedIdempotent": true
+      }
+    }
+  },
+  {
     "ID": "security",
     "Enabled": true,
     "Reason": "",

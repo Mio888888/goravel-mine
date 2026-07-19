@@ -41,6 +41,16 @@ export type RolePermissionsRequest = { "permissions": StringList } & SensitiveOp
 export type SSOAuthorizationData = { "transaction_id": string; "state": string; "authorization_url": string }
 export type SSOAuthorizationRequest = { "provider": string; "scene"?: string }
 export type SSOCallbackRequest = { "transaction_id": string; "code": string; "state": string }
+export type ScheduledTask = { "id": number; "name": string; "code": string; "description"?: string; "cron_expression": string; "timezone": string; "next_run_at"?: string; "task_type": "handler" | "method" | "backup" | "governance" | "url" | "script"; "payload"?: { [key: string]: unknown }; "handler_key": string; "parameters": { [key: string]: unknown }; "timeout_seconds"?: number; "allow_overlap"?: boolean; "concurrency_policy": "ALLOW" | "FORBID" | "REPLACE"; "misfire_policy": "IGNORE" | "FIRE_ONCE_NOW" | "SCHEDULER_DEFAULT"; "retry_policy": ScheduledTaskRetryPolicy; "scope": "GLOBAL" | "PER_TENANT"; "max_log_output"?: number; "target_ips"?: string[]; "tenant_ids"?: number[]; "run_on_one_server"?: boolean; "status": 1 | 2; "last_run_at"?: string; "last_status"?: string; "last_duration_ms"?: number; "last_message"?: string; "runtime_state": "REGISTERED" | "LEGACY_UNSAFE" | "HANDLER_UNAVAILABLE"; "version": number; "created_by"?: number; "updated_by"?: number; "created_at"?: string; "updated_at"?: string; "remark"?: string; [key: string]: unknown }
+export type ScheduledTaskHandlerDefinition = { "handler_key": string; "description": string; "parameter_schema": { [key: string]: unknown }; "default_timeout": number; "tenant_capability": "GLOBAL_ONLY" | "PER_TENANT_ALLOWED"; "supports_cancellation": boolean; "privileged": boolean }
+export type ScheduledTaskLog = { "id": number; "task_id": number; "task_name": string; "task_code": string; "run_token"?: string; "trigger_mode": "schedule" | "manual"; "task_type": "handler" | "method" | "backup" | "governance" | "url" | "script"; "logical_execution_id": string; "idempotency_key"?: string; "attempt": number; "correlation_id": string; "node_ip"?: string; "status": "running" | "success" | "failed" | "skipped"; "scheduled_at"?: string; "started_at"?: string; "finished_at"?: string; "duration_ms"?: number; "exit_code"?: number; "http_status"?: number; "stdout"?: string; "stderr"?: string; "error_message"?: string; "payload"?: { [key: string]: unknown }; "tenants"?: { "id": number; "code": string; "name"?: string }[]; "created_at"?: string; "updated_at"?: string; [key: string]: unknown }
+export type ScheduledTaskLogPageData = { "list": ScheduledTaskLog[]; "total": number }
+export type ScheduledTaskPageData = { "list": ScheduledTask[]; "total": number }
+export type ScheduledTaskPayload = { "name": string; "code": string; "description"?: string; "cron_expression": string; "timezone": string; "task_type": "handler" | "method" | "backup" | "governance"; "handler_key": string; "parameters": { [key: string]: unknown }; "timeout_seconds"?: number; "concurrency_policy": "ALLOW" | "FORBID" | "REPLACE"; "misfire_policy": "IGNORE" | "FIRE_ONCE_NOW" | "SCHEDULER_DEFAULT"; "retry_policy": ScheduledTaskRetryPolicy; "scope": "GLOBAL" | "PER_TENANT"; "max_log_output"?: number; "target_ips"?: string[]; "tenant_ids"?: number[]; "status": 1 | 2; "version"?: number; "remark"?: string }
+export type ScheduledTaskReconciliationItem = { "task_id": number; "task_code": string; "handler_key": string; "state": "REGISTERED" | "LEGACY_UNSAFE" | "HANDLER_UNAVAILABLE"; "message": string }
+export type ScheduledTaskReconciliationReport = { "checked_at": string; "items": ScheduledTaskReconciliationItem[]; "missing": number; "legacy": number; "healthy": number }
+export type ScheduledTaskRetryPolicy = { "max_attempts": number; "initial_delay_seconds": number; "max_delay_seconds": number }
+export type ScheduledTaskTenantOption = { "id": number; "code": string; "name": string }
 export type SensitiveOperationEvidence = { "reauth_token": string; "approval_id": string }
 export type StorageConfigData = { "id": number; "name": string; "provider": string; "driver": string; "bucket"?: string; "endpoint"?: string; "region"?: string; "base_url"?: string; "path_prefix"?: string; "is_default"?: boolean; "status": number; "options"?: { [key: string]: unknown }; "remark"?: string; [key: string]: unknown }
 export type StorageConfigPayload = { "name": string; "provider": "local" | "minio" | "aws_s3" | "aliyun_oss" | "tencent_cos" | "qiniu" | "huawei_obs"; "driver": "local" | "s3_compatible"; "bucket"?: string; "endpoint"?: string; "region"?: string; "access_key"?: string; "secret_key"?: string; "base_url"?: string; "path_prefix"?: string; "is_default"?: boolean; "status"?: 1 | 2; "options"?: { [key: string]: unknown }; "remark"?: string; "reauth_token"?: string; "approval_id"?: string }
@@ -97,6 +107,18 @@ export interface Operations {
   adminPlatformPermissionMenus: ApiOperation<void, ApiResponse & { "data": MenuItem[] } | ErrorResponse, Record<string, never>>
   adminPlatformPermissionRoles: ApiOperation<void, ApiResponse & { "data": RoleData[] } | ErrorResponse, Record<string, never>>
   adminPlatformPermissionUpdate: ApiOperation<PermissionUpdateRequest, ApiResponse & { "data": EmptyArray } | ErrorResponse, Record<string, never>>
+  adminPlatformScheduledTaskCreate: ApiOperation<ScheduledTaskPayload, ApiResponse & { "data": ScheduledTask } | ErrorResponse, Record<string, never>>
+  adminPlatformScheduledTaskDelete: ApiOperation<IdList, ApiResponse & { "data": EmptyArray } | ErrorResponse, Record<string, never>>
+  adminPlatformScheduledTaskDetail: ApiOperation<void, ApiResponse & { "data": ScheduledTask } | ErrorResponse, { "id": number }>
+  adminPlatformScheduledTaskDisable: ApiOperation<void, ApiResponse & { "data": ScheduledTask } | ErrorResponse, { "id": number }>
+  adminPlatformScheduledTaskEnable: ApiOperation<void, ApiResponse & { "data": ScheduledTask } | ErrorResponse, { "id": number }>
+  adminPlatformScheduledTaskHandlers: ApiOperation<void, ApiResponse & { "data": ScheduledTaskHandlerDefinition[] } | ErrorResponse, Record<string, never>>
+  adminPlatformScheduledTaskList: ApiOperation<void, ApiResponse & { "data": ScheduledTaskPageData } | ErrorResponse, { "name"?: string; "code"?: string; "task_type"?: "handler" | "method" | "backup" | "governance" | "url" | "script"; "status"?: 1 | 2; "page"?: number; "page_size"?: number; "per_page"?: number }>
+  adminPlatformScheduledTaskLogList: ApiOperation<void, ApiResponse & { "data": ScheduledTaskLogPageData } | ErrorResponse, { "task_id"?: number; "task_code"?: string; "status"?: "running" | "success" | "failed" | "skipped"; "trigger_mode"?: "schedule" | "manual"; "page"?: number; "page_size"?: number; "per_page"?: number }>
+  adminPlatformScheduledTaskReconcile: ApiOperation<void, ApiResponse & { "data": ScheduledTaskReconciliationReport } | ErrorResponse, Record<string, never>>
+  adminPlatformScheduledTaskRun: ApiOperation<void, ApiResponse & { "data": ScheduledTaskLog } | ErrorResponse, { "id": number; "Idempotency-Key": string }>
+  adminPlatformScheduledTaskTenantOptions: ApiOperation<void, ApiResponse & { "data": ScheduledTaskTenantOption[] } | ErrorResponse, Record<string, never>>
+  adminPlatformScheduledTaskUpdate: ApiOperation<ScheduledTaskPayload, ApiResponse & { "data": ScheduledTask } | ErrorResponse, { "id": number }>
   adminPlatformSecurityApprovalApprove: ApiOperation<void, ApiResponse & { "data": ApprovalData } | ErrorResponse, { "approval_id": string }>
   adminPlatformSecurityApprovalCreate: ApiOperation<ApprovalCreateRequest, ApiResponse & { "data": ApprovalData } | ErrorResponse, Record<string, never>>
   adminPlatformSecurityApprovalDetail: ApiOperation<void, ApiResponse & { "data": ApprovalData } | ErrorResponse, { "approval_id": string }>
@@ -181,6 +203,18 @@ export const operations = {
   adminPlatformPermissionMenus: { method: 'get', path: '/admin/platform/permission/menus' },
   adminPlatformPermissionRoles: { method: 'get', path: '/admin/platform/permission/roles' },
   adminPlatformPermissionUpdate: { method: 'post', path: '/admin/platform/permission/update' },
+  adminPlatformScheduledTaskCreate: { method: 'post', path: '/admin/platform/scheduled-task' },
+  adminPlatformScheduledTaskDelete: { method: 'delete', path: '/admin/platform/scheduled-task' },
+  adminPlatformScheduledTaskDetail: { method: 'get', path: '/admin/platform/scheduled-task/{id}' },
+  adminPlatformScheduledTaskDisable: { method: 'put', path: '/admin/platform/scheduled-task/{id}/disable' },
+  adminPlatformScheduledTaskEnable: { method: 'put', path: '/admin/platform/scheduled-task/{id}/enable' },
+  adminPlatformScheduledTaskHandlers: { method: 'get', path: '/admin/platform/scheduled-task/handlers' },
+  adminPlatformScheduledTaskList: { method: 'get', path: '/admin/platform/scheduled-task/list' },
+  adminPlatformScheduledTaskLogList: { method: 'get', path: '/admin/platform/scheduled-task-log/list' },
+  adminPlatformScheduledTaskReconcile: { method: 'post', path: '/admin/platform/scheduled-task/reconcile' },
+  adminPlatformScheduledTaskRun: { method: 'post', path: '/admin/platform/scheduled-task/{id}/run' },
+  adminPlatformScheduledTaskTenantOptions: { method: 'get', path: '/admin/platform/scheduled-task/tenant-options' },
+  adminPlatformScheduledTaskUpdate: { method: 'put', path: '/admin/platform/scheduled-task/{id}' },
   adminPlatformSecurityApprovalApprove: { method: 'put', path: '/admin/platform/security/approvals/{approval_id}/approve' },
   adminPlatformSecurityApprovalCreate: { method: 'post', path: '/admin/platform/security/approvals' },
   adminPlatformSecurityApprovalDetail: { method: 'get', path: '/admin/platform/security/approvals/{approval_id}' },
