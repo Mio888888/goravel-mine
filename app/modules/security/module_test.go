@@ -57,13 +57,3 @@ func TestModuleDeclaresSecurityContract(t *testing.T) {
 		t.Fatalf("second permission = %q", got)
 	}
 }
-
-func TestRouteInstallerPanicsWhenHandlerMissing(t *testing.T) {
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected missing handler panic")
-		}
-	}()
-
-	buildRoutesWithHandlers(map[string]handlerFunc{})
-}

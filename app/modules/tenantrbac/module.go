@@ -3,13 +3,10 @@ package tenantrbac
 import (
 	"github.com/goravel/framework/contracts/database/schema"
 	"github.com/goravel/framework/contracts/database/seeder"
-	contractshttp "github.com/goravel/framework/contracts/http"
 
 	"goravel/app/http/controllers/admin"
 	"goravel/app/modules"
 )
-
-type handlerFunc = contractshttp.HandlerFunc
 
 type Module struct{}
 
@@ -39,7 +36,7 @@ func (m Module) Routes() []modules.Route {
 	positionController := admin.NewPositionAdminController()
 	leaderController := admin.NewLeaderAdminController()
 
-	return buildRoutesWithHandlers(map[string]handlerFunc{
+	return modules.BindRouteHandlers(m.ID(), tenantRBACRoutes(), modules.RouteHandlers{
 		"tenant.permission.menus":     permissionController.Menus,
 		"tenant.permission.roles":     permissionController.Roles,
 		"tenant.permission.update":    permissionController.Update,
@@ -75,41 +72,6 @@ func (m Module) Routes() []modules.Route {
 		"tenant.leader.update":        leaderController.Update,
 		"tenant.leader.delete":        leaderController.Delete,
 	})
-}
-
-func buildRoutesWithHandlers(handlers map[string]handlerFunc) []modules.Route {
-	routes := tenantRBACRoutes()
-	for index, route := range routes {
-		handler, ok := handlers[route.Name]
-		if !ok {
-			panic("tenant-rbac route handler missing: " + route.Name)
-		}
-		if hasMiddleware(route, "tenant-audit-only") {
-			routes[index].Install = modules.InstallTenantAuditOnlyRoute(route.Method, route.Path, handler)
-			continue
-		}
-		if hasMiddleware(route, "tenant-rbac-audit") {
-			routes[index].Install = modules.InstallTenantAuditRoute(route.Method, route.Path, handler)
-			continue
-		}
-		if hasMiddleware(route, "tenant-rbac") {
-			routes[index].Install = modules.InstallTenantRoute(route.Method, route.Path, handler)
-			continue
-		}
-		routes[index].Install = modules.InstallTenantOnlyRoute(route.Method, route.Path, handler)
-	}
-
-	return routes
-}
-
-func hasMiddleware(route modules.Route, name string) bool {
-	for _, middleware := range route.Middlewares {
-		if middleware == name {
-			return true
-		}
-	}
-
-	return false
 }
 
 func tenantRBACRoutes() []modules.Route {

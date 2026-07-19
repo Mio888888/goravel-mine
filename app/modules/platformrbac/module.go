@@ -3,13 +3,10 @@ package platformrbac
 import (
 	"github.com/goravel/framework/contracts/database/schema"
 	"github.com/goravel/framework/contracts/database/seeder"
-	contractshttp "github.com/goravel/framework/contracts/http"
 
 	"goravel/app/http/controllers/admin"
 	"goravel/app/modules"
 )
-
-type handlerFunc = contractshttp.HandlerFunc
 
 type Module struct{}
 
@@ -35,7 +32,7 @@ func (m Module) Routes() []modules.Route {
 	roleController := admin.NewPlatformRoleAdminController()
 	menuController := admin.NewPlatformMenuAdminController()
 
-	return buildRoutesWithHandlers(map[string]handlerFunc{
+	return modules.BindRouteHandlers(m.ID(), platformRBACRoutes(), modules.RouteHandlers{
 		"platform.permission.menus":  permissionController.Menus,
 		"platform.permission.roles":  permissionController.Roles,
 		"platform.permission.update": permissionController.Update,
@@ -57,37 +54,6 @@ func (m Module) Routes() []modules.Route {
 		"platform.menu.update":       menuController.Update,
 		"platform.menu.delete":       menuController.Delete,
 	})
-}
-
-func buildRoutesWithHandlers(handlers map[string]handlerFunc) []modules.Route {
-	routes := platformRBACRoutes()
-	for index, route := range routes {
-		handler, ok := handlers[route.Name]
-		if !ok {
-			panic("platform-rbac route handler missing: " + route.Name)
-		}
-		if hasMiddleware(route, "platform-auth-audit") {
-			routes[index].Install = modules.InstallPlatformAuthAuditRoute(route.Method, route.Path, handler)
-			continue
-		}
-		if hasMiddleware(route, "platform-auth") {
-			routes[index].Install = modules.InstallPlatformAuthRoute(route.Method, route.Path, handler)
-			continue
-		}
-		routes[index].Install = modules.InstallPlatformRoute(route.Method, route.Path, handler)
-	}
-
-	return routes
-}
-
-func hasMiddleware(route modules.Route, name string) bool {
-	for _, middleware := range route.Middlewares {
-		if middleware == name {
-			return true
-		}
-	}
-
-	return false
 }
 
 func platformRBACRoutes() []modules.Route {

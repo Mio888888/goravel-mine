@@ -9,8 +9,6 @@ import (
 	"goravel/app/modules"
 )
 
-type handlerFunc = contractshttp.HandlerFunc
-
 type Module struct{}
 
 func New() Module {
@@ -41,7 +39,7 @@ func (m Module) Routes() []modules.Route {
 	userLoginLogController := admin.NewUserLoginLogController()
 	userOperationLogController := admin.NewUserOperationLogController()
 
-	return buildRoutesWithHandlers(map[string]handlerFunc{
+	return modules.BindRouteHandlers(m.ID(), dataCenterRoutes(), modules.RouteHandlers{
 		"platform.attachment.upload":       attachmentController.PlatformUpload,
 		"platform.dictionary.options":      platformDictionaryController.Options,
 		"platform.dictionary.list":         platformDictionaryController.List,
@@ -81,38 +79,6 @@ func lazyQueueFailedJobRetry(ctx contractshttp.Context) contractshttp.Response {
 
 func lazyQueueFailedJobDelete(ctx contractshttp.Context) contractshttp.Response {
 	return admin.NewQueueFailedJobController().Delete(ctx)
-}
-
-func buildRoutesWithHandlers(handlers map[string]handlerFunc) []modules.Route {
-	routes := dataCenterRoutes()
-	for index, route := range routes {
-		handler, ok := handlers[route.Name]
-		if !ok {
-			panic("data-center route handler missing: " + route.Name)
-		}
-		switch {
-		case hasMiddleware(route, "platform-admin"):
-			routes[index].Install = modules.InstallPlatformRoute(route.Method, route.Path, handler)
-		case hasMiddleware(route, "tenant-rbac-audit"):
-			routes[index].Install = modules.InstallTenantAuditRoute(route.Method, route.Path, handler)
-		case hasMiddleware(route, "tenant-rbac"):
-			routes[index].Install = modules.InstallTenantRoute(route.Method, route.Path, handler)
-		default:
-			routes[index].Install = modules.InstallTenantOnlyRoute(route.Method, route.Path, handler)
-		}
-	}
-
-	return routes
-}
-
-func hasMiddleware(route modules.Route, name string) bool {
-	for _, middleware := range route.Middlewares {
-		if middleware == name {
-			return true
-		}
-	}
-
-	return false
 }
 
 func dataCenterRoutes() []modules.Route {

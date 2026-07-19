@@ -92,16 +92,6 @@ func findRoute(t *testing.T, routes []modules.Route, name string) modules.Route 
 	return modules.Route{}
 }
 
-func TestRouteInstallerPanicsWhenHandlerMissing(t *testing.T) {
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected missing handler panic")
-		}
-	}()
-
-	buildRoutesWithHandlers(map[string]handlerFunc{})
-}
-
 func TestRouteInstallerPanicsWhenMethodUnknown(t *testing.T) {
 	defer func() {
 		if recover() == nil {

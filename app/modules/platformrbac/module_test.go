@@ -17,7 +17,7 @@ func TestModuleDeclaresPlatformRBACContract(t *testing.T) {
 		if route.Name == "" {
 			t.Fatal("route name is empty")
 		}
-		if route.Permission == "" && !hasMiddleware(route, "platform-auth") && !hasMiddleware(route, "platform-auth-audit") {
+		if route.Permission == "" && !route.HasMiddleware("platform-auth") && !route.HasMiddleware("platform-auth-audit") {
 			t.Fatalf("route %s has empty permission", route.Name)
 		}
 		if route.Install == nil {
@@ -42,14 +42,4 @@ func TestModuleDeclaresPlatformRBACContract(t *testing.T) {
 	if got := module.Permissions()[0].Key; got != "platform:user:list" {
 		t.Fatalf("first permission = %q", got)
 	}
-}
-
-func TestRouteInstallerPanicsWhenHandlerMissing(t *testing.T) {
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected missing handler panic")
-		}
-	}()
-
-	buildRoutesWithHandlers(map[string]handlerFunc{})
 }

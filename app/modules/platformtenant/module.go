@@ -3,13 +3,10 @@ package platformtenant
 import (
 	"github.com/goravel/framework/contracts/database/schema"
 	"github.com/goravel/framework/contracts/database/seeder"
-	contractshttp "github.com/goravel/framework/contracts/http"
 
 	"goravel/app/http/controllers/admin"
 	"goravel/app/modules"
 )
-
-type handlerFunc = contractshttp.HandlerFunc
 
 type Module struct{}
 
@@ -33,7 +30,7 @@ func (m Module) Routes() []modules.Route {
 	tenantController := admin.NewTenantAdminController()
 	planController := admin.NewTenantPlanAdminController()
 
-	return buildRoutesWithHandlers(map[string]handlerFunc{
+	return modules.BindRouteHandlers(m.ID(), platformTenantRoutes(), modules.RouteHandlers{
 		"platform.tenant-plan.list":       planController.List,
 		"platform.tenant-plan.options":    planController.Options,
 		"platform.tenant-plan.create":     planController.Create,
@@ -58,19 +55,6 @@ func (m Module) Routes() []modules.Route {
 		"platform.tenant.export-status":   tenantController.ExportStatus,
 		"platform.tenant.export-download": tenantController.DownloadExport,
 	})
-}
-
-func buildRoutesWithHandlers(handlers map[string]handlerFunc) []modules.Route {
-	routes := platformTenantRoutes()
-	for index, route := range routes {
-		handler, ok := handlers[route.Name]
-		if !ok {
-			panic("platform-tenant route handler missing: " + route.Name)
-		}
-		routes[index].Install = modules.InstallPlatformRoute(route.Method, route.Path, handler)
-	}
-
-	return routes
 }
 
 func platformTenantRoutes() []modules.Route {

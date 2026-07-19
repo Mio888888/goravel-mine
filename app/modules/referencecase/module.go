@@ -3,15 +3,12 @@ package referencecase
 import (
 	"github.com/goravel/framework/contracts/database/schema"
 	"github.com/goravel/framework/contracts/database/seeder"
-	contractshttp "github.com/goravel/framework/contracts/http"
 
 	"goravel/app/http/controllers/admin"
 	"goravel/app/modules"
 	"goravel/database/migrations"
 	"goravel/database/seeders"
 )
-
-type handlerFunc = contractshttp.HandlerFunc
 
 type Module struct{}
 
@@ -40,24 +37,12 @@ func (m Module) Package() modules.Package {
 
 func (m Module) Routes() []modules.Route {
 	controller := admin.NewReferenceCaseController()
-	return buildRoutesWithHandlers(map[string]handlerFunc{
+	return modules.BindRouteHandlers(m.ID(), referenceCaseRoutes(), modules.RouteHandlers{
 		"platform.reference-case.list":   controller.List,
 		"platform.reference-case.create": controller.Create,
 		"platform.reference-case.update": controller.Update,
 		"platform.reference-case.delete": controller.Delete,
 	})
-}
-
-func buildRoutesWithHandlers(handlers map[string]handlerFunc) []modules.Route {
-	routes := referenceCaseRoutes()
-	for index, route := range routes {
-		handler, ok := handlers[route.Name]
-		if !ok {
-			panic("reference-case route handler missing: " + route.Name)
-		}
-		routes[index].Install = modules.InstallPlatformRoute(route.Method, route.Path, handler)
-	}
-	return routes
 }
 
 func referenceCaseRoutes() []modules.Route {

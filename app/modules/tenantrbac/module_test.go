@@ -44,13 +44,3 @@ func TestModuleDeclaresTenantRBACContract(t *testing.T) {
 		t.Fatalf("first permission = %q", got)
 	}
 }
-
-func TestRouteInstallerPanicsWhenHandlerMissing(t *testing.T) {
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected missing handler panic")
-		}
-	}()
-
-	buildRoutesWithHandlers(map[string]handlerFunc{})
-}

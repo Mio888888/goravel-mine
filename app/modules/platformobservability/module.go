@@ -3,13 +3,10 @@ package platformobservability
 import (
 	"github.com/goravel/framework/contracts/database/schema"
 	"github.com/goravel/framework/contracts/database/seeder"
-	contractshttp "github.com/goravel/framework/contracts/http"
 
 	"goravel/app/http/controllers/admin"
 	"goravel/app/modules"
 )
-
-type handlerFunc = contractshttp.HandlerFunc
 
 type Module struct{}
 
@@ -33,7 +30,7 @@ func (m Module) Routes() []modules.Route {
 	controller := admin.NewObservabilityController()
 	lifecycleController := admin.NewModuleLifecycleController()
 
-	return buildRoutesWithHandlers(map[string]handlerFunc{
+	return modules.BindRouteHandlers(m.ID(), platformObservabilityRoutes(), modules.RouteHandlers{
 		"platform.observability.slow-requests": controller.SlowRequests,
 		"platform.module-lifecycle.state":      lifecycleController.State,
 		"platform.module-lifecycle.runs":       lifecycleController.Runs,
@@ -43,19 +40,6 @@ func (m Module) Routes() []modules.Route {
 		"platform.module-lifecycle.release":    lifecycleController.ReleaseStaleLocks,
 		"platform.module-lifecycle.execute":    lifecycleController.Execute,
 	})
-}
-
-func buildRoutesWithHandlers(handlers map[string]handlerFunc) []modules.Route {
-	routes := platformObservabilityRoutes()
-	for index, route := range routes {
-		handler, ok := handlers[route.Name]
-		if !ok {
-			panic("platform-observability route handler missing: " + route.Name)
-		}
-		routes[index].Install = modules.InstallPlatformRoute(route.Method, route.Path, handler)
-	}
-
-	return routes
 }
 
 func platformObservabilityRoutes() []modules.Route {

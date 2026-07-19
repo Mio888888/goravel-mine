@@ -3,15 +3,12 @@ package scheduledtask
 import (
 	"github.com/goravel/framework/contracts/database/schema"
 	"github.com/goravel/framework/contracts/database/seeder"
-	contractshttp "github.com/goravel/framework/contracts/http"
 
 	"goravel/app/http/controllers/admin"
 	"goravel/app/modules"
 	"goravel/database/migrations"
 	"goravel/database/seeders"
 )
-
-type handlerFunc = contractshttp.HandlerFunc
 
 type Module struct{}
 
@@ -33,7 +30,7 @@ func (m Module) Package() modules.Package {
 
 func (m Module) Routes() []modules.Route {
 	controller := admin.NewScheduledTaskController()
-	return buildRoutesWithHandlers(map[string]handlerFunc{
+	return modules.BindRouteHandlers(m.ID(), scheduledTaskRoutes(), modules.RouteHandlers{
 		"platform.scheduled-task.list":           controller.List,
 		"platform.scheduled-task.tenant-options": controller.TenantOptions,
 		"platform.scheduled-task.detail":         controller.Detail,
@@ -45,19 +42,6 @@ func (m Module) Routes() []modules.Route {
 		"platform.scheduled-task.run":            controller.Run,
 		"platform.scheduled-task.logs":           controller.Logs,
 	})
-}
-
-func buildRoutesWithHandlers(handlers map[string]handlerFunc) []modules.Route {
-	routes := scheduledTaskRoutes()
-	for index, route := range routes {
-		handler, ok := handlers[route.Name]
-		if !ok {
-			panic("scheduled-task route handler missing: " + route.Name)
-		}
-		routes[index].Install = modules.InstallPlatformRoute(route.Method, route.Path, handler)
-	}
-
-	return routes
 }
 
 func scheduledTaskRoutes() []modules.Route {

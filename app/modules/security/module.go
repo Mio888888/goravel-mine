@@ -3,15 +3,11 @@ package security
 import (
 	"github.com/goravel/framework/contracts/database/schema"
 	"github.com/goravel/framework/contracts/database/seeder"
-	contractshttp "github.com/goravel/framework/contracts/http"
 
 	"goravel/app/http/controllers/admin"
 	systemcontrollers "goravel/app/http/controllers/admin/system"
-	"goravel/app/http/middleware"
 	"goravel/app/modules"
 )
-
-type handlerFunc = contractshttp.HandlerFunc
 
 type Module struct{}
 
@@ -44,7 +40,7 @@ func (m Module) Routes() []modules.Route {
 	ssoUserBindingController := admin.NewSSOUserBindingController()
 	ssoLoginLogController := admin.NewSSOLoginLogController()
 
-	return buildRoutesWithHandlers(map[string]handlerFunc{
+	return modules.BindRouteHandlers(m.ID(), securityRoutes(), modules.RouteHandlers{
 		"tenant.passport.entry":              passportController.Entry,
 		"tenant.passport.csrf-token":         securityController.CSRFToken,
 		"tenant.passport.login":              passportController.Login,
@@ -91,46 +87,6 @@ func (m Module) Routes() []modules.Route {
 		"tenant.sso-login-log.list":          ssoLoginLogController.List,
 		"tenant.sso-login-log.stats":         ssoLoginLogController.Stats,
 	})
-}
-
-func buildRoutesWithHandlers(handlers map[string]handlerFunc) []modules.Route {
-	routes := securityRoutes()
-	for index, route := range routes {
-		handler, ok := handlers[route.Name]
-		if !ok {
-			panic("security route handler missing: " + route.Name)
-		}
-		switch {
-		case hasMiddleware(route, "public"):
-			routes[index].Install = modules.InstallRoute(route.Method, route.Path, handler)
-		case hasMiddleware(route, "tenant"):
-			routes[index].Install = modules.InstallTenantOnlyRoute(route.Method, route.Path, handler)
-		case hasMiddleware(route, "platform-self-audit"):
-			routes[index].Install = modules.InstallRoute(route.Method, route.Path, handler, middleware.PlatformSelfAudit())
-		case hasMiddleware(route, "platform-admin"):
-			routes[index].Install = modules.InstallPlatformRoute(route.Method, route.Path, handler)
-		case hasMiddleware(route, "tenant-audit-only"):
-			routes[index].Install = modules.InstallTenantAuditOnlyRoute(route.Method, route.Path, handler)
-		case hasMiddleware(route, "tenant-rbac-audit"):
-			routes[index].Install = modules.InstallTenantAuditRoute(route.Method, route.Path, handler)
-		case hasMiddleware(route, "tenant-rbac"):
-			routes[index].Install = modules.InstallTenantRoute(route.Method, route.Path, handler)
-		default:
-			routes[index].Install = modules.InstallTenantOnlyRoute(route.Method, route.Path, handler)
-		}
-	}
-
-	return routes
-}
-
-func hasMiddleware(route modules.Route, name string) bool {
-	for _, middleware := range route.Middlewares {
-		if middleware == name {
-			return true
-		}
-	}
-
-	return false
 }
 
 func securityRoutes() []modules.Route {
