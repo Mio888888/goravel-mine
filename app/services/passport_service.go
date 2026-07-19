@@ -10,7 +10,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
-	"golang.org/x/crypto/bcrypt"
 
 	"goravel/app/facades"
 	"goravel/app/http/response"
@@ -98,7 +97,7 @@ func (s *PassportService) Login(username, password, ip, browser, os string) (Log
 		}
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	if !passwordHashMatches(user.Password, password) {
 		_ = RecordLoginFailure(s.loginSecurityScope(), username)
 		_ = RecordLoginRiskFailure(s.loginSecurityScope(), username, ip, browser)
 		_ = s.writeLoginLog(username, ip, browser, os, 2, "用户名或密码错误")

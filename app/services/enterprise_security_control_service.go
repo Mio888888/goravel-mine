@@ -15,7 +15,6 @@ import (
 	contractscache "github.com/goravel/framework/contracts/cache"
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	frameworkerrors "github.com/goravel/framework/errors"
-	"golang.org/x/crypto/bcrypt"
 
 	"goravel/app/facades"
 	"goravel/app/models"
@@ -301,7 +300,7 @@ func (s *EnterpriseSecurityControlService) IssuePlatformReAuthToken(ctx context.
 	if user.Status == 2 {
 		return ReAuthTokenResult{}, ErrUserDisabled
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+	if !passwordHashMatches(user.Password, req.Password) {
 		return ReAuthTokenResult{}, ErrInvalidCredentials
 	}
 	mfa := NewPlatformMFAService().WithContext(ctx)
@@ -340,7 +339,7 @@ func (s *EnterpriseSecurityControlService) IssueTenantReAuthToken(ctx context.Co
 	var user models.User
 	err = OrmForConnectionWithContext(contextOrBackground(ctx), TenantConnectionName(req.Tenant)).
 		Query().Table("user").Where("id", req.UserID).First(&user)
-	if err != nil || user.Status == 2 || bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)) != nil {
+	if err != nil || user.Status == 2 || !passwordHashMatches(user.Password, req.Password) {
 		return ReAuthTokenResult{}, ErrInvalidCredentials
 	}
 	mfa := NewMFAServiceForTenant(req.Tenant).WithContext(ctx)

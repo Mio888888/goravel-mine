@@ -7,7 +7,6 @@ import (
 	"time"
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
-	"golang.org/x/crypto/bcrypt"
 
 	"goravel/app/http/request"
 	"goravel/app/models"
@@ -66,14 +65,14 @@ func (s *PlatformPermissionAdminService) CreateUser(input UserPayload, operatorI
 	if err != nil {
 		return err
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := makePasswordHash(password)
 	if err != nil {
 		return err
 	}
 
 	user := models.User{
 		Username:       input.Username,
-		Password:       string(hash),
+		Password:       hash,
 		UserType:       "900",
 		Nickname:       input.Nickname,
 		Phone:          input.Phone,
@@ -103,7 +102,7 @@ func (s *PlatformPermissionAdminService) CreateUser(input UserPayload, operatorI
 		if err != nil {
 			return err
 		}
-		return PlatformPasswordHistoryService().WithContext(s.ctx).RecordWithQuery(tx, user.ID, string(hash))
+		return PlatformPasswordHistoryService().WithContext(s.ctx).RecordWithQuery(tx, user.ID, hash)
 	}); err != nil {
 		return err
 	}
@@ -192,18 +191,18 @@ func (s *PlatformPermissionAdminService) ResetPassword(userID uint64) error {
 	if err := PlatformPasswordHistoryService().WithContext(s.ctx).ValidateReuse(userID, password); err != nil {
 		return err
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := makePasswordHash(password)
 	if err != nil {
 		return err
 	}
 	return s.orm().Transaction(func(tx contractsorm.Query) error {
 		_, err = tx.Table("platform_user").Where("id", userID).Update(map[string]any{
-			"password": string(hash), "updated_at": time.Now(),
+			"password": hash, "updated_at": time.Now(),
 		})
 		if err != nil {
 			return err
 		}
-		return PlatformPasswordHistoryService().WithContext(s.ctx).RecordWithQuery(tx, userID, string(hash))
+		return PlatformPasswordHistoryService().WithContext(s.ctx).RecordWithQuery(tx, userID, hash)
 	})
 }
 

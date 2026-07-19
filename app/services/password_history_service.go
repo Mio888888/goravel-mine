@@ -5,7 +5,6 @@ import (
 	"time"
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
-	"golang.org/x/crypto/bcrypt"
 
 	"goravel/app/facades"
 	"goravel/app/models"
@@ -92,7 +91,7 @@ func (s *PasswordHistoryService) SeedIfMissing(user models.User) error {
 
 func passwordMatchesHistory(rows []models.UserPasswordHistory, password string) bool {
 	for _, row := range rows {
-		if bcrypt.CompareHashAndPassword([]byte(row.Password), []byte(password)) == nil {
+		if passwordHashMatches(row.Password, password) {
 			return true
 		}
 	}

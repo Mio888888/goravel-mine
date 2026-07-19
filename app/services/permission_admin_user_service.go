@@ -5,7 +5,7 @@ import (
 	"time"
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
-	"golang.org/x/crypto/bcrypt"
+
 	"goravel/app/http/request"
 	"goravel/app/models"
 )
@@ -51,14 +51,14 @@ func (s *PermissionAdminService) CreateUser(input UserPayload, operatorID uint64
 	if err != nil {
 		return err
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := makePasswordHash(password)
 	if err != nil {
 		return err
 	}
 
 	user := models.User{
 		Username:       input.Username,
-		Password:       string(hash),
+		Password:       hash,
 		UserType:       userTypeString(input.UserType),
 		Nickname:       input.Nickname,
 		Phone:          input.Phone,
@@ -94,7 +94,7 @@ func (s *PermissionAdminService) CreateUser(input UserPayload, operatorID uint64
 		if err != nil {
 			return err
 		}
-		return NewPasswordHistoryService(s.connection, "user_password_history").WithContext(s.ctx).RecordWithQuery(tx, user.ID, string(hash))
+		return NewPasswordHistoryService(s.connection, "user_password_history").WithContext(s.ctx).RecordWithQuery(tx, user.ID, hash)
 	}); err != nil {
 		return err
 	}
@@ -180,18 +180,18 @@ func (s *PermissionAdminService) ResetPassword(userID uint64) error {
 	if err := NewPasswordHistoryService(s.connection, "user_password_history").WithContext(s.ctx).ValidateReuse(userID, password); err != nil {
 		return err
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := makePasswordHash(password)
 	if err != nil {
 		return err
 	}
 	if err := s.orm().Transaction(func(tx contractsorm.Query) error {
 		_, err = tx.Table(`"user"`).Where("id", userID).Update(map[string]any{
-			"password": string(hash), "updated_at": time.Now(),
+			"password": hash, "updated_at": time.Now(),
 		})
 		if err != nil {
 			return err
 		}
-		return NewPasswordHistoryService(s.connection, "user_password_history").WithContext(s.ctx).RecordWithQuery(tx, userID, string(hash))
+		return NewPasswordHistoryService(s.connection, "user_password_history").WithContext(s.ctx).RecordWithQuery(tx, userID, hash)
 	}); err != nil {
 		return err
 	}

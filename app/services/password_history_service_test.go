@@ -19,6 +19,7 @@ func TestLoginErrorResultMapsBusinessRule(t *testing.T) {
 }
 
 func TestPasswordHistoryRejectsRecentPasswordHash(t *testing.T) {
+	useTestPasswordHasher(t)
 	hash, err := bcrypt.GenerateFromPassword([]byte("OldPass1!"), bcrypt.DefaultCost)
 	require.NoError(t, err)
 

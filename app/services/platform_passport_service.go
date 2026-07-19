@@ -8,7 +8,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
-	"golang.org/x/crypto/bcrypt"
 
 	"goravel/app/models"
 )
@@ -60,7 +59,7 @@ func (s *PlatformPassportService) Login(username, password string, signals ...Lo
 		return LoginResult{}, ErrInvalidCredentials
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	if !passwordHashMatches(user.Password, password) {
 		_ = RecordLoginFailure("platform", username)
 		_ = RecordLoginRiskFailure("platform", username, signal.IP, signal.UserAgent)
 		return LoginResult{}, ErrInvalidCredentials
@@ -369,14 +368,14 @@ func (s *PlatformPassportService) appendPasswordUpdate(userID uint64, input Prof
 	if err := s.orm().Query().Table("platform_user").Where("id", userID).First(&user); err != nil {
 		return ErrUnauthorized
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.OldPassword)); err != nil {
+	if !passwordHashMatches(user.Password, input.OldPassword) {
 		return ErrInvalidCredentials
 	}
-	password, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.DefaultCost)
+	password, err := makePasswordHash(input.NewPassword)
 	if err != nil {
 		return err
 	}
-	values["password"] = string(password)
+	values["password"] = password
 	return nil
 }
 

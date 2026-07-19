@@ -11,7 +11,6 @@ import (
 	"time"
 
 	frameworkerrors "github.com/goravel/framework/errors"
-	"golang.org/x/crypto/bcrypt"
 
 	"goravel/app/facades"
 	"goravel/app/models"
@@ -409,7 +408,7 @@ func (s *TenantRuntimeService) findOrCreateSSOUser(
 	if err != nil {
 		return models.User{}, err
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := makePasswordHash(password)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -418,7 +417,7 @@ func (s *TenantRuntimeService) findOrCreateSSOUser(
 		nickname = username
 	}
 	user = models.User{
-		Username: username, Password: string(hash), UserType: externalUserType,
+		Username: username, Password: hash, UserType: externalUserType,
 		Nickname: nickname, Email: strings.TrimSpace(claims.Email), Status: 1,
 		Dashboard: "dashboard:workbench", BackendSetting: nil,
 	}
