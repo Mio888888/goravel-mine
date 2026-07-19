@@ -2,14 +2,46 @@ package request
 
 import (
 	"errors"
+	"strconv"
 	"testing"
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
+	contractshttp "github.com/goravel/framework/contracts/http"
 )
 
 type paginateQueryStub struct {
 	contractsorm.Query
 	paginate func(page, pageSize int, dest any, total *int64) error
+}
+
+type contextRequestStub struct {
+	contractshttp.ContextRequest
+	queries map[string]string
+}
+
+func (s contextRequestStub) Query(key string, defaultValue ...string) string {
+	if value, ok := s.queries[key]; ok {
+		return value
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return ""
+}
+
+func (s contextRequestStub) QueryInt(key string, defaultValue ...int) int {
+	value, ok := s.queries[key]
+	if !ok {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return 0
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return 0
+	}
+	return parsed
 }
 
 func (s paginateQueryStub) Paginate(page, pageSize int, dest any, total *int64) error {
@@ -62,5 +94,38 @@ func TestPaginatePropagatesErrorWithNonNilList(t *testing.T) {
 	}
 	if len(result.List) != 0 {
 		t.Fatalf("Paginate() list = %#v, want empty", result.List)
+	}
+}
+
+func TestPageAndPageSizeReadSupportedQueryNames(t *testing.T) {
+	request := contextRequestStub{queries: map[string]string{
+		"page":      "3",
+		"page_size": "25",
+	}}
+
+	if value := Page(request); value != 3 {
+		t.Fatalf("Page() = %d, want 3", value)
+	}
+	if value := PageSize(request); value != 25 {
+		t.Fatalf("PageSize() = %d, want 25", value)
+	}
+
+	request.queries["per_page"] = "30"
+	if value := PageSize(request); value != 30 {
+		t.Fatalf("PageSize() with per_page = %d, want 30", value)
+	}
+}
+
+func TestPageAndPageSizeUseDefaultsForInvalidValues(t *testing.T) {
+	request := contextRequestStub{queries: map[string]string{
+		"page":     "0",
+		"per_page": "-1",
+	}}
+
+	if value := Page(request); value != DefaultPage {
+		t.Fatalf("Page() = %d, want %d", value, DefaultPage)
+	}
+	if value := PageSize(request); value != DefaultPageSize {
+		t.Fatalf("PageSize() = %d, want %d", value, DefaultPageSize)
 	}
 }

@@ -1,6 +1,14 @@
 package request
 
-import contractsorm "github.com/goravel/framework/contracts/database/orm"
+import (
+	contractsorm "github.com/goravel/framework/contracts/database/orm"
+	contractshttp "github.com/goravel/framework/contracts/http"
+)
+
+const (
+	DefaultPage     = 1
+	DefaultPageSize = 15
+)
 
 type PageResult[T any] struct {
 	List  []T   `json:"list"`
@@ -9,10 +17,10 @@ type PageResult[T any] struct {
 
 func Paginate[T any](query contractsorm.Query, page, pageSize int) (PageResult[T], error) {
 	if page < 1 {
-		page = 1
+		page = DefaultPage
 	}
 	if pageSize < 1 {
-		pageSize = 15
+		pageSize = DefaultPageSize
 	}
 
 	list := make([]T, 0)
@@ -23,4 +31,23 @@ func Paginate[T any](query contractsorm.Query, page, pageSize int) (PageResult[T
 	}
 
 	return PageResult[T]{List: list, Total: total}, err
+}
+
+func Page(request contractshttp.ContextRequest) int {
+	page := request.QueryInt("page", DefaultPage)
+	if page < 1 {
+		return DefaultPage
+	}
+	return page
+}
+
+func PageSize(request contractshttp.ContextRequest) int {
+	pageSize := request.QueryInt("per_page", DefaultPageSize)
+	if request.Query("per_page") == "" {
+		pageSize = request.QueryInt("page_size", pageSize)
+	}
+	if pageSize < 1 {
+		return DefaultPageSize
+	}
+	return pageSize
 }

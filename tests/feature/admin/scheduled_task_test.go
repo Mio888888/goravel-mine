@@ -118,7 +118,7 @@ func (s *ScheduledTaskTestSuite) TestInvalidCronRejected() {
 	res := s.postJSON("/admin/platform/scheduled-task", `{
 		"name": "坏表达式",
 		"code": "bad_cron",
-		"cron_expression": "* * * * *",
+		"cron_expression": "* * * *",
 		"task_type": "method",
 		"payload": {"handler": "scheduler.noop"},
 		"status": 1

@@ -8,6 +8,7 @@ import (
 
 	contractshttp "github.com/goravel/framework/contracts/http"
 
+	httprequest "goravel/app/http/request"
 	"goravel/app/http/response"
 	"goravel/app/models"
 	"goravel/app/services"
@@ -88,78 +89,15 @@ func bindJSONBody(ctx contractshttp.Context, dest any) error {
 }
 
 func queryFilters(ctx contractshttp.Context) map[string]string {
-	return map[string]string{
-		"username":      ctx.Request().Query("username"),
-		"nickname":      ctx.Request().Query("nickname"),
-		"phone":         ctx.Request().Query("phone"),
-		"email":         ctx.Request().Query("email"),
-		"status":        ctx.Request().Query("status"),
-		"action":        ctx.Request().Query("action"),
-		"owner":         ctx.Request().Query("owner"),
-		"run_key":       ctx.Request().Query("run_key"),
-		"module_id":     ctx.Request().Query("module_id"),
-		"method":        ctx.Request().Query("method"),
-		"router":        ctx.Request().Query("router"),
-		"message":       ctx.Request().Query("message"),
-		"ip":            ctx.Request().Query("ip"),
-		"os":            ctx.Request().Query("os"),
-		"browser":       ctx.Request().Query("browser"),
-		"remark":        ctx.Request().Query("remark"),
-		"suffix":        ctx.Request().Query("suffix"),
-		"mime_type":     ctx.Request().Query("mime_type"),
-		"storage_mode":  ctx.Request().Query("storage_mode"),
-		"origin_name":   ctx.Request().Query("origin_name"),
-		"object_name":   ctx.Request().Query("object_name"),
-		"hash":          ctx.Request().Query("hash"),
-		"storage_path":  ctx.Request().Query("storage_path"),
-		"name":          ctx.Request().Query("name"),
-		"title":         ctx.Request().Query("title"),
-		"label":         ctx.Request().Query("label"),
-		"value":         ctx.Request().Query("value"),
-		"display_name":  ctx.Request().Query("display_name"),
-		"code":          ctx.Request().Query("code"),
-		"plan":          ctx.Request().Query("plan"),
-		"level":         ctx.Request().Query("level"),
-		"scene":         ctx.Request().Query("scene"),
-		"type":          ctx.Request().Query("type"),
-		"enabled":       ctx.Request().Query("enabled"),
-		"dept_id":       ctx.Request().Query("dept_id"),
-		"user_id":       ctx.Request().Query("user_id"),
-		"service_name":  ctx.Request().Query("service_name"),
-		"provider_id":   ctx.Request().Query("provider_id"),
-		"provider_name": ctx.Request().Query("provider_name"),
-		"provider":      ctx.Request().Query("provider"),
-		"version":       ctx.Request().Query("version"),
-		"driver":        ctx.Request().Query("driver"),
-		"task_id":       ctx.Request().Query("task_id"),
-		"task_code":     ctx.Request().Query("task_code"),
-		"task_type":     ctx.Request().Query("task_type"),
-		"trigger_mode":  ctx.Request().Query("trigger_mode"),
-		"sso_user_id":   ctx.Request().Query("sso_user_id"),
-		"sso_email":     ctx.Request().Query("sso_email"),
-		"sso_username":  ctx.Request().Query("sso_username"),
-		"start_date":    ctx.Request().Query("start_date"),
-		"end_date":      ctx.Request().Query("end_date"),
-	}
+	return ctx.Request().Queries()
 }
 
 func page(ctx contractshttp.Context) int {
-	value := ctx.Request().QueryInt("page", 1)
-	if value < 1 {
-		return 1
-	}
-	return value
+	return httprequest.Page(ctx.Request())
 }
 
 func pageSize(ctx contractshttp.Context) int {
-	value := ctx.Request().QueryInt("per_page", 15)
-	if ctx.Request().Query("per_page") == "" {
-		value = ctx.Request().QueryInt("page_size", value)
-	}
-	if value < 1 {
-		return 15
-	}
-	return value
+	return httprequest.PageSize(ctx.Request())
 }
 
 func currentTenant(ctx contractshttp.Context) (services.Tenant, error) {

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
+	"github.com/goravel/framework/support/collect"
 
 	"goravel/app/models"
 )
@@ -159,9 +160,7 @@ func addNonEmpty(values map[string]any, column, value string) {
 }
 
 func uint64Any(values []uint64) []any {
-	out := make([]any, 0, len(values))
-	for _, value := range values {
-		out = append(out, value)
-	}
-	return out
+	return collect.Map(values, func(value uint64, _ int) any {
+		return value
+	})
 }

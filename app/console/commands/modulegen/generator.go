@@ -344,7 +344,7 @@ func (m Module) TestTemplates() []string {
 }
 
 func list(ctx contractshttp.Context) contractshttp.Response {
-	result, err := NewService().WithContext(ctx.Context()).List(ctx.Request().Query("name"), ctx.Request().QueryInt("page", 1), ctx.Request().QueryInt("page_size", 15))
+	result, err := NewService().WithContext(ctx.Context()).List(ctx.Request().Query("name"), request.Page(ctx.Request()), request.PageSize(ctx.Request()))
 	if err != nil {
 		return ctx.Response().Json(http.StatusOK, response.Error(response.CodeFail, "服务器错误", []any{}))
 	}
@@ -449,6 +449,8 @@ import (
 	"time"
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
+	"github.com/goravel/framework/support/collect"
+	"github.com/goravel/framework/support/convert"
 
 	"goravel/app/http/request"
 	"goravel/app/services"
@@ -500,7 +502,7 @@ func (r *Repository) Create(item {{.Pascal}}) ({{.Pascal}}, error) {
 	if err != nil {
 		return item, err
 	}
-	item.CreatedAt = ptrTime(time.Now())
+	item.CreatedAt = convert.Pointer(time.Now())
 	item.UpdatedAt = item.CreatedAt
 	err = query.Create(&item)
 	return item, err
@@ -536,20 +538,10 @@ func (r *Repository) Delete(ids []uint64) error {
 	if err != nil {
 		return err
 	}
-	_, err = query.WhereIn("id", uint64Any(ids)).Delete()
+	_, err = query.WhereIn("id", collect.Map(ids, func(id uint64, _ int) any {
+		return id
+	})).Delete()
 	return err
-}
-
-func ptrTime(value time.Time) *time.Time {
-	return &value
-}
-
-func uint64Any(values []uint64) []any {
-	items := make([]any, 0, len(values))
-	for _, value := range values {
-		items = append(items, value)
-	}
-	return items
 }
 `
 

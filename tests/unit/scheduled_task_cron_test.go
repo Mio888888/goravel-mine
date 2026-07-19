@@ -28,6 +28,22 @@ func TestNextScheduledRunSupportsDailyTime(t *testing.T) {
 	require.Equal(t, time.Date(2026, 7, 4, 10, 15, 30, 0, time.UTC), next)
 }
 
+func TestNextScheduledRunSupportsMinutePrecision(t *testing.T) {
+	base := time.Date(2026, 7, 4, 9, 0, 30, 0, time.UTC)
+
+	next, err := services.NextScheduledRun("*/5 * * * *", time.UTC, base)
+
+	require.NoError(t, err)
+	require.Equal(t, time.Date(2026, 7, 4, 9, 5, 0, 0, time.UTC), next)
+}
+
+func TestNextScheduledRunRejectsInvalidFieldCount(t *testing.T) {
+	_, err := services.NextScheduledRun("* * * *", time.UTC, time.Now())
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Cron 表达式格式错误")
+}
+
 func TestNextScheduledRunRejectsImpossibleMonthDayQuickly(t *testing.T) {
 	base := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 

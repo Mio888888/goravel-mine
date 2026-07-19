@@ -25,6 +25,7 @@ import (
 	"time"
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
+	"github.com/goravel/framework/support/collect"
 
 	"goravel/app/facades"
 	"goravel/app/http/request"
@@ -66,11 +67,9 @@ func (r *{{ .StructName }}Repository) Delete(ids []uint64) error {
 	if len(ids) == 0 {
 		return nil
 	}
-	values := make([]any, 0, len(ids))
-	for _, id := range ids {
-		values = append(values, id)
-	}
-	_, err := facades.Orm().Query().Table("{{ .Name }}").WhereIn("id", values).Delete()
+	_, err := facades.Orm().Query().Table("{{ .Name }}").WhereIn("id", collect.Map(ids, func(id uint64, _ int) any {
+		return id
+	})).Delete()
 	return err
 }
 
@@ -111,6 +110,7 @@ import (
 	contractshttp "github.com/goravel/framework/contracts/http"
 
 	demoRequest "goravel/app/http/request/{{ .Module }}"
+	sharedRequest "goravel/app/http/request"
 	"goravel/app/http/response"
 	"goravel/app/models"
 	demoRepository "goravel/app/repositories/{{ .Module }}"
@@ -125,7 +125,7 @@ func New{{ .StructName }}Controller() *{{ .StructName }}Controller {
 }
 
 func (r *{{ .StructName }}Controller) List(ctx contractshttp.Context) contractshttp.Response {
-	result, err := r.repository.List(ctx.Request().Queries(), page(ctx), pageSize(ctx))
+	result, err := r.repository.List(ctx.Request().Queries(), sharedRequest.Page(ctx.Request()), sharedRequest.PageSize(ctx.Request()))
 	if err != nil {
 		return ctx.Response().Json(http.StatusOK, response.Error(response.CodeFail, "服务器错误", []any{}))
 	}
@@ -170,22 +170,6 @@ func (r *{{ .StructName }}Controller) Delete(ctx contractshttp.Context) contract
 		return ctx.Response().Json(http.StatusOK, response.Error(response.CodeFail, "服务器错误", []any{}))
 	}
 	return ctx.Response().Json(http.StatusOK, response.SuccessEmpty())
-}
-
-func page(ctx contractshttp.Context) int {
-	value := ctx.Request().QueryInt("page", 1)
-	if value < 1 {
-		return 1
-	}
-	return value
-}
-
-func pageSize(ctx contractshttp.Context) int {
-	value := ctx.Request().QueryInt("per_page", 15)
-	if value < 1 {
-		return 15
-	}
-	return value
 }
 `
 
