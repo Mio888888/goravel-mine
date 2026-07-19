@@ -1,0 +1,148 @@
+package logadmin
+
+import (
+	"context"
+	"strings"
+	"time"
+
+	"goravel/app/http/request"
+	"goravel/app/models"
+	"goravel/app/scopes"
+	"goravel/app/support/contextutil"
+
+	contractsorm "github.com/goravel/framework/contracts/database/orm"
+)
+
+const logTimeLayout = "2006-01-02 15:04:05"
+
+type LogAdminService struct {
+	ctx        context.Context
+	connection string
+	ormFactory func(context.Context, string) contractsorm.Orm
+}
+
+type LoginLogRow struct {
+	ID        uint64 `json:"id"`
+	Username  string `json:"username"`
+	IP        string `json:"ip"`
+	OS        string `json:"os"`
+	Browser   string `json:"browser"`
+	Status    int16  `json:"status"`
+	Message   string `json:"message"`
+	LoginTime string `json:"login_time"`
+	Remark    string `json:"remark"`
+}
+
+type OperationLogRow struct {
+	ID          uint64 `json:"id"`
+	Username    string `json:"username"`
+	Method      string `json:"method"`
+	Router      string `json:"router"`
+	ServiceName string `json:"service_name"`
+	IP          string `json:"ip"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+	Remark      string `json:"remark"`
+}
+
+type OperationLogPayload struct {
+	Username    string
+	Method      string
+	Router      string
+	ServiceName string
+	IP          string
+	Connection  string
+}
+
+func NewService(connection string, factory func(context.Context, string) contractsorm.Orm) *LogAdminService {
+	return &LogAdminService{connection: connection, ormFactory: factory}
+}
+
+func (s *LogAdminService) WithContext(ctx context.Context) *LogAdminService {
+	clone := *s
+	clone.ctx = contextutil.OrBackground(ctx)
+	return &clone
+}
+
+func (s *LogAdminService) orm() contractsorm.Orm {
+	return s.ormFactory(contextutil.OrBackground(s.ctx), s.connection)
+}
+
+func (s *LogAdminService) ListLoginLogs(filters map[string]string, page, pageSize int) (request.PageResult[LoginLogRow], error) {
+	query := loginLogFilters(s.orm().Query().Table("user_login_log"), filters)
+	result, err := request.Paginate[models.UserLoginLog](query.OrderByDesc("id"), page, pageSize)
+	if err != nil {
+		return request.PageResult[LoginLogRow]{}, err
+	}
+	return request.PageResult[LoginLogRow]{List: loginLogRows(result.List), Total: result.Total}, nil
+}
+
+func (s *LogAdminService) ListOperationLogs(filters map[string]string, page, pageSize int) (request.PageResult[OperationLogRow], error) {
+	query := operationLogFilters(s.orm().Query().Table("user_operation_log"), filters)
+	result, err := request.Paginate[models.UserOperationLog](query.OrderByDesc("id"), page, pageSize)
+	if err != nil {
+		return request.PageResult[OperationLogRow]{}, err
+	}
+	return request.PageResult[OperationLogRow]{List: operationLogRows(result.List), Total: result.Total}, nil
+}
+
+func (s *LogAdminService) WriteOperationLog(payload OperationLogPayload) error {
+	now := time.Now()
+	return s.orm().Query().Create(&models.UserOperationLog{
+		Username:    payload.Username,
+		Method:      strings.ToUpper(payload.Method),
+		Router:      payload.Router,
+		ServiceName: payload.ServiceName,
+		IP:          payload.IP,
+		Timestamps:  models.Timestamps{CreatedAt: now, UpdatedAt: now},
+	})
+}
+
+func loginLogFilters(query contractsorm.Query, filters map[string]string) contractsorm.Query {
+	query = query.Scopes(scopes.Equal("username", filters["username"]))
+	query = query.Scopes(scopes.Equal("ip", filters["ip"]))
+	query = query.Scopes(scopes.Equal("os", filters["os"]))
+	query = query.Scopes(scopes.Equal("browser", filters["browser"]))
+	query = query.Scopes(scopes.Equal("status", filters["status"]))
+	query = query.Scopes(scopes.Equal("message", filters["message"]))
+	return query.Scopes(scopes.Equal("remark", filters["remark"]))
+}
+
+func operationLogFilters(query contractsorm.Query, filters map[string]string) contractsorm.Query {
+	query = query.Scopes(scopes.Equal("username", filters["username"]))
+	query = query.Scopes(scopes.Equal("method", strings.ToUpper(filters["method"])))
+	query = query.Scopes(scopes.Equal("router", filters["router"]))
+	query = query.Scopes(scopes.Equal("service_name", filters["service_name"]))
+	return query.Scopes(scopes.Equal("ip", filters["ip"]))
+}
+
+func loginLogRows(logs []models.UserLoginLog) []LoginLogRow {
+	rows := make([]LoginLogRow, 0, len(logs))
+	for _, log := range logs {
+		rows = append(rows, LoginLogRow{
+			ID: log.ID, Username: log.Username, IP: log.IP, OS: log.OS,
+			Browser: log.Browser, Status: log.Status, Message: log.Message,
+			LoginTime: FormatTime(log.LoginTime), Remark: log.Remark,
+		})
+	}
+	return rows
+}
+
+func operationLogRows(logs []models.UserOperationLog) []OperationLogRow {
+	rows := make([]OperationLogRow, 0, len(logs))
+	for _, log := range logs {
+		rows = append(rows, OperationLogRow{
+			ID: log.ID, Username: log.Username, Method: log.Method, Router: log.Router,
+			ServiceName: log.ServiceName, IP: log.IP, CreatedAt: FormatTime(log.CreatedAt),
+			UpdatedAt: FormatTime(log.UpdatedAt), Remark: log.Remark,
+		})
+	}
+	return rows
+}
+
+func FormatTime(value time.Time) string {
+	if value.IsZero() {
+		return ""
+	}
+	return value.Format(logTimeLayout)
+}

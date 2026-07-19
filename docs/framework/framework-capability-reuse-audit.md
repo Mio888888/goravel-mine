@@ -15,6 +15,8 @@
 - 模糊查询和精确查询过滤器分别在权限、租户、日志和 SSO 模块重复实现。
 - 个别服务直接调用 `facades.Orm().Connection()`，绕过项目已有的
   `OrmForConnectionWithContext` 连接工厂。
+- `app/services` 根目录长期同时承载业务实现、兼容 API 和跨模块装配，
+  文件数量过多且模块边界不清晰。
 - 多个出站 HTTP 场景直接使用 `net/http`。其中普通请求可评估迁移到
   `facades.Http()`，但 SSO、动态 URL 任务和 S3 签名请求包含安全或协议约束，
   不能机械替换。
@@ -23,13 +25,32 @@
 
 ### 查询过滤器
 
-统一使用 `app/services/query_filters.go`：
+统一使用 `app/scopes/filters.go`：
 
-- `applyStringFilter`：忽略空白输入并生成参数化 `LIKE` 条件。
-- `equalFilter`：忽略空白输入并生成参数化等值条件。
+- `scopes.Contains` / `ContainsFold`：忽略空白输入并生成参数化模糊查询。
+- `scopes.Equal` / `EqualIfPresent`：按字段语义生成参数化等值查询。
+- `scopes.GreaterThanOrEqual` / `LessThanOrEqual`：统一时间范围边界。
 
 租户、套餐、参考案例、权限、字典、调度任务、日志、存储配置和 SSO 审计
 现在共享同一实现。
+
+### 服务目录与装配层
+
+服务实现按职责分为三层：
+
+- `app/services/{access,platform,runtime,tenancy}/<module>/`：可独立复用的
+  模块实现。一级目录按身份权限、平台能力、运行支撑和租户能力分组，二级
+  目录保留具体模块，例如 `access/auth`、`runtime/queue`、
+  `platform/storage`、`tenancy/tenant`。
+- `app/services/application/`：仍需跨模块协作的应用编排，固定按 `audit`、
+  `auth`、`infrastructure`、`permission`、`security`、`sso`、`tenant`
+  七个领域分组。
+- `app/services/facade.go`：作为根目录唯一的 Go 实现文件，只保留原
+  `services.*` API 的兼容别名，不承载业务实现。
+
+依赖由模块的 `ConfigureDependencies` 和应用编排层集中装配，保持与 Goravel
+服务容器、服务提供者和 Facade 的职责划分一致，避免子包反向依赖整个
+`services` 包形成导入循环。
 
 ### ORM 连接入口
 
@@ -44,16 +65,21 @@
 
 `tests/unit/framework_reuse_contract_test.go` 增加静态架构测试：
 
-- 查询过滤器只能在 `query_filters.go` 定义。
+- 查询过滤器统一使用 `app/scopes`。
 - 服务层不得直接调用 `facades.Orm().Connection()`。
-- 应用 JWT 只能通过 `app/services/jwt_token.go` 签发和解析。
+- 应用 JWT 只能通过 `app/services/access/auth/jwt.go` 签发和解析。
 - 不得重新引入与 Goravel Cache 原子锁重复的 Queue Task Lock Store。
+- `app/services` 根目录的 Go 实现文件只能保留 `facade.go`。
+- 可复用模块必须归入 `access`、`platform`、`runtime`、`tenancy` 能力组，
+  能力组根目录不得直接堆放实现文件。
+- 跨模块应用编排只能放在固定的七个领域文件中。
 
 ### JWT 公共内核
 
 租户认证与平台认证继续保留现有 `tenant/type/jti`、独立 Refresh Token 和
 黑名单协议，但 HS256 签发、验签、Bearer 提取、TTL 解析和 Claim 转换统一由
-`app/services/jwt_token.go` 提供，避免两套认证服务各自维护底层 JWT 细节。
+`app/services/access/auth/jwt.go` 提供，避免两套认证服务各自维护底层 JWT
+细节。
 
 ### 队列可靠性
 
@@ -83,11 +109,14 @@
    但应避免引入继承式大基类。
 3. 评估官方 S3 文件系统驱动是否完整支持对象锁、版本 ID 和签名请求；
    只有契约覆盖后再替换自建客户端。
+4. 按跨域依赖图继续将 `application` 中的编排下沉为契约驱动的独立子包；
+   在依赖尚未解开前，不通过复制类型或双向导入制造新的循环依赖。
 
 ## 文档依据
 
 - `docs/docs-master/zh_CN/architecture-concepts/facades.md`
 - `docs/docs-master/zh_CN/architecture-concepts/service-container.md`
+- `docs/docs-master/zh_CN/architecture-concepts/service-providers.md`
 - `docs/docs-master/zh_CN/orm/getting-started.md`
 - `docs/docs-master/zh_CN/digging-deeper/cache.md`
 - `docs/docs-master/zh_CN/digging-deeper/http-client.md`

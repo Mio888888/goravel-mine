@@ -22,26 +22,7 @@ import (
 func Boot() contractsfoundation.Application {
 	return foundation.Setup().
 		WithCommands(func() []console.Command {
-			return []console.Command{
-				&commands.MakeCrudCommand{},
-				&commands.MakeModuleCommand{},
-				&commands.TenantMigrateCommand{},
-				&commands.SafeMigrateCommand{},
-				&commands.SSOTestFixtureCommand{},
-				&commands.TenantPermissionsSnapshotLegacyCommand{},
-				&commands.SecurityAuditPruneCommand{},
-				&commands.SecurityRotateCheckCommand{},
-				&commands.ModuleManifestCheckCommand{},
-				&commands.ModuleAdmissionCheckCommand{},
-				&commands.ModuleOpenAPILintCommand{},
-				&commands.ModuleManifestExportCommand{},
-				&commands.ModuleCompatibilityExportCommand{},
-				&commands.ModuleStateCommand{},
-				&commands.ModulePlanCommand{},
-				&commands.ModuleLifecycleCommand{},
-				&commands.ReferenceCaseUpgradeCommand{},
-				&commands.ReferenceCaseRollbackCommand{},
-			}
+			return commands.All()
 		}).
 		WithMigrations(Migrations).
 		WithJobs(services.QueueJobs).

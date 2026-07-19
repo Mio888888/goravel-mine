@@ -5,6 +5,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -115,8 +116,8 @@ func TestApplicationUsesSharedCronParser(t *testing.T) {
 
 func TestApplicationUsesSharedJWTTokenCodec(t *testing.T) {
 	allowed := map[string]bool{
-		filepath.ToSlash(filepath.Join("app", "services", "jwt_token.go")):            true,
-		filepath.ToSlash(filepath.Join("app", "services", "sso_protocol_service.go")): true,
+		filepath.ToSlash(filepath.Join("app", "services", "access", "auth", "jwt.go")): true,
+		filepath.ToSlash(filepath.Join("app", "services", "application", "sso.go")):    true,
 	}
 	forEachServiceFile(t, func(path string, file *ast.File) {
 		normalized := filepath.ToSlash(path)
@@ -136,7 +137,7 @@ func TestApplicationUsesSharedJWTTokenCodec(t *testing.T) {
 			}
 			identifier, ok := selector.X.(*ast.Ident)
 			if ok && identifier.Name == "jwt" {
-				t.Errorf("%s must use app/services/jwt_token.go for application tokens", path)
+				t.Errorf("%s must use app/services/access/auth/jwt.go for application tokens", path)
 			}
 			return true
 		})
@@ -186,6 +187,95 @@ func TestApplicationDoesNotReintroduceQueueTaskLockStore(t *testing.T) {
 	for name, paths := range legacyDefinitions {
 		require.Emptyf(t, paths, "%s duplicates the framework Cache atomic lock", name)
 	}
+}
+
+func TestQueueServicesStayGroupedByModule(t *testing.T) {
+	matches, err := filepath.Glob(filepath.Join("..", "..", "app", "services", "queue_*.go"))
+	require.NoError(t, err)
+	require.Empty(t, matches, "queue service implementations must stay in app/services/runtime/queue")
+}
+
+func TestServicesRootOnlyContainsCompatibilityFacade(t *testing.T) {
+	matches, err := filepath.Glob(filepath.Join("..", "..", "app", "services", "*.go"))
+	require.NoError(t, err)
+	require.Len(t, matches, 1, "app/services root Go files must only expose the compatibility facade")
+	require.Equal(t, "facade.go", filepath.Base(matches[0]))
+}
+
+func TestServicesUseCapabilityGroups(t *testing.T) {
+	root := filepath.Join("..", "..", "app", "services")
+	entries, err := os.ReadDir(root)
+	require.NoError(t, err)
+
+	allowedGroups := map[string]bool{
+		"access":      true,
+		"application": true,
+		"platform":    true,
+		"runtime":     true,
+		"tenancy":     true,
+	}
+	var unexpectedDirectories []string
+	for _, entry := range entries {
+		if entry.IsDir() && !allowedGroups[entry.Name()] {
+			unexpectedDirectories = append(unexpectedDirectories, entry.Name())
+		}
+	}
+	require.Empty(t, unexpectedDirectories, "service modules must stay in an explicit capability group")
+
+	for _, group := range []string{"access", "platform", "runtime", "tenancy"} {
+		groupEntries, readErr := os.ReadDir(filepath.Join(root, group))
+		require.NoError(t, readErr)
+		for _, entry := range groupEntries {
+			require.Truef(t, entry.IsDir(), "%s/%s must be grouped in a module directory", group, entry.Name())
+		}
+	}
+}
+
+func TestApplicationServicesStayGroupedByDomain(t *testing.T) {
+	matches, err := filepath.Glob(filepath.Join("..", "..", "app", "services", "application", "*.go"))
+	require.NoError(t, err)
+
+	allowed := map[string]bool{
+		"audit.go":               true,
+		"audit_test.go":          true,
+		"auth.go":                true,
+		"auth_test.go":           true,
+		"infrastructure.go":      true,
+		"infrastructure_test.go": true,
+		"permission.go":          true,
+		"permission_test.go":     true,
+		"security.go":            true,
+		"security_test.go":       true,
+		"sso.go":                 true,
+		"sso_test.go":            true,
+		"tenant.go":              true,
+		"tenant_test.go":         true,
+	}
+	var scattered []string
+	for _, path := range matches {
+		if !allowed[filepath.Base(path)] {
+			scattered = append(scattered, path)
+		}
+	}
+	require.Empty(t, scattered, "cross-module orchestration must stay grouped by domain")
+	require.Len(t, matches, len(allowed), "application service domains must remain explicit")
+}
+
+func TestConsoleCommandsStayGroupedByModule(t *testing.T) {
+	matches, err := filepath.Glob(filepath.Join("..", "..", "app", "console", "commands", "*.go"))
+	require.NoError(t, err)
+
+	allowed := map[string]bool{
+		"commands.go":      true,
+		"commands_test.go": true,
+	}
+	var scattered []string
+	for _, path := range matches {
+		if !allowed[filepath.Base(path)] {
+			scattered = append(scattered, path)
+		}
+	}
+	require.Empty(t, scattered, "console commands must stay in a functional subpackage")
 }
 
 func TestServiceFiltersDoNotUseManualNonEmptyConditions(t *testing.T) {
