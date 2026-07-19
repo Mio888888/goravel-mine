@@ -5,7 +5,6 @@ import (
 
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
 
-	"goravel/app/facades"
 	"goravel/app/models"
 )
 
@@ -38,7 +37,7 @@ func NewTenantPermissionAuditService() *TenantPermissionAuditService {
 }
 
 func (s *TenantPermissionAuditService) Log(input TenantPermissionAuditInput) error {
-	return s.LogWithQuery(facades.Orm().Connection(PlatformConnection()).Query(), input)
+	return s.LogWithQuery(OrmForConnection(PlatformConnection()).Query(), input)
 }
 
 func (s *TenantPermissionAuditService) LogWithQuery(query contractsorm.Query, input TenantPermissionAuditInput) error {

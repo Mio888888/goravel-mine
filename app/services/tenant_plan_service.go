@@ -64,8 +64,8 @@ func (p TenantPlanPayload) TenantPlan() TenantPlan {
 
 func (s *TenantPlanService) List(filters map[string]string, page, pageSize int) (request.PageResult[TenantPlan], error) {
 	query := s.orm().Query().Table("tenant_plan")
-	query = applyTenantStringFilter(query, "code", filters["code"])
-	query = applyTenantStringFilter(query, "name", filters["name"])
+	query = applyStringFilter(query, "code", filters["code"])
+	query = applyStringFilter(query, "name", filters["name"])
 	if filters["status"] != "" {
 		query = query.Where("status", filters["status"])
 	}

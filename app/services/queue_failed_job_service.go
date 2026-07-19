@@ -135,10 +135,7 @@ func (s *QueueFailedJobService) Delete(filters QueueFailedJobFilters) (QueueFail
 func (s *QueueFailedJobService) failedJobQuery(filters QueueFailedJobFilters) contractsorm.Query {
 	failedDatabase := facades.Config().GetString("queue.failed.database")
 	failedTable := facades.Config().GetString("queue.failed.table", "failed_jobs")
-	orm := facades.Orm().WithContext(contextOrBackground(s.ctx))
-	if failedDatabase != "" {
-		orm = orm.Connection(failedDatabase)
-	}
+	orm := OrmForConnectionWithContext(s.ctx, failedDatabase)
 	query := orm.Query().Table(failedTable)
 	if connection := filters.connection(); connection != "" {
 		query = query.Where("connection", connection)

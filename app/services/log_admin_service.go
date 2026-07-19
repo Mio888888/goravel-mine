@@ -120,13 +120,6 @@ func operationLogFilters(query contractsorm.Query, filters map[string]string) co
 	return equalFilter(query, "ip", filters["ip"])
 }
 
-func equalFilter(query contractsorm.Query, column, value string) contractsorm.Query {
-	if strings.TrimSpace(value) == "" {
-		return query
-	}
-	return query.Where(column, value)
-}
-
 func loginLogRows(logs []models.UserLoginLog) []LoginLogRow {
 	rows := make([]LoginLogRow, 0, len(logs))
 	for _, log := range logs {

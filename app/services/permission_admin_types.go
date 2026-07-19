@@ -118,13 +118,6 @@ func (s *PermissionAdminService) orm() contractsorm.Orm {
 	return OrmForConnectionWithContext(s.ctx, s.connection)
 }
 
-func applyStringFilter(query contractsorm.Query, column, value string) contractsorm.Query {
-	if value == "" {
-		return query
-	}
-	return query.Where(column+" LIKE ?", "%"+value+"%")
-}
-
 func userTypeString(value any) string {
 	switch v := value.(type) {
 	case string:

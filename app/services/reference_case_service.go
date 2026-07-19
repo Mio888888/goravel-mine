@@ -69,9 +69,9 @@ func (p ReferenceCasePayload) ReferenceCase() ReferenceCase {
 
 func (s *ReferenceCaseService) List(filters map[string]string, page, pageSize int) (request.PageResult[ReferenceCase], error) {
 	query := s.orm().Query().Table("reference_case")
-	query = applyTenantStringFilter(query, "code", filters["code"])
-	query = applyTenantStringFilter(query, "title", filters["title"])
-	query = applyTenantStringFilter(query, "version", filters["version"])
+	query = applyStringFilter(query, "code", filters["code"])
+	query = applyStringFilter(query, "title", filters["title"])
+	query = applyStringFilter(query, "version", filters["version"])
 	if filters["status"] != "" {
 		query = query.Where("status", filters["status"])
 	}

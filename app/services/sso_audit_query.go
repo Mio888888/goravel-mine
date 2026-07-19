@@ -61,40 +61,24 @@ func (s *SSOAuditService) loginRowsQuery() contractsorm.Query {
 }
 
 func ssoBindingFilters(query contractsorm.Query, filters map[string]string) contractsorm.Query {
-	query = uint64Filter(query, "sso_user_binding.user_id", filters["user_id"])
-	query = uint64Filter(query, "sso_user_binding.provider_id", filters["provider_id"])
-	query = likeFilter(query, "sso_user_binding.sso_user_id", filters["sso_user_id"])
-	query = likeFilter(query, "sso_user_binding.sso_email", filters["sso_email"])
-	query = likeFilter(query, "sso_user_binding.sso_username", filters["sso_username"])
-	query = likeFilter(query, "sso_provider.name", filters["provider_name"])
-	return likeFilter(query, `"user".username`, filters["username"])
+	query = equalFilter(query, "sso_user_binding.user_id", filters["user_id"])
+	query = equalFilter(query, "sso_user_binding.provider_id", filters["provider_id"])
+	query = applyStringFilter(query, "sso_user_binding.sso_user_id", filters["sso_user_id"])
+	query = applyStringFilter(query, "sso_user_binding.sso_email", filters["sso_email"])
+	query = applyStringFilter(query, "sso_user_binding.sso_username", filters["sso_username"])
+	query = applyStringFilter(query, "sso_provider.name", filters["provider_name"])
+	return applyStringFilter(query, `"user".username`, filters["username"])
 }
 
 func ssoLoginLogFilters(query contractsorm.Query, filters map[string]string) contractsorm.Query {
-	query = uint64Filter(query, "sso_login_log.user_id", filters["user_id"])
-	query = uint64Filter(query, "sso_login_log.provider_id", filters["provider_id"])
+	query = equalFilter(query, "sso_login_log.user_id", filters["user_id"])
+	query = equalFilter(query, "sso_login_log.provider_id", filters["provider_id"])
 	query = equalFilter(query, "sso_login_log.status", filters["status"])
-	query = likeFilter(query, "sso_login_log.sso_user_id", filters["sso_user_id"])
-	query = likeFilter(query, "sso_login_log.sso_email", filters["sso_email"])
-	query = likeFilter(query, "sso_provider.name", filters["provider_name"])
-	query = likeFilter(query, `"user".username`, filters["username"])
+	query = applyStringFilter(query, "sso_login_log.sso_user_id", filters["sso_user_id"])
+	query = applyStringFilter(query, "sso_login_log.sso_email", filters["sso_email"])
+	query = applyStringFilter(query, "sso_provider.name", filters["provider_name"])
+	query = applyStringFilter(query, `"user".username`, filters["username"])
 	return dateRangeFilter(query, "sso_login_log.login_at", filters["start_date"], filters["end_date"])
-}
-
-func likeFilter(query contractsorm.Query, column, value string) contractsorm.Query {
-	value = strings.TrimSpace(value)
-	if value == "" {
-		return query
-	}
-	return query.Where(column+" LIKE ?", "%"+value+"%")
-}
-
-func uint64Filter(query contractsorm.Query, column, value string) contractsorm.Query {
-	value = strings.TrimSpace(value)
-	if value == "" {
-		return query
-	}
-	return query.Where(column, value)
 }
 
 func dateRangeFilter(query contractsorm.Query, column, start, end string) contractsorm.Query {

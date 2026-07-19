@@ -170,9 +170,9 @@ func (s *TenantService) List(filters map[string]string, page, pageSize int) (req
 	query := s.orm().
 		Query().
 		Table("tenant")
-	query = applyTenantStringFilter(query, "code", filters["code"])
-	query = applyTenantStringFilter(query, "name", filters["name"])
-	query = applyTenantStringFilter(query, "plan", filters["plan"])
+	query = applyStringFilter(query, "code", filters["code"])
+	query = applyStringFilter(query, "name", filters["name"])
+	query = applyStringFilter(query, "plan", filters["plan"])
 	if filters["status"] != "" {
 		query = query.Where("status", filters["status"])
 	}
@@ -662,13 +662,6 @@ func (s *TenantService) ensureTenantExists(id uint64) error {
 		return ErrTenantNotFound
 	}
 	return nil
-}
-
-func applyTenantStringFilter(query contractsorm.Query, column, value string) contractsorm.Query {
-	if strings.TrimSpace(value) == "" {
-		return query
-	}
-	return query.Where(column+" LIKE ?", "%"+value+"%")
 }
 
 func WithTenant(ctx context.Context, tenant Tenant) context.Context {
