@@ -2,12 +2,10 @@ package migrations
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/robfig/cron/v3"
-
 	"goravel/app/facades"
+	"goravel/app/support/cronexpr"
 )
 
 type M202607110010UpsertTenantGovernanceTasks struct{}
@@ -111,8 +109,7 @@ func tenantGovernanceTaskSeeds() []tenantGovernanceTaskSeed {
 }
 
 func nextTenantGovernanceTaskRun(expression string, after time.Time) (time.Time, error) {
-	parser := cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
-	schedule, err := parser.Parse(strings.TrimSpace(expression))
+	schedule, err := cronexpr.ParseWithSeconds(expression)
 	if err != nil {
 		return time.Time{}, err
 	}

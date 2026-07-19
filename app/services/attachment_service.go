@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"goravel/app/facades"
 	"goravel/app/http/request"
 	"goravel/app/models"
 	"goravel/app/scopes"
@@ -21,7 +22,6 @@ import (
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	contractsfilesystem "github.com/goravel/framework/contracts/filesystem"
 	frameworkerrors "github.com/goravel/framework/errors"
-	"github.com/goravel/framework/support/path"
 )
 
 type AttachmentService struct {
@@ -95,7 +95,7 @@ func (s *AttachmentService) Upload(file contractsfilesystem.File, userID uint64,
 	if err != nil {
 		return models.Attachment{}, err
 	}
-	if err := s.storeUploadedFile(file.File(), attachment.StoragePath, attachment.MimeType); err != nil {
+	if err := s.storeUploadedFile(file, attachment.StoragePath, attachment.MimeType); err != nil {
 		return models.Attachment{}, err
 	}
 	if err := s.orm().Query().Create(&attachment); err != nil {
@@ -196,18 +196,31 @@ func (s *AttachmentService) storageURL(storage StorageConfig, storagePath string
 	if storage.BaseURL != "" {
 		return strings.TrimRight(storage.BaseURL, "/") + "/" + storagePath
 	}
-	return "/storage/" + storagePath
+	resolved := facades.Storage().Disk("public").Url(storagePath)
+	appURL := strings.TrimRight(facades.Config().GetString("http.url"), "/")
+	if appURL != "" && strings.HasPrefix(resolved, appURL+"/") {
+		return strings.TrimPrefix(resolved, appURL)
+	}
+	return resolved
 }
 
-func (s *AttachmentService) storeUploadedFile(source, storagePath, mimeType string) error {
+func (s *AttachmentService) storeUploadedFile(file contractsfilesystem.File, storagePath, mimeType string) error {
 	storage, err := s.activeStorageConfig()
 	if err != nil {
 		return err
 	}
 	if storage.Driver == storageDriverS3Compatible {
-		return newObjectStorageClient(storage).Put(source, storagePath, mimeType)
+		return newObjectStorageClient(storage).Put(file.File(), storagePath, mimeType)
 	}
-	return copyUploadedFile(source, path.Storage("app/public"), storagePath)
+	if err := validatePublicStoragePath(storagePath); err != nil {
+		return err
+	}
+	directory, name := filepath.Split(filepath.FromSlash(storagePath))
+	_, err = facades.Storage().
+		Disk("public").
+		WithContext(contextOrBackground(s.ctx)).
+		PutFileAs(strings.TrimRight(filepath.ToSlash(directory), "/"), file, name)
+	return err
 }
 
 func (s *AttachmentService) deleteStoredFile(attachment models.Attachment) error {
@@ -218,7 +231,14 @@ func (s *AttachmentService) deleteStoredFile(attachment models.Attachment) error
 	if storage.Driver == storageDriverS3Compatible {
 		return newObjectStorageClient(storage).Delete(attachment.StoragePath)
 	}
-	return deleteLocalAttachmentFile(attachment.StoragePath)
+	if err := validatePublicStoragePath(attachment.StoragePath); err != nil {
+		return err
+	}
+	disk := facades.Storage().Disk("public").WithContext(contextOrBackground(s.ctx))
+	if err := disk.Delete(attachment.StoragePath); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 func (s *AttachmentService) storageForAttachment(attachment models.Attachment) (StorageConfig, error) {
@@ -310,38 +330,17 @@ func fileMD5(filename string) (string, error) {
 	return hex.EncodeToString(hash.Sum(nil)), nil
 }
 
-func copyUploadedFile(source, root, storagePath string) error {
-	in, err := os.Open(source)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = in.Close() }()
-
-	target := filepath.Join(root, filepath.FromSlash(storagePath))
-	if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-		return err
-	}
-	out, err := os.Create(target)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = out.Close() }()
-
-	_, err = io.Copy(out, in)
-	return err
-}
-
-func deleteLocalAttachmentFile(storagePath string) error {
+func validatePublicStoragePath(storagePath string) error {
 	if strings.TrimSpace(storagePath) == "" {
-		return nil
-	}
-	root := filepath.Clean(path.Storage("app/public"))
-	target := filepath.Clean(filepath.Join(root, filepath.FromSlash(storagePath)))
-	if target == root || !strings.HasPrefix(target, root+string(os.PathSeparator)) {
 		return fmt.Errorf("invalid attachment storage path")
 	}
-	if err := os.Remove(target); err != nil && !os.IsNotExist(err) {
-		return err
+	disk := facades.Storage().Disk("public")
+	root := filepath.Clean(disk.Path(""))
+	target := filepath.Clean(disk.Path(storagePath))
+	relative, err := filepath.Rel(root, target)
+	if err != nil || relative == "." || relative == ".." ||
+		strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("invalid attachment storage path")
 	}
 	return nil
 }

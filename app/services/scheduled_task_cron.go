@@ -1,14 +1,11 @@
 package services
 
 import (
-	"strings"
 	"time"
 
 	"github.com/robfig/cron/v3"
-)
 
-var scheduledCronParser = cron.NewParser(
-	cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow,
+	"goravel/app/support/cronexpr"
 )
 
 func NextScheduledRun(expression string, location *time.Location, after time.Time) (time.Time, error) {
@@ -27,7 +24,7 @@ func NextScheduledRun(expression string, location *time.Location, after time.Tim
 }
 
 func parseCronSchedule(expression string) (cron.Schedule, error) {
-	schedule, err := scheduledCronParser.Parse(strings.TrimSpace(expression))
+	schedule, err := cronexpr.Parse(expression)
 	if err != nil {
 		return nil, BusinessError{Message: "Cron 表达式格式错误"}
 	}

@@ -436,98 +436,43 @@ func intPtr(value int) *int {
 }
 
 func scheduledTaskURL(raw string) (*url.URL, error) {
-	parsed, err := url.Parse(strings.TrimSpace(raw))
-	if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
-		return nil, BusinessError{Message: "URL 任务地址必须为 http 或 https"}
-	}
-	if parsed.User != nil {
-		return nil, BusinessError{Message: "URL 任务地址不允许包含认证信息"}
-	}
-	ips, err := scheduledTaskHostIPs(context.Background(), parsed.Hostname())
-	if err != nil {
-		return nil, err
-	}
-	if hasPrivateScheduledTaskIP(ips) {
-		return nil, BusinessError{Message: "URL 任务地址不允许指向内网或本机地址"}
-	}
-	return parsed, nil
+	return safeOutboundURL(raw, scheduledTaskOutboundHTTPPolicy())
 }
 
 func scheduledTaskHTTPClient(timeout time.Duration) http.Client {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.Proxy = nil
-	transport.DialContext = scheduledTaskSafeDialContext
-	return http.Client{
-		Timeout:   timeout,
-		Transport: transport,
-		CheckRedirect: func(req *http.Request, _ []*http.Request) error {
-			_, err := scheduledTaskURL(req.URL.String())
-			return err
+	return safeOutboundHTTPClient(timeout, scheduledTaskOutboundHTTPPolicy())
+}
+
+func scheduledTaskOutboundHTTPPolicy() outboundHTTPPolicy {
+	return outboundHTTPPolicy{
+		invalidURL: func() error {
+			return BusinessError{Message: "URL 任务地址必须为 http 或 https"}
+		},
+		unresolvedHost: func() error {
+			return BusinessError{Message: "URL 任务地址无法解析"}
+		},
+		invalidAddress: func() error {
+			return BusinessError{Message: "URL 任务地址无效"}
+		},
+		validateURL: func(parsed *url.URL) error {
+			if parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+				return BusinessError{Message: "URL 任务地址必须为 http 或 https"}
+			}
+			if parsed.User != nil {
+				return BusinessError{Message: "URL 任务地址不允许包含认证信息"}
+			}
+			return nil
+		},
+		validateTarget: func(_ *url.URL, ips []net.IP) error {
+			if len(ips) == 0 {
+				return BusinessError{Message: "URL 任务地址无法解析"}
+			}
+			for _, ip := range ips {
+				if isPrivateOutboundIP(ip) {
+					return BusinessError{Message: "URL 任务地址不允许指向内网或本机地址"}
+				}
+			}
+			return nil
 		},
 	}
-}
-
-func scheduledTaskSafeDialContext(ctx context.Context, network, address string) (net.Conn, error) {
-	host, port, err := net.SplitHostPort(address)
-	if err != nil {
-		return nil, BusinessError{Message: "URL 任务地址无效"}
-	}
-	ips, err := scheduledTaskHostIPs(ctx, host)
-	if err != nil {
-		return nil, err
-	}
-	if hasPrivateScheduledTaskIP(ips) {
-		return nil, BusinessError{Message: "URL 任务地址不允许指向内网或本机地址"}
-	}
-	dialer := net.Dialer{}
-	var lastErr error
-	for _, ip := range ips {
-		conn, err := dialer.DialContext(ctx, network, net.JoinHostPort(ip.String(), port))
-		if err == nil {
-			return conn, nil
-		}
-		lastErr = err
-	}
-	if lastErr != nil {
-		return nil, lastErr
-	}
-	return nil, BusinessError{Message: "URL 任务地址无法连接"}
-}
-
-func scheduledTaskHostIPs(ctx context.Context, host string) ([]net.IP, error) {
-	host = strings.TrimSpace(host)
-	if host == "" {
-		return nil, BusinessError{Message: "URL 任务地址无效"}
-	}
-	if ip := net.ParseIP(host); ip != nil {
-		return []net.IP{ip}, nil
-	}
-	ips, err := net.DefaultResolver.LookupIP(ctx, "ip", host)
-	if err != nil || len(ips) == 0 {
-		return nil, BusinessError{Message: "URL 任务地址无法解析"}
-	}
-	return ips, nil
-}
-
-func hasPrivateScheduledTaskIP(ips []net.IP) bool {
-	if len(ips) == 0 {
-		return true
-	}
-	for _, ip := range ips {
-		if isPrivateScheduledTaskIP(ip) {
-			return true
-		}
-	}
-	return false
-}
-
-func isPrivateScheduledTaskIP(ip net.IP) bool {
-	if ip == nil {
-		return true
-	}
-	return ip.IsLoopback() ||
-		ip.IsPrivate() ||
-		ip.IsLinkLocalUnicast() ||
-		ip.IsLinkLocalMulticast() ||
-		ip.IsUnspecified()
 }

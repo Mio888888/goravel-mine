@@ -36,6 +36,83 @@ func TestApplicationUsesSharedORMScopes(t *testing.T) {
 	}
 }
 
+func TestApplicationUsesSharedSafeOutboundHTTP(t *testing.T) {
+	legacyDefinitions := map[string][]string{
+		"scheduledTaskSafeDialContext": nil,
+		"scheduledTaskHostIPs":         nil,
+		"ssoSafeDialContext":           nil,
+		"ssoHostIPs":                   nil,
+	}
+
+	forEachApplicationFile(t, func(path string, file *ast.File) {
+		for _, declaration := range file.Decls {
+			function, ok := declaration.(*ast.FuncDecl)
+			if !ok {
+				continue
+			}
+			if _, tracked := legacyDefinitions[function.Name.Name]; tracked {
+				legacyDefinitions[function.Name.Name] = append(legacyDefinitions[function.Name.Name], path)
+			}
+		}
+	})
+
+	for name, paths := range legacyDefinitions {
+		require.Emptyf(t, paths, "%s must use the shared safe outbound HTTP transport", name)
+	}
+}
+
+func TestAttachmentsUseFrameworkStorage(t *testing.T) {
+	legacyDefinitions := map[string][]string{
+		"copyUploadedFile":          nil,
+		"deleteLocalAttachmentFile": nil,
+	}
+
+	forEachApplicationFile(t, func(path string, file *ast.File) {
+		for _, declaration := range file.Decls {
+			function, ok := declaration.(*ast.FuncDecl)
+			if !ok {
+				continue
+			}
+			if _, tracked := legacyDefinitions[function.Name.Name]; tracked {
+				legacyDefinitions[function.Name.Name] = append(legacyDefinitions[function.Name.Name], path)
+			}
+		}
+	})
+
+	for name, paths := range legacyDefinitions {
+		require.Emptyf(t, paths, "%s must use the framework Storage facade", name)
+	}
+}
+
+func TestApplicationUsesSharedCronParser(t *testing.T) {
+	allowedSuffix := filepath.ToSlash(filepath.Join("app", "support", "cronexpr", "cronexpr.go"))
+	for _, root := range []string{
+		filepath.Join("..", "..", "app"),
+		filepath.Join("..", "..", "database"),
+	} {
+		forEachGoFile(t, root, func(path string, file *ast.File) {
+			if strings.HasSuffix(filepath.ToSlash(path), allowedSuffix) {
+				return
+			}
+			ast.Inspect(file, func(node ast.Node) bool {
+				call, ok := node.(*ast.CallExpr)
+				if !ok {
+					return true
+				}
+				selector, ok := call.Fun.(*ast.SelectorExpr)
+				if !ok || selector.Sel.Name != "NewParser" {
+					return true
+				}
+				identifier, ok := selector.X.(*ast.Ident)
+				if ok && identifier.Name == "cron" {
+					t.Errorf("%s must use app/support/cronexpr instead of configuring another parser", path)
+				}
+				return true
+			})
+		})
+	}
+}
+
 func TestServiceFiltersDoNotUseManualNonEmptyConditions(t *testing.T) {
 	for _, root := range []string{
 		filepath.Join("..", "..", "app", "services"),

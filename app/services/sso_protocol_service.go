@@ -1,7 +1,6 @@
 package services
 
 import (
-	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -363,33 +362,7 @@ func fetchURL(uri string) ([]byte, error) {
 }
 
 func ssoEndpointURL(uri string) (*url.URL, error) {
-	endpoint, err := url.Parse(strings.TrimSpace(uri))
-	if err != nil || endpoint.Scheme == "" || endpoint.Host == "" {
-		return nil, ErrSSOTokenInvalid
-	}
-	if endpoint.Scheme != "https" && endpoint.Scheme != "http" {
-		return nil, ErrSSOTokenInvalid
-	}
-	if endpoint.User != nil {
-		return nil, ErrSSOTokenInvalid
-	}
-	host := endpoint.Hostname()
-	if strings.TrimSpace(host) == "" {
-		return nil, ErrSSOTokenInvalid
-	}
-	ips, err := net.LookupIP(host)
-	if err != nil || len(ips) == 0 {
-		return nil, ErrSSOTokenInvalid
-	}
-	if endpoint.Scheme == "http" && !allowHTTPSSOEndpoint(ips) {
-		return nil, ErrSSOTokenInvalid
-	}
-	for _, ip := range ips {
-		if isPrivateSSOEndpointIP(ip) {
-			return nil, ErrSSOTokenInvalid
-		}
-	}
-	return endpoint, nil
+	return safeOutboundURL(uri, ssoOutboundHTTPPolicy())
 }
 
 func allowHTTPSSOEndpoint(ips []net.IP) bool {
@@ -410,72 +383,44 @@ func allowLoopbackSSOEndpoints() bool {
 }
 
 func ssoHTTPClient() http.Client {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.Proxy = nil
-	transport.DialContext = ssoSafeDialContext
-	return http.Client{
-		Timeout:   ssoHTTPTimeout,
-		Transport: transport,
-		CheckRedirect: func(req *http.Request, _ []*http.Request) error {
-			_, err := ssoEndpointURL(req.URL.String())
-			return err
+	return safeOutboundHTTPClient(ssoHTTPTimeout, ssoOutboundHTTPPolicy())
+}
+
+func ssoOutboundHTTPPolicy() outboundHTTPPolicy {
+	return outboundHTTPPolicy{
+		invalidURL:     func() error { return ErrSSOTokenInvalid },
+		unresolvedHost: func() error { return ErrSSOTokenInvalid },
+		invalidAddress: func() error { return ErrSSOTokenInvalid },
+		validateURL: func(endpoint *url.URL) error {
+			if endpoint.Scheme == "" || endpoint.Host == "" ||
+				(endpoint.Scheme != "https" && endpoint.Scheme != "http") ||
+				endpoint.User != nil || strings.TrimSpace(endpoint.Hostname()) == "" {
+				return ErrSSOTokenInvalid
+			}
+			return nil
+		},
+		validateTarget: func(endpoint *url.URL, ips []net.IP) error {
+			if len(ips) == 0 {
+				return ErrSSOTokenInvalid
+			}
+			if endpoint.Scheme == "http" && !allowHTTPSSOEndpoint(ips) {
+				return ErrSSOTokenInvalid
+			}
+			for _, ip := range ips {
+				if isPrivateSSOEndpointIP(ip) {
+					return ErrSSOTokenInvalid
+				}
+			}
+			return nil
 		},
 	}
 }
 
-func ssoSafeDialContext(ctx context.Context, network, address string) (net.Conn, error) {
-	host, port, err := net.SplitHostPort(address)
-	if err != nil {
-		return nil, ErrSSOTokenInvalid
-	}
-	ips, err := ssoHostIPs(ctx, host)
-	if err != nil {
-		return nil, err
-	}
-	for _, ip := range ips {
-		if isPrivateSSOEndpointIP(ip) {
-			return nil, ErrSSOTokenInvalid
-		}
-	}
-
-	var lastErr error
-	dialer := net.Dialer{}
-	for _, ip := range ips {
-		conn, err := dialer.DialContext(ctx, network, net.JoinHostPort(ip.String(), port))
-		if err == nil {
-			return conn, nil
-		}
-		lastErr = err
-	}
-	if lastErr != nil {
-		return nil, lastErr
-	}
-	return nil, ErrSSOTokenInvalid
-}
-
-func ssoHostIPs(ctx context.Context, host string) ([]net.IP, error) {
-	if ip := net.ParseIP(host); ip != nil {
-		return []net.IP{ip}, nil
-	}
-	ips, err := net.DefaultResolver.LookupIP(ctx, "ip", host)
-	if err != nil || len(ips) == 0 {
-		return nil, ErrSSOTokenInvalid
-	}
-	return ips, nil
-}
-
 func isPrivateSSOEndpointIP(ip net.IP) bool {
-	if ip == nil {
-		return true
-	}
 	if allowLoopbackSSOEndpoints() && ip.IsLoopback() {
 		return false
 	}
-	return ip.IsLoopback() ||
-		ip.IsPrivate() ||
-		ip.IsLinkLocalUnicast() ||
-		ip.IsLinkLocalMulticast() ||
-		ip.IsUnspecified()
+	return isPrivateOutboundIP(ip)
 }
 
 func verifySAMLClaims(provider SSOProvider, payload SSOLoginPayload) (ssoClaims, error) {
