@@ -143,6 +143,20 @@ func TestApplicationUsesSharedJWTTokenCodec(t *testing.T) {
 	})
 }
 
+func TestApplicationUsesFrameworkProcessFacade(t *testing.T) {
+	allowedSuffix := filepath.ToSlash(filepath.Join("app", "modulecatalog", "lifecycle_runtime.go"))
+	forEachApplicationFile(t, func(path string, file *ast.File) {
+		if strings.HasSuffix(filepath.ToSlash(path), allowedSuffix) {
+			return
+		}
+		for _, imported := range file.Imports {
+			if imported.Path.Value == `"os/exec"` {
+				t.Errorf("%s must use facades.Process instead of os/exec", path)
+			}
+		}
+	})
+}
+
 func TestApplicationDoesNotReintroduceQueueTaskLockStore(t *testing.T) {
 	legacyDefinitions := map[string][]string{
 		"QueueTaskLock":            nil,

@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"strings"
 	"time"
+
+	"goravel/app/facades"
 )
 
 type SignatureVerifier struct {
@@ -16,7 +17,7 @@ type SignatureVerifier struct {
 
 func NewSignatureVerifier(runner ProcessRunner) SignatureVerifier {
 	if runner == nil {
-		runner = execProcessRunner{}
+		runner = frameworkProcessRunner{}
 	}
 	return SignatureVerifier{runner: runner, now: time.Now}
 }
@@ -186,25 +187,26 @@ func sbomBindsArtifact(payload []byte, digest string) bool {
 	return false
 }
 
-type execProcessRunner struct{}
+type frameworkProcessRunner struct{}
 
-func (execProcessRunner) Run(ctx context.Context, name string, args ...string) (ProcessOutput, error) {
-	command := exec.CommandContext(ctx, name, args...)
-	output, err := command.CombinedOutput()
-	if err != nil {
-		return ProcessOutput{Stderr: string(output)}, fmt.Errorf("%s %s: %w", name, strings.Join(args, " "), err)
+func (frameworkProcessRunner) Run(ctx context.Context, name string, args ...string) (ProcessOutput, error) {
+	result := facades.Process().WithContext(ctx).Quietly().Run(name, args...)
+	output := ProcessOutput{
+		Stdout: result.Output(),
+		Stderr: result.ErrorOutput(),
 	}
-	version, _ := execProcessRunner{}.Version(ctx, name)
-	return ProcessOutput{Stdout: string(output), Version: version}, nil
+	if result.Failed() {
+		return output, fmt.Errorf("%s %s: %w", name, strings.Join(args, " "), result.Error())
+	}
+	output.Version, _ = frameworkProcessRunner{}.Version(ctx, name)
+	return output, nil
 }
 
-func (execProcessRunner) Version(ctx context.Context, name string) (string, error) {
-	command := exec.CommandContext(ctx, name, "version", "--json")
-	output, err := command.Output()
-	if err == nil {
-		return strings.TrimSpace(string(output)), nil
+func (frameworkProcessRunner) Version(ctx context.Context, name string) (string, error) {
+	result := facades.Process().WithContext(ctx).Quietly().Run(name, "version", "--json")
+	if result.Successful() {
+		return strings.TrimSpace(result.Output()), nil
 	}
-	command = exec.CommandContext(ctx, name, "version")
-	output, err = command.Output()
-	return strings.TrimSpace(string(output)), err
+	result = facades.Process().WithContext(ctx).Quietly().Run(name, "version")
+	return strings.TrimSpace(result.Output()), result.Error()
 }
