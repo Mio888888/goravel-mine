@@ -11,6 +11,7 @@ import (
 
 	"goravel/app/facades"
 	"goravel/app/services"
+	"goravel/database/migrations"
 	"goravel/tests"
 )
 
@@ -28,9 +29,20 @@ func (s *QueueReliabilityTestSuite) SetupTest() {
 }
 
 func (s *QueueReliabilityTestSuite) TestReliabilityTablesExistAfterRefreshDatabase() {
-	for _, table := range []string{"queue_outbox", "queue_idempotency", "queue_task_lock"} {
+	for _, table := range []string{"queue_outbox", "queue_idempotency"} {
 		require.True(s.T(), facades.Schema().HasTable(table), table)
 	}
+	require.False(s.T(), facades.Schema().HasTable("queue_task_lock"))
+}
+
+func (s *QueueReliabilityTestSuite) TestDropQueueTaskLockMigrationCanRollback() {
+	migration := &migrations.M202607190001DropQueueTaskLockTable{}
+
+	require.NoError(s.T(), migration.Down())
+	require.True(s.T(), facades.Schema().HasTable("queue_task_lock"))
+
+	require.NoError(s.T(), migration.Up())
+	require.False(s.T(), facades.Schema().HasTable("queue_task_lock"))
 }
 
 func (s *QueueReliabilityTestSuite) TestOutboxAndDBIdempotencyPersistState() {
@@ -149,25 +161,6 @@ func (s *QueueReliabilityTestSuite) TestDBIdempotencyStaleOwnerCannotOverwriteNe
 		Pluck("result", &stored)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), "fresh", stored)
-}
-
-func (s *QueueReliabilityTestSuite) TestDBTaskLockAllowsSingleHolder() {
-	store := services.NewDBQueueTaskLockStore("")
-	ctx := context.Background()
-
-	first, err := store.Acquire(ctx, "billing:invoice:9", "worker-a", time.Minute)
-	require.NoError(s.T(), err)
-	require.True(s.T(), first.Acquired)
-
-	second, err := store.Acquire(ctx, "billing:invoice:9", "worker-b", time.Minute)
-	require.NoError(s.T(), err)
-	require.False(s.T(), second.Acquired)
-	require.Equal(s.T(), "worker-a", second.Owner)
-
-	require.NoError(s.T(), store.Release(ctx, first))
-	third, err := store.Acquire(ctx, "billing:invoice:9", "worker-b", time.Minute)
-	require.NoError(s.T(), err)
-	require.True(s.T(), third.Acquired)
 }
 
 func (s *QueueReliabilityTestSuite) TestDBOutboxStoreClaimsAndMarksEvents() {

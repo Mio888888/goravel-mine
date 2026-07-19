@@ -2,16 +2,12 @@ package services
 
 import (
 	"context"
-	"crypto/rand"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
 
-	"goravel/app/facades"
 	"goravel/app/http/response"
 	"goravel/app/models"
 )
@@ -305,25 +301,7 @@ func (s *PassportService) Logout(authorization string) error {
 }
 
 func (s *PassportService) buildToken(userID, tenantID uint64, tokenType string, ttlSeconds int) (string, error) {
-	secret, err := JWTSecret()
-	if err != nil {
-		return "", err
-	}
-
-	now := time.Now()
-	claims := jwt.MapClaims{
-		"sub":  "user",
-		"uid":  userID,
-		"tid":  tenantID,
-		"type": tokenType,
-		"jti":  rand.Text(),
-		"iat":  now.Unix(),
-	}
-	if ttlSeconds > 0 {
-		claims["exp"] = now.Add(time.Duration(ttlSeconds) * time.Second).Unix()
-	}
-
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secret))
+	return issueApplicationToken(tenantTokenSubject, userID, tenantID, tokenType, ttlSeconds)
 }
 
 func (s *PassportService) issueLoginTokens(userID uint64) (LoginResult, error) {
@@ -375,56 +353,6 @@ func (s *PassportService) loginSecurityScope() string {
 		return fmt.Sprintf("tenant:%d", s.tenant.ID)
 	}
 	return "tenant"
-}
-
-func JWTSecret() (string, error) {
-	secret := facades.Config().GetString("jwt.secret")
-	if secret != "" {
-		return secret, nil
-	}
-
-	appKey := facades.Config().GetString("app.key")
-	if appKey != "" {
-		return appKey, nil
-	}
-
-	if facades.Config().GetString("app.env") == "local" {
-		return "local-development-jwt-secret", nil
-	}
-
-	return "", ErrJWTSecretMissing
-}
-
-func AccessTokenTTLSeconds() int {
-	return jwtTTLSeconds("jwt.ttl", 60)
-}
-
-func RefreshTokenTTLSeconds() int {
-	return jwtTTLSeconds("jwt.refresh_ttl", 20160)
-}
-
-func jwtTTLSeconds(configKey string, defaultMinutes int) int {
-	minutes := facades.Config().GetInt(configKey, defaultMinutes)
-	if minutes <= 0 {
-		return 0
-	}
-	return minutes * 60
-}
-
-func tokenBlacklistTTL(ttlSeconds int) time.Duration {
-	if ttlSeconds <= 0 {
-		return 0
-	}
-	return time.Duration(ttlSeconds) * time.Second
-}
-
-func bearerToken(authorization string) string {
-	token := strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer "))
-	if token == authorization {
-		return ""
-	}
-
-	return token
 }
 
 func LoginErrorResult(err error) response.Result {

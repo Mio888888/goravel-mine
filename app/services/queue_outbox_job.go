@@ -39,7 +39,7 @@ func (j *QueueOutboxDispatchJob) Handle(args ...any) error {
 }
 
 func (j *QueueOutboxDispatchJob) ShouldRetry(err error, attempt int) (bool, time.Duration) {
-	return QueueRetryPolicy{MaxAttempts: 4, InitialDelay: time.Second, MaxDelay: 30 * time.Second}.ShouldRetry(err, attempt)
+	return queueOutboxRetryPolicy.ShouldRetry(err, attempt)
 }
 
 func RegisterQueueOutboxHandler(topic string, handler QueueOutboxHandler) {

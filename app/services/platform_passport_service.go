@@ -2,11 +2,9 @@ package services
 
 import (
 	"context"
-	"crypto/rand"
 	"errors"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
 
 	"goravel/app/models"
@@ -231,38 +229,14 @@ func (s *PlatformPassportService) Logout(authorization string) error {
 }
 
 func (s *PlatformPassportService) UserIDFromAuthorization(authorization, tokenType string) (uint64, error) {
-	tokenText := bearerToken(authorization)
-	if tokenText == "" {
-		return 0, ErrUnauthorized
-	}
-
-	claims := jwt.MapClaims{}
-	secret, err := JWTSecret()
+	tokenInfo, err := parseApplicationToken(authorization, jwtTokenRequirements{
+		Subject: platformTokenSubject,
+		Type:    tokenType,
+	})
 	if err != nil {
 		return 0, err
 	}
-
-	token, err := jwt.ParseWithClaims(tokenText, claims, func(token *jwt.Token) (any, error) {
-		if token.Method != jwt.SigningMethodHS256 {
-			return nil, ErrUnauthorized
-		}
-
-		return []byte(secret), nil
-	})
-	if err != nil || !token.Valid {
-		return 0, ErrUnauthorized
-	}
-
-	if claims["sub"] != platformTokenSubject || claims["type"] != tokenType {
-		return 0, ErrUnauthorized
-	}
-
-	userID, err := claimUint64(claims["uid"])
-	if err != nil || userID == 0 {
-		return 0, ErrUnauthorized
-	}
-
-	return userID, nil
+	return tokenInfo.UserID, nil
 }
 
 func (s *PlatformPassportService) FormatUserInfo(user models.User) (UserInfo, error) {
@@ -401,24 +375,7 @@ func (s *PlatformPassportService) updatePasswordWithValues(userID uint64, values
 }
 
 func (s *PlatformPassportService) buildToken(userID uint64, tokenType string, ttlSeconds int) (string, error) {
-	secret, err := JWTSecret()
-	if err != nil {
-		return "", err
-	}
-
-	now := time.Now()
-	claims := jwt.MapClaims{
-		"sub":  platformTokenSubject,
-		"uid":  userID,
-		"type": tokenType,
-		"jti":  rand.Text(),
-		"iat":  now.Unix(),
-	}
-	if ttlSeconds > 0 {
-		claims["exp"] = now.Add(time.Duration(ttlSeconds) * time.Second).Unix()
-	}
-
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secret))
+	return issueApplicationToken(platformTokenSubject, userID, 0, tokenType, ttlSeconds)
 }
 
 func (s *PlatformPassportService) issueLoginTokens(userID uint64) (LoginResult, error) {

@@ -14,11 +14,6 @@ import (
 
 const operationLogQueueName = "operation_logs"
 
-const (
-	operationLogRetryAttempts = 4
-	operationLogRetryMaxDelay = 30 * time.Second
-)
-
 var operationLogDispatcher = newOperationLogWorker(128)
 
 type OperationLogJob struct{}
@@ -35,14 +30,7 @@ func (j *OperationLogJob) Handle(args ...any) error {
 }
 
 func (j *OperationLogJob) ShouldRetry(err error, attempt int) (bool, time.Duration) {
-	if err == nil || attempt >= operationLogRetryAttempts {
-		return false, 0
-	}
-	delay := time.Duration(1<<attempt) * time.Second
-	if delay > operationLogRetryMaxDelay {
-		delay = operationLogRetryMaxDelay
-	}
-	return true, delay
+	return operationLogRetryPolicy.ShouldRetry(err, attempt)
 }
 
 func DispatchOperationLog(payload OperationLogPayload) {

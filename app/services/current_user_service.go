@@ -3,12 +3,8 @@ package services
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	contractsorm "github.com/goravel/framework/contracts/database/orm"
 	"goravel/app/models"
 )
@@ -55,11 +51,6 @@ type ProfileUpdate struct {
 	NewPasswordConfirmation string         `json:"new_password_confirmation"`
 }
 
-type TokenInfo struct {
-	UserID   uint64
-	TenantID uint64
-}
-
 func (s *PassportService) UserIDFromAuthorization(authorization, tokenType string) (uint64, error) {
 	tokenInfo, err := s.TokenInfoFromAuthorization(authorization, tokenType)
 	if err != nil {
@@ -69,42 +60,11 @@ func (s *PassportService) UserIDFromAuthorization(authorization, tokenType strin
 }
 
 func (s *PassportService) TokenInfoFromAuthorization(authorization, tokenType string) (TokenInfo, error) {
-	tokenText := strings.TrimSpace(strings.TrimPrefix(authorization, "Bearer "))
-	if tokenText == "" || tokenText == authorization {
-		return TokenInfo{}, ErrUnauthorized
-	}
-
-	claims := jwt.MapClaims{}
-	secret, err := JWTSecret()
-	if err != nil {
-		return TokenInfo{}, err
-	}
-
-	token, err := jwt.ParseWithClaims(tokenText, claims, func(token *jwt.Token) (any, error) {
-		if token.Method != jwt.SigningMethodHS256 {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-
-		return []byte(secret), nil
+	return parseApplicationToken(authorization, jwtTokenRequirements{
+		Subject:       tenantTokenSubject,
+		Type:          tokenType,
+		RequireTenant: true,
 	})
-	if err != nil || !token.Valid {
-		return TokenInfo{}, ErrUnauthorized
-	}
-
-	if claims["type"] != tokenType {
-		return TokenInfo{}, ErrUnauthorized
-	}
-
-	userID, err := claimUint64(claims["uid"])
-	if err != nil || userID == 0 {
-		return TokenInfo{}, ErrUnauthorized
-	}
-	tenantID, err := claimUint64(claims["tid"])
-	if err != nil || tenantID == 0 {
-		return TokenInfo{}, ErrUnauthorized
-	}
-
-	return TokenInfo{UserID: userID, TenantID: tenantID}, nil
 }
 
 func (s *PassportService) FormatUserInfo(user models.User) (UserInfo, error) {
@@ -275,23 +235,6 @@ func (s *PassportService) ensureTokenTenant(tokenTenantID uint64) error {
 		return ErrUnauthorized
 	}
 	return nil
-}
-
-func claimUint64(value any) (uint64, error) {
-	switch v := value.(type) {
-	case float64:
-		return uint64(v), nil
-	case int:
-		return uint64(v), nil
-	case int64:
-		return uint64(v), nil
-	case uint64:
-		return v, nil
-	case string:
-		return strconv.ParseUint(v, 10, 64)
-	default:
-		return 0, fmt.Errorf("unsupported uid claim type %T", value)
-	}
 }
 
 func IsProfileValidationError(err error) bool {

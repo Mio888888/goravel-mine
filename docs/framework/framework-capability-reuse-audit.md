@@ -46,6 +46,21 @@
 
 - 查询过滤器只能在 `query_filters.go` 定义。
 - 服务层不得直接调用 `facades.Orm().Connection()`。
+- 应用 JWT 只能通过 `app/services/jwt_token.go` 签发和解析。
+- 不得重新引入与 Goravel Cache 原子锁重复的 Queue Task Lock Store。
+
+### JWT 公共内核
+
+租户认证与平台认证继续保留现有 `tenant/type/jti`、独立 Refresh Token 和
+黑名单协议，但 HS256 签发、验签、Bearer 提取、TTL 解析和 Claim 转换统一由
+`app/services/jwt_token.go` 提供，避免两套认证服务各自维护底层 JWT 细节。
+
+### 队列可靠性
+
+操作日志任务和 Outbox 任务统一复用 `QueueRetryPolicy`，分别保留原有首退避
+时间和最大延迟。已确认 `QueueTaskLockStore` 没有生产调用方，删除自建内存锁、
+数据库锁及其测试，并通过 `202607190001_drop_queue_task_lock_table` 独立迁移
+移除废弃表；需要业务锁时直接使用 Goravel Cache 原子锁。
 
 ## 应保留的扩展
 
@@ -60,13 +75,6 @@
 | SSO / 调度 URL HTTP 客户端 | `facades.Http()` | 含 DNS 固定、私网拦截和重定向复验，保留安全传输 |
 | S3 签名客户端 | Goravel Filesystem | 当前实现涉及对象锁和版本校验；迁移前需验证驱动契约 |
 
-## 待决重复能力
-
-`QueueTaskLockStore` 与 Goravel Cache 原子锁能力重叠，且当前生产代码没有调用方，
-只有单元测试、特性测试和 `queue_task_lock` 数据表契约引用。后续清理需要先确认
-是否仍有外部模块使用该导出接口，再通过独立数据库迁移删除表；不应直接修改已
-发布的历史迁移。
-
 ## 后续优先级
 
 1. 为普通第三方 API 调用配置命名 HTTP Client，并使用 `facades.Http()`，
@@ -75,8 +83,6 @@
    但应避免引入继承式大基类。
 3. 评估官方 S3 文件系统驱动是否完整支持对象锁、版本 ID 和签名请求；
    只有契约覆盖后再替换自建客户端。
-4. 对 `QueueTaskLockStore` 做调用方审计和弃用周期设计；确认无外部依赖后，
-   使用框架 Cache 原子锁并新增迁移删除 `queue_task_lock`。
 
 ## 文档依据
 

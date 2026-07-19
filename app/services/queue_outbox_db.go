@@ -93,7 +93,6 @@ func (s *DBQueueOutboxStore) MarkFailed(ctx context.Context, id uint64, claimTok
 		return nil
 	}
 	now := time.Now()
-	policy := QueueRetryPolicy{MaxAttempts: 4, InitialDelay: time.Second, MaxDelay: 30 * time.Second}
 	var row QueueOutboxEvent
 	query := OrmForConnectionWithContext(ctx, s.connection).Query()
 	if err := query.Table("queue_outbox").
@@ -106,7 +105,7 @@ func (s *DBQueueOutboxStore) MarkFailed(ctx context.Context, id uint64, claimTok
 	attempts := row.Attempts + 1
 	status := QueueOutboxStatusFailed
 	availableAt := now
-	if retryable, delay := policy.ShouldRetry(dispatchErr, attempts); retryable {
+	if retryable, delay := queueOutboxRetryPolicy.ShouldRetry(dispatchErr, attempts); retryable {
 		status = QueueOutboxStatusPending
 		availableAt = now.Add(delay)
 	}

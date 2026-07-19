@@ -81,25 +81,6 @@ func TestQueueIdempotencyStoreDoesNotRunConcurrentDuplicate(t *testing.T) {
 	require.Equal(t, 1, calls)
 }
 
-func TestQueueTaskLockRejectsSecondHolderUntilRelease(t *testing.T) {
-	locks := services.NewMemoryQueueTaskLockStore()
-	ctx := context.Background()
-
-	first, err := locks.Acquire(ctx, "billing:invoice:9", "worker-a", time.Minute)
-	require.NoError(t, err)
-	require.True(t, first.Acquired)
-
-	second, err := locks.Acquire(ctx, "billing:invoice:9", "worker-b", time.Minute)
-	require.NoError(t, err)
-	require.False(t, second.Acquired)
-	require.Equal(t, "worker-a", second.Owner)
-
-	require.NoError(t, locks.Release(ctx, first))
-	third, err := locks.Acquire(ctx, "billing:invoice:9", "worker-b", time.Minute)
-	require.NoError(t, err)
-	require.True(t, third.Acquired)
-}
-
 func TestQueueOutboxBuildsSerializableQueueArgs(t *testing.T) {
 	event := services.QueueOutboxEvent{
 		ID:         7,

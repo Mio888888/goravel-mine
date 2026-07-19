@@ -113,6 +113,67 @@ func TestApplicationUsesSharedCronParser(t *testing.T) {
 	}
 }
 
+func TestApplicationUsesSharedJWTTokenCodec(t *testing.T) {
+	allowed := map[string]bool{
+		filepath.ToSlash(filepath.Join("app", "services", "jwt_token.go")):            true,
+		filepath.ToSlash(filepath.Join("app", "services", "sso_protocol_service.go")): true,
+	}
+	forEachServiceFile(t, func(path string, file *ast.File) {
+		normalized := filepath.ToSlash(path)
+		for suffix := range allowed {
+			if strings.HasSuffix(normalized, suffix) {
+				return
+			}
+		}
+		ast.Inspect(file, func(node ast.Node) bool {
+			call, ok := node.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+			selector, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok || (selector.Sel.Name != "NewWithClaims" && selector.Sel.Name != "ParseWithClaims") {
+				return true
+			}
+			identifier, ok := selector.X.(*ast.Ident)
+			if ok && identifier.Name == "jwt" {
+				t.Errorf("%s must use app/services/jwt_token.go for application tokens", path)
+			}
+			return true
+		})
+	})
+}
+
+func TestApplicationDoesNotReintroduceQueueTaskLockStore(t *testing.T) {
+	legacyDefinitions := map[string][]string{
+		"QueueTaskLock":            nil,
+		"QueueTaskLockStore":       nil,
+		"MemoryQueueTaskLockStore": nil,
+		"DBQueueTaskLockStore":     nil,
+	}
+
+	forEachApplicationFile(t, func(path string, file *ast.File) {
+		for _, declaration := range file.Decls {
+			typeDeclaration, ok := declaration.(*ast.GenDecl)
+			if !ok || typeDeclaration.Tok != token.TYPE {
+				continue
+			}
+			for _, spec := range typeDeclaration.Specs {
+				typeSpec, ok := spec.(*ast.TypeSpec)
+				if !ok {
+					continue
+				}
+				if _, tracked := legacyDefinitions[typeSpec.Name.Name]; tracked {
+					legacyDefinitions[typeSpec.Name.Name] = append(legacyDefinitions[typeSpec.Name.Name], path)
+				}
+			}
+		}
+	})
+
+	for name, paths := range legacyDefinitions {
+		require.Emptyf(t, paths, "%s duplicates the framework Cache atomic lock", name)
+	}
+}
+
 func TestServiceFiltersDoNotUseManualNonEmptyConditions(t *testing.T) {
 	for _, root := range []string{
 		filepath.Join("..", "..", "app", "services"),
